@@ -4,19 +4,19 @@
   </a>
 </p>
 
-<h1 align="center"><b>PHÂN TÍCH THIẾT KẾ HỆ THỐNG THÔNG TIN - IS201</b></h1>
+<h1 align="center"><b>NHẬP MÔN CÔNG NGHỆ PHẦN MỀM - SE104</b></h1>
 
 ## GIỚI THIỆU MÔN HỌC
 
--    **Tên môn học:** Phân tích thiết kế hệ thống thông tin
--    **Mã môn học:** IS201
--    **Mã lớp:** IS201.P21
--    **Năm học:** HK2 (2024 - 2025)
--    **Giảng viên:** Đỗ Thị Minh Phụng
+-    **Tên môn học:** Nhập môn công nghệ phần mềm
+-    **Mã môn học:** SE104
+-    **Mã lớp:** SE104.Q12
+-    **Năm học:** HK1 (2025 - 2026)
+-    **Giảng viên:** Ts.Đỗ Thị Thanh Tuyền
 -    
 ## GIỚI THIỆU ĐỒ ÁN
 
--    **Đề tài:** PC Hardware Market Web
+-    **Đề tài:** Quản lí đề tài Traleletralolo
 -    **Repository:** 
 -    **Behance:** 
 -    **Trang giới thiệu nhóm:** 
@@ -32,8 +32,8 @@
 | :-- | :------- | :------------------- | :---------------------------------- | :---------------------- |
 | 1   | 23520003 | Đặng Thiên Ân        | https://github.com/pentakll4002     | 23520003@gm.uit.edu.vn  |
 | 2   | 23520403 | Cao Nguyễn Kỳ Dỹ     | https://github.com/DWY4X            | 23520403@gm.uit.edu.vn  |
-| 3   | 23520534 | Nguyễn Triệu Hoàng   | https://github.com/hoangdeptrai1010 | 23520534@gm.uit.edu.vn  |
-| 4   | 23520649 | Trần Thanh Huy       | https://github.com/huytran          | 23520649@gm.uit.edu.vn  |
+| 3   | 23520534 | Nguyễn Văn Ân        | https://github.com/hoangdeptrai1010 | 23520534@gm.uit.edu.vn  |
+| 4   | 23520649 | Phạm Thái Vinh       | https://github.com/huytran          | 23520649@gm.uit.edu.vn  |
 
 
 ## GIAO DIỆN
