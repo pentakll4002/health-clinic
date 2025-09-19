@@ -3,7 +3,11 @@
 @tailwind utilities;
 
 body {
-  max-width: 1440px;
+  @apply text-base font-normal font-body;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+}
+
+.shadow-1 {
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.05);
 }

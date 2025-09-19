@@ -2,7 +2,11 @@
 export default {
   content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        body: ['Inter', 'sans-serif;'],
+      },
+    },
     colors: {
       dark: '#030303',
       light: '#F5F6F8',
