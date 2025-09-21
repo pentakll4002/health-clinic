@@ -1,7 +1,9 @@
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useState } from 'react';
 
 import LayoutAuth from '../../layouts/LayoutAuth';
 import FormRow from '../../ui/FormRow';
@@ -19,6 +21,10 @@ const schema = yup.object({
 });
 
 const ForgotPassword = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null);
+  const navigate = useNavigate();
   const {
     handleSubmit,
     control,
@@ -27,13 +33,30 @@ const ForgotPassword = () => {
     resolver: yupResolver(schema),
     mode: 'onSubmit',
   });
+
+  async function onSubmit(data) {
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const response = await axios.post('http://localhost:8000/api/forgot-password', data);
+      setMessage(response.data.message);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Password reset failed');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <LayoutAuth
       heading='Forgot Password'
       paragraph='No worries, we’ll send you reset instructions'
       picture={forgotPasswordImg}
     >
-      <form onSubmit={handleSubmit((data) => console.log(data))}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+        {message && <p className="text-green-500 text-center mb-4">{message}</p>}
         <FormRow
           label='Email Address'
           name='email'
@@ -48,8 +71,8 @@ const ForgotPassword = () => {
           />
         </FormRow>
 
-        <Button type='submit' className='w-full text-white bg-primary'>
-          Submit
+        <Button type='submit' className='w-full text-white bg-primary' disabled={loading}>
+          {loading ? 'Sending...' : 'Submit'}
         </Button>
 
         <span className='flex items-center justify-center mt-5 text-sm font-normal text-center gap-x-3'>
