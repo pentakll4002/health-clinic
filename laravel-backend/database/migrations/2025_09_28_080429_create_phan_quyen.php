@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('phan_quyen', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('ID_Nhom');
-            $table->unsignedInteger('ID_ChucNang'); // Changed to unsignedInteger to match increments() in chuc_nang table
+            $table->unsignedInteger('ID_ChucNang');
             $table->foreign('ID_Nhom')->references('id')->on('nhom');
             $table->foreign('ID_ChucNang')->references('ID_ChucNang')->on('chuc_nang');
             $table->timestamps();
