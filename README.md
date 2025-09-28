@@ -24,9 +24,9 @@
 
 ## CÔNG NGHỆ SỬ DỤNG
 
--    **Backend:** [PHP](https://www.php.net/), [Python](https://www.python.org/) 
--    **Frontend:** [HTML](https://developer.mozilla.org/en-US/docs/Web/HTML), [CSS](https://developer.mozilla.org/en-US/docs/Web/CSS), [JavaScript](https://www.javascript.com/), [Figma](https://www.figma.com/community), [Vite](https://vite.dev/), [ReactJS](https://react.dev/)
--    **Database:** [phpMyAdmin](https://www.phpmyadmin.net/), [Supabase](https://supabase.com/)
+-    **Backend:** [Laravel](https://laravel.com/), [Python](https://www.python.org/) 
+-    **Frontend:** [JavaScript](https://www.javascript.com/), [Figma](https://www.figma.com/community), [Vite](https://vite.dev/), [ReactJS](https://react.dev/), [Tailwind](https://tailwindcss.com/)
+-    **Database:** [MySQL](https://www.mysql.com/), [PHPMyAdmin](https://www.phpmyadmin.net/)
 ## THÀNH VIÊN NHÓM
 
 | STT | MSSV     | Họ và Tên            | GitHub                              | Email                   |
