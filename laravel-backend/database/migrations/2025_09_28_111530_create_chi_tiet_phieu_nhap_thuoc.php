@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreign("ID_PhieuNhapThuoc")->references("ID_PhieuNhapThuoc")->on("phieu_nhap_thuoc");
             $table->foreign("ID_Thuoc")->references("ID_Thuoc")->on("thuoc");
             $table->date("HanSuDung")->nullable(true);
-            $table->unsignedInteger("SoLuongNhap")->nullable(false);
+            $table->integer("SoLuongNhap")->nullable(false);
             $table->decimal("DonGiaNhap", 10, 2)->nullable(false);
             $table->decimal("ThanhTien", 10, 2)->default(0);
             $table->timestamps();

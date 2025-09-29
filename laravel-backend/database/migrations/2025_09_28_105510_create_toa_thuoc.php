@@ -17,7 +17,7 @@ return new class extends Migration
             $table->primary(['ID_PhieuKham', 'ID_Thuoc']);
             $table->foreign('ID_PhieuKham')->references('ID_PhieuKham')->on('phieu_kham');
             $table->foreign('ID_Thuoc')->references('id')->on('thuoc');
-            $table->unsignedInteger("SoLuong")->nullable(false);
+            $table->integer("SoLuong")->nullable(false);
             $table->decimal("DonGiaBan_LuocMua", 10, 2)->nullable(true);
             $table->decimal("TienThuoc", 10, 2)->default(0);
             $table->timestamps();
