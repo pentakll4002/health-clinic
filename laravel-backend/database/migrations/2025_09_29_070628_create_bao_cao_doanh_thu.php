@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('nhom_nguoi_dung', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger("ID_Nhom");
-            $table->timestamps();
-            $table->foreign("ID_Nhom")->references("id")->on("nhom");
+        Schema::create('bao_cao_doanh_thu', function (Blueprint $table) {
+            $table->increments("ID_BCDT");
+            $table->integer("Thang")->nullable(false);
+            $table->integer("Nam")->nullable(false);
+            $table->decimal("TongDoanhThu", 10, 2)->nullable(true);
         });
     }
 
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('nhom_nguoi_dung');
+        Schema::dropIfExists('bao_cao_doanh_thu');
     }
 };
