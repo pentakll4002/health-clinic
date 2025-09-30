@@ -1,7 +1,9 @@
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 import LayoutAuth from '../../layouts/LayoutAuth';
 import FormRow from '../../ui/FormRow';
@@ -50,6 +52,9 @@ const Register = () => {
   const { value: checked, handleToggleValue: handleSetChecked } =
     useToggleValue(false);
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
   const {
     handleSubmit,
     control,
@@ -59,13 +64,33 @@ const Register = () => {
     mode: 'onSubmit',
   });
 
+
+  async function onSubmit(data) {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.post('http://localhost:8000/api/register', {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      });
+      alert(response.data.message);
+      navigate('/sign-in'); // Redirect to login page after successful registration
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <LayoutAuth
       heading='Register'
       paragraph='Please enter your details to create account'
       picture={SignUpImg}
     >
-      <form onSubmit={handleSubmit((data) => console.log(data))}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        {error && <p className="mb-4 text-center text-red-500">{error}</p>}
         <FormRow label='Full name' name='name' error={errors.name?.message}>
           <Input
             control={control}
@@ -146,8 +171,8 @@ const Register = () => {
           </Link>
         </CheckBox>
 
-        <Button type='submit' className='w-full text-white bg-primary'>
-          Register
+        <Button type='submit' className='w-full text-white bg-primary' disabled={loading}>
+          {loading ? 'Registering...' : 'Register'}
         </Button>
 
         <div className='h-[20px] w-full flex items-center justify-between my-5'>

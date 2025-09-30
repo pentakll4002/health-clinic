@@ -1,7 +1,10 @@
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useState } from 'react';
+
 
 import LayoutAuth from '../../layouts/LayoutAuth';
 import SignInImg from '../../assets/sign-in.png';
@@ -39,6 +42,10 @@ const SignIn = () => {
   const { value: checked, handleToggleValue: handleSetChecked } =
     useToggleValue(false);
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
   const {
     handleSubmit,
     control,
@@ -48,13 +55,32 @@ const SignIn = () => {
     mode: 'onSubmit',
   });
 
+
+  
+
+  async function onSubmit(data) {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.post('http://localhost:8000/api/login', data);
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      navigate('/'); // Redirect to home or dashboard after successful login
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <LayoutAuth
       heading='Sign In'
       paragraph='Please enter below details to access the dashboard'
       picture={SignInImg}
     >
-      <form onSubmit={handleSubmit((data) => console.log(data))}>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        {error && <p className="mb-4 text-center text-red-500">{error}</p>}
         <FormRow
           label='Email Address'
           name='email'
@@ -104,8 +130,8 @@ const SignIn = () => {
           </Link>
         </div>
 
-        <Button type='submit' className='w-full text-white bg-primary'>
-          Login
+        <Button type='submit' className='w-full text-white bg-primary' disabled={loading}>
+          {loading ? 'Logging in...' : 'Login'}
         </Button>
 
         <div className='h-[20px] w-full flex items-center justify-between my-5'>

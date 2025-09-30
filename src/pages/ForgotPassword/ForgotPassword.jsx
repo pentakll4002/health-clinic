@@ -1,7 +1,10 @@
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+
+import axios from 'axios';
+import { useState } from 'react';
 
 import LayoutAuth from '../../layouts/LayoutAuth';
 import FormRow from '../../ui/FormRow';
@@ -19,7 +22,10 @@ const schema = yup.object({
 });
 
 const ForgotPassword = () => {
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [message, setMessage] = useState(null);
+  // const navigate = useNavigate();
   const {
     handleSubmit,
     control,
@@ -28,9 +34,21 @@ const ForgotPassword = () => {
     resolver: yupResolver(schema),
   });
 
-  function onSubmit(data) {
-    console.log(data);
-    navigate('/forgot-password/email-verification');
+  async function onSubmit(data) {
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const response = await axios.post(
+        'http://localhost:8000/api/forgot-password',
+        data
+      );
+      setMessage(response.data.message);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Password reset failed');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -40,6 +58,10 @@ const ForgotPassword = () => {
       picture={forgotPasswordImg}
     >
       <form onSubmit={handleSubmit(onSubmit)}>
+        {error && <p className='mb-4 text-center text-red-500'>{error}</p>}
+        {message && (
+          <p className='mb-4 text-center text-green-500'>{message}</p>
+        )}
         <FormRow
           label='Email Address'
           name='email'
@@ -54,8 +76,12 @@ const ForgotPassword = () => {
           />
         </FormRow>
 
-        <Button type='submit' className='w-full text-white bg-primary'>
-          Submit
+        <Button
+          type='submit'
+          className='w-full text-white bg-primary'
+          disabled={loading}
+        >
+          {loading ? 'Sending...' : 'Submit'}
         </Button>
 
         <span className='flex items-center justify-center mt-5 text-sm font-normal text-center gap-x-3'>
