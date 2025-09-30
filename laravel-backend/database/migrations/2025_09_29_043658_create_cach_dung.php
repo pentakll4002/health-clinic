@@ -11,11 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('password');
-            $table->rememberToken();
-            $table->timestamps();
+        Schema::create('cach_dung', function (Blueprint $table) {
+            $table->increments("ID_CachDung");
+            $table->string("MoTaCachDung", 100)->nullable(false);
         });
     }
 
@@ -24,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('cach_dung');
     }
 };

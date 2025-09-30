@@ -10,6 +10,7 @@ import LayoutApp from './layouts/LayoutApp';
 
 function App() {
   return (
+<<<<<<< HEAD
     <>
       <BrowserRouter>
         <Routes>
@@ -48,6 +49,14 @@ function App() {
         }}
       /> */}
     </>
+=======
+    <Routes>
+      <Route path='/' element={<SignIn />} />
+      <Route path='/sign-in' element={<SignIn />} />
+      <Route path='/sign-up' element={<Register />} />
+      <Route path='/forgot-password' element={<ForgotPassword />} />
+    </Routes>
+>>>>>>> 50a0874bfadf8501b649a07ac3143a242466fa8e
   );
 }
 
