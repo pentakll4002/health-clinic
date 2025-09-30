@@ -8,6 +8,32 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+input {
+  outline: none;
+}
+
 .shadow-1 {
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.05);
+}
+
+.bg-button--header {
+  background: linear-gradient(90deg, #2e37a4 0%, #0e9384 100%);
+}
+
+.bg-user {
+  background: url('../assets/default-user.jpg') lightgray 50% / cover no-repeat;
+}
+
+.otpInput {
+  width: 60px;
+  height: 60px;
+  margin: 16px;
+  text-align: center;
+  font-size: 16px;
+  border: 2px solid #000;
+  border-radius: 5px;
+}
+
+.otpInput:focus {
+  border: 2px solid #2e37a4;
 }

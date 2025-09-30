@@ -20,7 +20,7 @@ import {
 import logoFacebook from '../../assets/bi_facebook.png';
 import logoGoogle from '../../assets/Google_Logo.png';
 import logoApple from '../../assets/Apple_Logo.png';
-import { useState } from 'react';
+import useToggleValue from '../../hooks/useToggleValue';
 
 const schema = yup.object({
   email: yup
@@ -30,12 +30,15 @@ const schema = yup.object({
   password: yup
     .string()
     .required('Vui lòng nhập mật khẩu')
-    .min(8, 'Mật khẩu tối đa 8 kí tự'),
+    .min(8, 'Mật khẩu ít nhất 8 kí tự'),
 });
 
 const SignIn = () => {
-  const [checked, setChecked] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const { value: showPassword, handleToggleValue: handleSetShowPassword } =
+    useToggleValue(false);
+  const { value: checked, handleToggleValue: handleSetChecked } =
+    useToggleValue(false);
+
   const {
     handleSubmit,
     control,
@@ -44,10 +47,6 @@ const SignIn = () => {
     resolver: yupResolver(schema),
     mode: 'onSubmit',
   });
-
-  function handleShowPassword() {
-    setShowPassword(!showPassword);
-  }
 
   return (
     <LayoutAuth
@@ -83,21 +82,18 @@ const SignIn = () => {
             icon={<LockClosedIcon />}
           >
             {!showPassword ? (
-              <EyeSlashIcon className='w-6 h-6' onClick={handleShowPassword} />
+              <EyeSlashIcon
+                className='w-6 h-6'
+                onClick={handleSetShowPassword}
+              />
             ) : (
-              <EyeIcon className='w-6 h-6' onClick={handleShowPassword} />
+              <EyeIcon className='w-6 h-6' onClick={handleSetShowPassword} />
             )}
           </Input>
         </FormRow>
 
         <div className='flex justify-between'>
-          <CheckBox
-            name='term'
-            onClick={() => {
-              setChecked(!checked);
-            }}
-            checked={checked}
-          >
+          <CheckBox name='term' onClick={handleSetChecked} checked={checked}>
             Remember Me
           </CheckBox>
           <Link

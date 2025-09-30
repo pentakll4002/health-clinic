@@ -1,14 +1,15 @@
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import LayoutAuth from '../../layouts/LayoutAuth';
-import SignUpImg from '../../assets/register.png';
 import FormRow from '../../ui/FormRow';
 import Input from '../../ui/Input';
 import Button from '../../ui/Button';
 import ButtonSocial from '../../ui/ButtonSocial';
+import CheckBox from '../../ui/CheckBox';
+import useToggleValue from '../../hooks/useToggleValue';
 
 import {
   EnvelopeIcon,
@@ -20,11 +21,10 @@ import {
 import logoFacebook from '../../assets/bi_facebook.png';
 import logoGoogle from '../../assets/Google_Logo.png';
 import logoApple from '../../assets/Apple_Logo.png';
-import { Link } from 'react-router-dom';
-import CheckBox from '../../ui/CheckBox';
+import SignUpImg from '../../assets/register.png';
 
 const schema = yup.object({
-  name: yup.string().required('Vui lòng nhập tên đăng nhập'),
+  name: yup.string().required('Vui lòng nhập tên tài khoản'),
   email: yup
     .string()
     .email('Invalid email address')
@@ -35,13 +35,21 @@ const schema = yup.object({
     .min(8, 'Mật khẩu tối đa 8 kí tự'),
   confirmPassword: yup
     .string()
+    .label('confirm password')
     .required('Vui lòng nhập mật khẩu')
-    .min(8, 'Mật khẩu tối đa 8 kí tự'),
+    .oneOf([yup.ref('password'), null], 'Mật khẩu không khớp'),
 });
 
 const Register = () => {
-  const [checked, setChecked] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const { value: showPassword, handleToggleValue: handleSetShowPassword } =
+    useToggleValue(false);
+  const {
+    value: showConfirmPassword,
+    handleToggleValue: handleSetShowConfirmPassword,
+  } = useToggleValue(false);
+  const { value: checked, handleToggleValue: handleSetChecked } =
+    useToggleValue(false);
+
   const {
     handleSubmit,
     control,
@@ -51,9 +59,6 @@ const Register = () => {
     mode: 'onSubmit',
   });
 
-  function handleShowPassword() {
-    setShowPassword(!showPassword);
-  }
   return (
     <LayoutAuth
       heading='Register'
@@ -98,9 +103,12 @@ const Register = () => {
             icon={<LockClosedIcon />}
           >
             {!showPassword ? (
-              <EyeSlashIcon className='w-6 h-6' onClick={handleShowPassword} />
+              <EyeSlashIcon
+                className='w-6 h-6'
+                onClick={handleSetShowPassword}
+              />
             ) : (
-              <EyeIcon className='w-6 h-6' onClick={handleShowPassword} />
+              <EyeIcon className='w-6 h-6' onClick={handleSetShowPassword} />
             )}
           </Input>
         </FormRow>
@@ -113,25 +121,25 @@ const Register = () => {
           <Input
             control={control}
             name='confirmPassword'
-            type={!showPassword ? 'password' : 'string'}
+            type={!showConfirmPassword ? 'password' : 'string'}
             placeholder='************'
             icon={<LockClosedIcon />}
           >
-            {!showPassword ? (
-              <EyeSlashIcon className='w-6 h-6' onClick={handleShowPassword} />
+            {!showConfirmPassword ? (
+              <EyeSlashIcon
+                className='w-6 h-6'
+                onClick={handleSetShowConfirmPassword}
+              />
             ) : (
-              <EyeIcon className='w-6 h-6' onClick={handleShowPassword} />
+              <EyeIcon
+                className='w-6 h-6'
+                onClick={handleSetShowConfirmPassword}
+              />
             )}
           </Input>
         </FormRow>
 
-        <CheckBox
-          name='term'
-          onClick={() => {
-            setChecked(!checked);
-          }}
-          checked={checked}
-        >
+        <CheckBox name='term' onClick={handleSetChecked} checked={checked}>
           I agree to the{' '}
           <Link className='underline text-primary'>
             Terms of Service & Privacy Policy
