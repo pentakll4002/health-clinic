@@ -12,8 +12,8 @@ const FormRow = ({ label, children, name, error }) => {
 
       {children}
 
-      <span className='text-sm text-error-900 min-h-[20px]'>
-        {error || '\u00A0'}
+      <span className='m-2 text-sm text-error-900 min-h-5'>
+        {error || ' '}
       </span>
     </div>
   );

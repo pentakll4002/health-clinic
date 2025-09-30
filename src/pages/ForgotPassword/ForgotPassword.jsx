@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import LayoutAuth from '../../layouts/LayoutAuth';
 import FormRow from '../../ui/FormRow';
@@ -19,21 +19,27 @@ const schema = yup.object({
 });
 
 const ForgotPassword = () => {
+  const navigate = useNavigate();
   const {
     handleSubmit,
     control,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
-    mode: 'onSubmit',
   });
+
+  function onSubmit(data) {
+    console.log(data);
+    navigate('/forgot-password/email-verification');
+  }
+
   return (
     <LayoutAuth
       heading='Forgot Password'
       paragraph='No worries, we’ll send you reset instructions'
       picture={forgotPasswordImg}
     >
-      <form onSubmit={handleSubmit((data) => console.log(data))}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <FormRow
           label='Email Address'
           name='email'
