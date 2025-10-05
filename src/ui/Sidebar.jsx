@@ -1,11 +1,32 @@
 import Dropdown from './Dropdown';
-import { ApplicationSvg, DashboardSvg } from '../constants/Global';
-import { MapPinIcon, MoonIcon } from '@heroicons/react/24/outline';
 import SidebarLink from './SidebarLink';
+import ButtonToggle from './ButtonToggle';
+
+import {
+  ApplicationSvg,
+  AppointmentsSvg,
+  DashboardSvg,
+  DoctorsSvg,
+  LeavesSvg,
+  PatientsSvg,
+} from '../constants/Global';
+
+import {
+  ChatBubbleLeftRightIcon,
+  Cog8ToothIcon,
+  CurrencyDollarIcon,
+  EnvelopeIcon,
+  MapPinIcon,
+  MoonIcon,
+  QuestionMarkCircleIcon,
+  ShieldExclamationIcon,
+  UserCircleIcon,
+  UserGroupIcon,
+} from '@heroicons/react/24/outline';
 
 const Sidebar = () => {
   return (
-    <aside className='w-full h-full p-4 overflow-y-auto bg-white'>
+    <aside className='w-full h-full p-4 overflow-y-auto bg-white border-r border-grey-transparent'>
       {/* Main Menu */}
       <div className='mb-6'>
         <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>
@@ -41,7 +62,7 @@ const Sidebar = () => {
 
         {/* Doctors */}
         <Dropdown
-          icon={DashboardSvg}
+          icon={DoctorsSvg}
           label='Doctors'
           items={[
             { label: 'Doctors', to: '/admin-dashboard' },
@@ -53,7 +74,7 @@ const Sidebar = () => {
 
         {/* Patients */}
         <Dropdown
-          icon={ApplicationSvg}
+          icon={PatientsSvg}
           label='Patients'
           items={[
             { label: 'Patients', to: '/admin-dashboard' },
@@ -64,7 +85,7 @@ const Sidebar = () => {
 
         {/* Appointments */}
         <Dropdown
-          icon={ApplicationSvg}
+          icon={AppointmentsSvg}
           label='Appointments'
           items={[
             { label: 'Appointments', to: '/admin-dashboard' },
@@ -74,18 +95,18 @@ const Sidebar = () => {
         />
 
         <SidebarLink to='/' icon={MapPinIcon} label='Locations' />
-        <SidebarLink to='/' icon={MapPinIcon} label='Messages' />
+        <SidebarLink to='/' icon={ChatBubbleLeftRightIcon} label='Messages' />
       </div>
 
       {/* HRM */}
       <div className='flex flex-col mb-6'>
         <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>HRM</p>
 
-        <SidebarLink to='/' icon={MapPinIcon} label='Staff' />
-        <SidebarLink to='/' icon={MapPinIcon} label='Payroll' />
+        <SidebarLink to='/' icon={UserGroupIcon} label='Staff' />
+        <SidebarLink to='/' icon={CurrencyDollarIcon} label='Payroll' />
 
         <Dropdown
-          icon={ApplicationSvg}
+          icon={LeavesSvg}
           label='Leaves'
           items={[
             { label: 'Leaves', to: '/admin-dashboard' },
@@ -98,10 +119,15 @@ const Sidebar = () => {
       <div className='flex flex-col mb-6'>
         <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>Support</p>
 
-        <SidebarLink to='/' icon={MapPinIcon} label='FAQ' />
-        <SidebarLink to='/' icon={MapPinIcon} label='Newsletters' />
-        <SidebarLink to='/' icon={MapPinIcon} label='Profile' />
-        <SidebarLink to='/' icon={MapPinIcon} label='Privacy Policy' />
+        <SidebarLink to='/' icon={QuestionMarkCircleIcon} label='FAQ' />
+        <SidebarLink to='/' icon={EnvelopeIcon} label='Newsletters' />
+        <SidebarLink to='/' icon={UserCircleIcon} label='Profile' />
+        <SidebarLink
+          to='/'
+          icon={ShieldExclamationIcon}
+          label='Privacy Policy'
+        />
+        <SidebarLink to='/' icon={Cog8ToothIcon} label='Setting' />
       </div>
 
       <div className='border border-grey-transparent'></div>
@@ -113,7 +139,7 @@ const Sidebar = () => {
 
         <span>Dark Mode</span>
 
-        <span>nút</span>
+        <ButtonToggle />
       </div>
     </aside>
   );
