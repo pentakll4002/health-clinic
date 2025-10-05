@@ -7,13 +7,16 @@ import EmailVerification from './pages/ForgotPassword/EmailVerification';
 import ResetPassword from './pages/ForgotPassword/ResetPassword';
 import Success from './pages/ForgotPassword/Success';
 import LayoutApp from './layouts/LayoutApp';
+import Doctors from './pages/doctors/Doctors';
 
 function App() {
   return (
     <>
       <BrowserRouter>
         <Routes>
-          <Route path='/' element={<LayoutApp />} />
+          <Route element={<LayoutApp />}>
+            <Route index element={<Doctors />} />
+          </Route>
 
           <Route path='/sign-in' element={<SignIn />} />
           <Route path='/sign-up' element={<Register />} />

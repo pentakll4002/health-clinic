@@ -12,7 +12,7 @@ import { ChartSg } from '../constants/Global';
 
 const Header = () => {
   return (
-    <header className='flex w-[1164px] h-[52px] px-6 py-2 flex-col justify-center items-start gap-[10px] border border-grey-transparent bg-white'>
+    <header className='flex w-full h-[52px] px-6 py-2 flex-col justify-center items-start gap-[10px] border-b border-grey-transparent bg-white'>
       <div className='flex justify-between items-center flex-[1_0_0] self-stretch'>
         <Search />
 

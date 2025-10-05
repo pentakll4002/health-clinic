@@ -19,11 +19,13 @@ const SidebarLink = ({ to, icon: Icon, label }) => {
       {({ isActive }) => (
         <Nav
           className={classNames(
-            isActive ? 'ring-1 ring-grey-transparent rounded-md' : ''
+            isActive
+              ? 'ring-1 ring-grey-transparent rounded-md text-primary'
+              : 'text-grey-900'
           )}
         >
           {Icon && <Icon className='w-5 h-5 text-primary' />}
-          <span className='text-sm font-medium text-grey-900'>{label}</span>
+          <span className='text-sm font-medium'>{label}</span>
         </Nav>
       )}
     </NavLink>
