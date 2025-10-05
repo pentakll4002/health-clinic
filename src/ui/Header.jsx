@@ -1,12 +1,14 @@
+import Search from '../components/Search/Search';
+import User from './User';
+import { Link } from 'react-router-dom';
+
 import {
   BellIcon,
   CalendarIcon,
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
-import Search from '../components/Search/Search';
+
 import { ChartSg } from '../constants/Global';
-import { Link } from 'react-router-dom';
-import User from './User';
 
 const Header = () => {
   return (

@@ -4,12 +4,18 @@ import Sidebar from '../ui/Sidebar';
 
 const LayoutApp = () => {
   return (
-    <div className='grid grid-cols-[260px_1fr] grid-rows-[auto_1fr] h-screen max-w-[1440px] mx-auto'>
-      <Sidebar />
-      <Header />
-      <main>
-        <Outlet />
-      </main>
+    <div className='h-screen w-full grid grid-cols-[300px_1fr]'>
+      <aside>
+        <Sidebar />
+      </aside>
+
+      <div className='flex flex-col h-full'>
+        <Header />
+
+        <main className='flex-1 p-6 overflow-y-auto'>
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };
