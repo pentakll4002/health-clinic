@@ -44,8 +44,6 @@ aside::-webkit-scrollbar {
 
 aside {
   scrollbar-width: none;
-    -ms-overflow-style: none; /* IE, Edge */
+  -ms-overflow-style: none; /* IE, Edge */
   scrollbar-gutter: stable both-edges;
 }
-
-

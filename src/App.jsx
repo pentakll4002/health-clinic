@@ -1,4 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import SignIn from './pages/SignIn/SignIn';
 import Register from './pages/Register/Register';
@@ -7,11 +9,21 @@ import EmailVerification from './pages/ForgotPassword/EmailVerification';
 import ResetPassword from './pages/ForgotPassword/ResetPassword';
 import Success from './pages/ForgotPassword/Success';
 import LayoutApp from './layouts/LayoutApp';
-import Doctors from './pages/doctors/Doctors';
+import Doctors from './pages/Doctors';
+
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 0,
+    },
+  },
+});
 
 function App() {
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
+      <ReactQueryDevtools initialIsOpen={false} />
       <BrowserRouter>
         <Routes>
           <Route element={<LayoutApp />}>
@@ -28,7 +40,7 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
-    </>
+    </QueryClientProvider>
   );
 }
 

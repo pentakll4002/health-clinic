@@ -1,4 +1,4 @@
-import Search from '../components/Search/Search';
+
 import User from './User';
 import { Link } from 'react-router-dom';
 
@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 import { ChartSg } from '../constants/Global';
+import Search from '../features/Search/Search';
 
 const Header = () => {
   return (
