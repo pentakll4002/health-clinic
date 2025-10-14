@@ -1,15 +1,17 @@
 import styled from 'styled-components';
-import DoctorsCardContainer from './DoctorsCardContainer';
+import { useState } from 'react';
+import classNames from '../utils/classNames';
+import DoctorsCardContainer from '../features/doctors/DoctorsCardContainer';
 
 import {
   FunnelIcon,
   ListBulletIcon,
-  PlusIcon,
   Squares2X2Icon,
 } from '@heroicons/react/24/outline';
+import AddDoctor from '../features/doctors/AddDoctor';
 
 const LayoutDoctors = styled.div`
-  width: full;
+  width: 100%;
   height: 100%;
   padding: 20px;
   background-color: #f5f6f8;
@@ -19,9 +21,12 @@ const LayoutFlex = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 20px;
 `;
 
 const Doctors = () => {
+  const [layout, setLayout] = useState('grid');
+
   return (
     <LayoutDoctors>
       <LayoutFlex>
@@ -44,26 +49,36 @@ const Doctors = () => {
           </div>
 
           <div className='flex items-center justify-center p-1 bg-white border rounded-md gap-x-2 border-grey-transparent shadow-1'>
-            <span className='p-1'>
+            <button
+              className={classNames(
+                'p-1 cursor-pointer ',
+                layout === 'list' ? 'bg-light' : ''
+              )}
+              onClick={() => {
+                setLayout('list');
+              }}
+            >
               <ListBulletIcon className='w-5 h-5' />
-            </span>
-            <span className='p-1 bg-light'>
+            </button>
+            <button
+              className={classNames(
+                'p-1 cursor-pointer ',
+                layout === 'grid' ? 'bg-light' : ''
+              )}
+              onClick={() => {
+                setLayout('grid');
+              }}
+            >
               <Squares2X2Icon className='w-5 h-5' />
-            </span>
+            </button>
           </div>
 
           {/* New doctors */}
-          <button
-            className=' py-[6px] px-[10px] bg-primary rounded-md flex items-center justify-center gap-x-2 text-white text-sm font-semibold'
-            onClick={() => {}}
-          >
-            <PlusIcon className='w-5 h-5' />
-            <span>New Doctor</span>
-          </button>
+          <AddDoctor />
         </div>
       </LayoutFlex>
 
-      <DoctorsCardContainer />
+      <DoctorsCardContainer layout={layout} />
     </LayoutDoctors>
   );
 };

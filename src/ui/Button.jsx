@@ -3,7 +3,7 @@ import classNames from '../utils/classNames';
 const Button = ({
   type = '',
   children,
-  className = 'text-whitish-100',
+  className = 'text-white',
   isLoading = false,
   onClick = () => {},
   ...rest
