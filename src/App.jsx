@@ -10,7 +10,7 @@ import ResetPassword from './pages/ForgotPassword/ResetPassword';
 import Success from './pages/ForgotPassword/Success';
 import LayoutApp from './layouts/LayoutApp';
 import Doctors from './pages/Doctors';
-
+import Patients from './pages/Patients';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,6 +28,7 @@ function App() {
         <Routes>
           <Route element={<LayoutApp />}>
             <Route index element={<Doctors />} />
+            <Route path='patient' element={<Patients />} />
           </Route>
 
           <Route path='/sign-in' element={<SignIn />} />

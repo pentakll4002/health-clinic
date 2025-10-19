@@ -13,7 +13,7 @@ const Form = styled.form`
   min-width: 600px;
 `;
 
-const CreateDoctorForm = () => {
+const CreatePatientForm = () => {
   const { register, handleSubmit, reset, getValues, formState } = useForm();
 
   const { errors } = formState;
@@ -25,13 +25,13 @@ const CreateDoctorForm = () => {
   return (
     <div>
       <div className='w-full pb-4 mb-10 border-b border-grey-transparent'>
-        <h2 className='text-xl font-bold'>Thông tin bác sĩ</h2>
+        <h2 className='text-xl font-bold'>Thông tin bệnh nhân</h2>
       </div>
       <Form onSubmit={handleSubmit(onSubmit)}>
         <InputImage />
         <div />
 
-        <FormRow label='Name*' error={errors.name?.message}>
+        <FormRow label='Họ Tên*' error={errors.name?.message}>
           <InputNew
             type='text'
             id='name'
@@ -41,11 +41,11 @@ const CreateDoctorForm = () => {
           />
         </FormRow>
 
-        <FormRow label='ID Nhân viên' error={errors.id_nhanvien?.message}>
+        <FormRow label='ID Bệnh Nhân' error={errors.id_benhnhan?.message}>
           <InputNew
             type='text'
-            id='id_nhanvien'
-            {...register('id_nhanvien', {
+            id='id_benhnhan'
+            {...register('id_benhnhan', {
               required: 'Bắt buộc !',
             })}
           />
@@ -101,11 +101,31 @@ const CreateDoctorForm = () => {
           />
         </FormRow>
 
-        <FormRow label='ID khoa' error={errors.id_khoa?.message}>
+        <FormRow label='Ngày sinh' error={errors.birthday?.message}>
           <InputNew
-            id='id_khoa'
+            id='birthday'
             type='text'
-            {...register('id_khoa', {
+            {...register('birthday', {
+              required: 'Bắt buộc !',
+            })}
+          />
+        </FormRow>
+        
+        <FormRow label='Trạng thái' error={errors.status?.message}>
+          <InputNew
+            id='status'
+            type='text'
+            {...register('status', {
+              required: 'Bắt buộc !',
+            })}
+          />
+        </FormRow>
+        
+        <FormRow label='Ngày đăng ký' error={errors.ngaydk?.message}>
+          <InputNew
+            id='ngaydk'
+            type='text'
+            {...register('ngaydk', {
               required: 'Bắt buộc !',
             })}
           />
@@ -134,4 +154,5 @@ const CreateDoctorForm = () => {
   );
 };
 
-export default CreateDoctorForm;
+export default CreatePatientForm;
+
