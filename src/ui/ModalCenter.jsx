@@ -5,15 +5,13 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import useClickOutSide from '../hooks/useClickOutSide';
 
 const StyledModal = styled.div`
-  width: 90%;
-  height: 100%;
-  max-width: 800px;
   position: fixed;
-  right: 0;
-  overflow-y: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background-color: #fff;
-  padding: 24px 32px;
-  box-shadow: 0 24px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 24px 32px rgba(0, 0, 0, 0.12);
+  padding: 32px 40px;
   transition: all 0.5s;
 `;
 
@@ -34,14 +32,14 @@ const Button = styled.button`
   border: none;
   padding: 4px;
   border-radius: 5px;
-  transform: translateX(50%);
+  transform: translateX(8px);
   transition: all 0.2s;
   position: absolute;
   top: 12px;
   right: 19px;
 
   &:hover {
-    background-color: #f3f4f6;
+    background-color:  #f3f4f6;
   }
 
   & svg {
@@ -53,7 +51,7 @@ const Button = styled.button`
 
 const ModalContext = createContext();
 
-function Modal({ children }) {
+function ModalCenter({ children }) {
   const [openName, setOpenName] = useState('');
 
   const close = () => setOpenName('');
@@ -90,7 +88,7 @@ function Window({ children, name }) {
   );
 }
 
-Modal.Open = Open;
-Modal.Window = Window;
+ModalCenter.Open = Open;
+ModalCenter.Window = Window;
 
-export default Modal;
+export default ModalCenter;

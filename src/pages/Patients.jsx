@@ -1,10 +1,9 @@
 import styled from 'styled-components';
-import DoctorsCardContainer from '../features/doctors/DoctorsCardContainer';
-
+import PatientsCardContainer from '../features/patients/PatientsCardContainer';
 import { FunnelIcon } from '@heroicons/react/24/outline';
-import AddDoctor from '../features/doctors/AddDoctor';
+import AddPatient from '../features/patients/AddPatient';
 
-const LayoutDoctors = styled.div`
+const LayoutPatients = styled.div`
   width: 100%;
   height: 100%;
   padding: 20px;
@@ -18,17 +17,17 @@ const LayoutFlex = styled.div`
   margin-bottom: 20px;
 `;
 
-const Doctors = () => {
+const Patients = () => {
   return (
-    <LayoutDoctors>
+    <LayoutPatients>
       <LayoutFlex>
         <div className='flex items-center justify-center gap-x-3'>
           <h2 className='text-xl font-bold leading-6 text-grey-900'>
-            Bác sĩ
+            Bệnh Nhân
           </h2>
 
           <div className='flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium border rounded-md text-primary border-primary bg-primary-transparent'>
-            <span>Tổng bác sĩ:</span>
+            <span>Tổng bệnh nhân:</span>
             <span>565</span>
           </div>
         </div>
@@ -41,13 +40,13 @@ const Doctors = () => {
           </div>
 
           {/* New doctors */}
-          <AddDoctor />
+          <AddPatient />
         </div>
       </LayoutFlex>
 
-      <DoctorsCardContainer />
-    </LayoutDoctors>
+      <PatientsCardContainer />
+    </LayoutPatients>
   );
 };
 
-export default Doctors;
+export default Patients;
