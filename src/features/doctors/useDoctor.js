@@ -1,15 +1,13 @@
-import { useQuery } from '@tanstack/react-query';
-import { getBooking } from '../../services/apiBookings';
-import { useParams } from 'react-router-dom';
+// import { useQuery } from '@tanstack/react-query';
+// import { useParams } from 'react-router-dom';
 
-export function useBooking() {
-  const { doctorId } = useParams();
+// export function useBooking() {
+//   const { doctorId } = useParams();
 
-  const { isLoading, data: booking } = useQuery({
-    queryKey: ['booking', doctorId],
-    queryFn: () => getBooking(doctorId),
-    retry: false,
-  });
+//   const { isLoading, data: booking } = useQuery({
+//     // queryKey: ['booking', doctorId],
+//     // queryFn: () => getBooking(doctorId),
+//   });
 
-  return { isLoading, booking };
-}
+//   return { isLoading, booking };
+// }

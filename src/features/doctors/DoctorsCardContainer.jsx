@@ -17,7 +17,7 @@ const DoctorsCardContainer = () => {
   return (
     <ContainerList>
       {doctors.map((doctor) => (
-        <DoctorsCard key={doctor.id} layout='list' doctor={doctor} />
+        <DoctorsCard key={doctor.id} doctor={doctor} />
       ))}
       <Pagination count={totalCount} />
     </ContainerList>
