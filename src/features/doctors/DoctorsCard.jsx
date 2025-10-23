@@ -13,8 +13,6 @@ import Menus from '../../ui/Menus';
 import CreateDoctorForm from './CreateDoctorForm';
 import ConfirmDelete from '../../ui/ConfirmDelete';
 
-
-
 const ContainerCardList = styled.div`
   display: flex;
   align-items: center;

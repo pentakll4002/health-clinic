@@ -1,5 +1,8 @@
 import styled from 'styled-components';
 import PatientsCard from './PatientsCard';
+import LoadMore from '../../ui/LoadMore';
+import { usePatients } from './usePatients';
+import Spinner from '../../ui/Spinner';
 
 const ContainerGrid = styled.div`
   display: grid;
@@ -8,18 +11,23 @@ const ContainerGrid = styled.div`
 `;
 
 const PatientsCardContainer = () => {
+  const { isLoading, patients, hasMore, loadMore } = usePatients();
+
+  if (isLoading) return <Spinner />;
   return (
-    <ContainerGrid>
-      <PatientsCard />
-      <PatientsCard />
-      <PatientsCard />
-      <PatientsCard />
-      <PatientsCard />
-      <PatientsCard />
-      <PatientsCard />
-      <PatientsCard />
-      <PatientsCard />
-    </ContainerGrid>
+    <>
+      <ContainerGrid>
+        {patients.map((patient) => (
+          <PatientsCard key={patient.ID_BenhNhan} patient={patient} />
+        ))}
+      </ContainerGrid>
+      
+      {!hasMore ? (
+        <span />
+      ) : (
+        <LoadMore onClick={loadMore} disabled={!hasMore} />
+      )}
+    </>
   );
 };
 
