@@ -16,7 +16,7 @@ return new class extends Migration
             $table->integer("Thang")->nullable(false);
             $table->integer("Nam")->nullable(false);
             $table->unsignedInteger("ID_Thuoc");
-            $table->foreign("ID_Thuoc")->references("ID_Thuoc").on("thuoc");
+            $table->foreign("ID_Thuoc")->references("ID_Thuoc")->on("thuoc");
             $table->integer("TongSoLuongNhap")->nullable(false);
             $table->integer("SoLuongDung")->nullable(false);
             $table->integer("SoLanDung")->nullable(false);

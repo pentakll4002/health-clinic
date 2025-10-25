@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('thuoc', function (Blueprint $table) {
             $table->increments("ID_Thuoc");
             $table->string("TenThuoc", 100)->nullable(false);
-            $table->unsignedBigInteger("ID_DVT");
-            $table->foreign("ID_DVT")->references("ID_DVT")->on("DonViTinh");
+            $table->unsignedInteger("ID_DVT");
+            $table->foreign("ID_DVT")->references("ID_DVT")->on("dvt");
             $table->unsignedInteger("ID_CachDung");
-            $table->foreign("ID_CachDung")->references("id")->on("cach_dung");
+            $table->foreign("ID_CachDung")->references("ID_CachDung")->on("cach_dung");
             $table->string("ThanhPhan", 255)->nullable(true);
             $table->string("XuatXu", 100)->nullable(true);
             $table->unsignedInteger("SoLuongTon")->default(0);

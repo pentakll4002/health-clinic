@@ -62,4 +62,9 @@ class AuthController extends Controller
         // For now, we'll just return a success message.
         return response()->json(['message' => 'Password reset link sent to your email.']);
     }
+
+    public function userProfile(Request $request)
+    {
+        return response()->json(['user' => $request->user()]);
+    }
 }

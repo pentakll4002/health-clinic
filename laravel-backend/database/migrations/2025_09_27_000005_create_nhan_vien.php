@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string("HinhAnh", 255)->nullable(false);
             $table->string("TrangThai", 50)->default("Đang làm việc");
             $table->unsignedInteger("ID_Nhom");
-            $table->foreign("ID_Nhom")->references("ID_Nhom")->on("nhom");
+            $table->foreign("ID_Nhom")->references("ID_Nhom")->on("nhom_nguoi_dung");
             $table->string("MatKhau", 255)->nullable(false);
         });
     }
