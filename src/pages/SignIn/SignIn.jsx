@@ -24,6 +24,7 @@ import logoFacebook from '../../assets/bi_facebook.png';
 import logoGoogle from '../../assets/Google_Logo.png';
 import logoApple from '../../assets/Apple_Logo.png';
 import useToggleValue from '../../hooks/useToggleValue';
+import axiosInstance from '../../utils/axiosInstance';
 
 const schema = yup.object({
   email: yup
@@ -62,7 +63,7 @@ const SignIn = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post('http://localhost:8000/api/login', data);
+      const response = await axiosInstance.post('/login', data);
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       navigate('/'); // Redirect to home or dashboard after successful login

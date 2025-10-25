@@ -24,6 +24,7 @@ import logoFacebook from '../../assets/bi_facebook.png';
 import logoGoogle from '../../assets/Google_Logo.png';
 import logoApple from '../../assets/Apple_Logo.png';
 import SignUpImg from '../../assets/register.png';
+import axiosInstance from '../../utils/axiosInstance';
 
 const schema = yup.object({
   name: yup.string().required('Vui lòng nhập tên tài khoản'),
@@ -69,7 +70,7 @@ const Register = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post('http://localhost:8000/api/register', {
+      const response = await axiosInstance.post('/register', {
         name: data.name,
         email: data.email,
         password: data.password,

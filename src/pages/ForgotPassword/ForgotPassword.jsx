@@ -3,7 +3,7 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Link } from 'react-router-dom';
 
-import axios from 'axios';
+import axiosInstance from '../../utils/axiosInstance';
 import { useState } from 'react';
 
 import LayoutAuth from '../../layouts/LayoutAuth';
@@ -39,8 +39,8 @@ const ForgotPassword = () => {
     setError(null);
     setMessage(null);
     try {
-      const response = await axios.post(
-        'http://localhost:8000/api/forgot-password',
+      const response = await axiosInstance.post(
+        '/forgot-password',
         data
       );
       setMessage(response.data.message);
