@@ -12,7 +12,7 @@ const Button = ({
     <button
       type={type}
       className={classNames(
-        'flex items-center justify-center py-3 text-base font-semibold  rounded-xl  min-h-[50px]',
+        'flex items-center justify-center py-2 text-base font-semibold  rounded-xl  min-h-[50px]',
         className,
         isLoading ? 'opacity-50 pointer-events-none' : ''
       )}
