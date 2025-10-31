@@ -2,16 +2,15 @@ import styled from 'styled-components';
 import ModalCenter from '../../ui/ModalCenter';
 import Menus from '../../ui/Menus';
 
-import DoctorImg from '../../assets/doctors.png';
+import PatientImg from '../../assets/patient.jpg';
 import {
-  CalendarDateRangeIcon,
   MapIcon,
   PencilIcon,
   TrashIcon,
 } from '@heroicons/react/16/solid';
-import CreateDoctorForm from '../doctors/CreateDoctorForm';
 import ConfirmDelete from '../../ui/ConfirmDelete';
 import { PhoneArrowDownLeftIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 
 const Container = styled.div`
   width: 100%;
@@ -36,11 +35,13 @@ const Image = styled.img`
 const PatientsCard = ({ patient }) => {
   const { ID_BenhNhan, HoTenBN, GioiTinh, NgaySinh, DienThoai, DiaChi } =
     patient;
+  const navigate = useNavigate();
+
   return (
     <Container>
       <div className='flex items-start justify-between w-full'>
         <div className='flex items-center gap-x-3'>
-          <Image src={DoctorImg} alt='patient' />
+          <Image src={PatientImg} alt='patient' />
           <div className='flex flex-col items-start justify-center'>
             <h3 className='text-sm font-semibold text-grey-900'>{HoTenBN}</h3>
             <p className='text-[13px] text-grey-500'>26, {GioiTinh}</p>
@@ -52,7 +53,10 @@ const PatientsCard = ({ patient }) => {
               <Menus.Toggle id={ID_BenhNhan} />
 
               <Menus.List id={ID_BenhNhan}>
-                <Menus.Button icon={<PencilIcon className='w-4 h-4' />}>
+                <Menus.Button
+                  icon={<PencilIcon className='w-4 h-4' />}
+                  onClick={() => navigate(`/patients/${ID_BenhNhan}`)}
+                >
                   Chi tiết
                 </Menus.Button>
 

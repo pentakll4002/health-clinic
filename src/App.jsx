@@ -2,8 +2,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
-import SignIn from './pages/SignIn/SignIn';
-import Register from './pages/Register/Register';
+import SignIn from './pages/SignIn';
+import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import EmailVerification from './pages/ForgotPassword/EmailVerification';
 import ResetPassword from './pages/ForgotPassword/ResetPassword';
@@ -11,6 +11,7 @@ import Success from './pages/ForgotPassword/Success';
 import LayoutApp from './layouts/LayoutApp';
 import Doctors from './pages/Doctors';
 import Patients from './pages/Patients';
+import Patient from './pages/Patient';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,7 +29,8 @@ function App() {
         <Routes>
           <Route element={<LayoutApp />}>
             <Route index element={<Doctors />} />
-            <Route path='patient' element={<Patients />} />
+            <Route path='patients' element={<Patients />} />
+            <Route path='patients/:ID_BenhNhan' element={<Patient />} />
           </Route>
 
           <Route path='/sign-in' element={<SignIn />} />

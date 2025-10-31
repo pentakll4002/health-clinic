@@ -140,13 +140,13 @@ const CreatePatientForm = () => {
               reset;
             }}
           >
-            Cancel
+            Huỷ
           </Button>
           <Button
             className='text-white bg-primary px-[10px] py-[6px] font-medium'
             type='submit'
           >
-            Add doctor
+            Thêm Bệnh Nhân
           </Button>
         </div>
       </Form>

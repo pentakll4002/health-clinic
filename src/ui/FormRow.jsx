@@ -1,10 +1,16 @@
-const FormRow = ({ label, children, name, error }) => {
+const FormRow = ({ label, children, name, error, inline = false }) => {
   return (
-    <div className='grid items-center gap-y-1.5 [&:first-child]:pt-0 [&:last-child]:pb-0'>
+    <div
+      className={`${
+        inline ? 'flex items-center gap-3' : 'grid items-center gap-y-1.5'
+      } [&:first-child]:pt-0 [&:last-child]:pb-0`}
+    >
       {label && (
         <label
           htmlFor={name}
-          className='inline text-sm font-medium cursor-pointer text-grey-900'
+          className={`text-sm font-medium cursor-pointer text-grey-900 ${
+            inline ? 'min-w-[130px] text-left' : ''
+          } `}
         >
           {label}
         </label>
@@ -12,9 +18,9 @@ const FormRow = ({ label, children, name, error }) => {
 
       {children}
 
-      <span className='m-2 text-sm text-error-900 min-h-5'>
-        {error || ' '}
-      </span>
+      {error && (
+        <span className='m-2 text-sm text-error-900 min-h-5'>{error}</span>
+      )}
     </div>
   );
 };
