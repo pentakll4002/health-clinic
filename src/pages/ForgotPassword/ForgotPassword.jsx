@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import axiosInstance from '../../utils/axiosInstance';
 import { useState } from 'react';
@@ -25,7 +25,7 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const {
     handleSubmit,
     control,
@@ -44,6 +44,12 @@ const ForgotPassword = () => {
         data
       );
       setMessage(response.data.message);
+      navigate('/forgot-password/email-verification', {
+        state: {
+          email: data.email,
+          token: response.data.token,
+        },
+      });
     } catch (err) {
       setError(err.response?.data?.message || 'Password reset failed');
     } finally {

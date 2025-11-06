@@ -3,6 +3,7 @@ import DoctorsCardContainer from '../features/doctors/DoctorsCardContainer';
 
 import { FunnelIcon } from '@heroicons/react/24/outline';
 import AddDoctor from '../features/doctors/AddDoctor';
+import { useDoctors } from '../features/doctors/useDoctors';
 
 const LayoutDoctors = styled.div`
   width: 100%;
@@ -19,6 +20,10 @@ const LayoutFlex = styled.div`
 `;
 
 const Doctors = () => {
+  const { totalCount, isLoading } = useDoctors();
+
+  if (isLoading) return <div>Loading...</div>;
+
   return (
     <LayoutDoctors>
       <LayoutFlex>
@@ -29,7 +34,7 @@ const Doctors = () => {
 
           <div className='flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium border rounded-md text-primary border-primary bg-primary-transparent'>
             <span>Tổng bác sĩ:</span>
-            <span>565</span>
+            <span>{totalCount}</span>
           </div>
         </div>
 

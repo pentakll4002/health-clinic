@@ -9,10 +9,19 @@ const ContainerList = styled.div`
   flex-direction: column;
 `;
 
+const CenteredSpinner = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 240px;
+`;
+
 const DoctorsCardContainer = () => {
   const { isLoading, doctors = [], totalCount } = useDoctors();
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) return (
+    <CenteredSpinner><Spinner /></CenteredSpinner>
+  );
 
   return (
     <ContainerList>
