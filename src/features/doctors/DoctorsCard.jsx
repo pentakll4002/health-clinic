@@ -12,6 +12,8 @@ import ModalCenter from '../../ui/ModalCenter';
 import Menus from '../../ui/Menus';
 import CreateDoctorForm from './CreateDoctorForm';
 import ConfirmDelete from '../../ui/ConfirmDelete';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { deleteDoctor } from './APIdoctors';
 
 const ContainerCardList = styled.div`
   display: flex;
@@ -46,66 +48,68 @@ const Button = styled.button`
 `;
 
 const DoctorsCard = ({ doctor }) => {
-  const { id, name, birthday, numberPhone, role } = doctor;
+  const {
+    ID_NhanVien,
+    HoTenNV,
+    NgaySinh,
+    DienThoai,
+    HinhAnh,
+  } = doctor;
+
+  const queryClient = useQueryClient();
+  const { mutate: deleteMutate, isLoading: isDeleting } = useMutation({
+    mutationFn: deleteDoctor,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['doctors'] })
+  });
 
   return (
     <ContainerCardList>
-      <Image src={DoctorImg} alt='docter' />
-
+      <Image src={HinhAnh || DoctorImg} alt="avatar" />
       <div className='flex items-center gap-2 mr-10 w-[200px]'>
         <h3 className='text-sm font-semibold leading-5 text-grey-900'>
-          {name}
+          {HoTenNV}
         </h3>
-        <span className='text-[13px] text-grey-500'>{role}</span>
       </div>
-
       <p className='text-grey-500 text-[13px] mr-10 w-[200px]'>
-        Ngày sinh: {birthday}
+        Ngày sinh: {NgaySinh}
       </p>
-
       <p className='text-grey-500 text-[13px] mr-auto'>
-        Số điện thoại:{' '}
-        <span className='text-sm font-semibold text-primary'>
-          {numberPhone}
-        </span>
+        Số điện thoại: <span className='text-sm font-semibold text-primary'>{DienThoai}</span>
       </p>
-
       <div className='flex justify-center gap-x-5'>
         <ModalCenter>
           <Menus>
             <Menus.Menu>
-              <Menus.Toggle id={id} />
-
-              <Menus.List id={id}>
+              <Menus.Toggle id={ID_NhanVien} />
+              <Menus.List id={ID_NhanVien}>
                 <ModalCenter.Open opens='edit'>
                   <Menus.Button icon={<PencilIcon className='w-4 h-4' />}>
                     Chỉnh sửa
                   </Menus.Button>
                 </ModalCenter.Open>
-
                 <ModalCenter.Open opens='delete'>
                   <Menus.Button icon={<TrashIcon className='w-4 h-4' />}>
                     Xoá
                   </Menus.Button>
                 </ModalCenter.Open>
               </Menus.List>
-
               <ModalCenter.Window name='edit'>
-                <CreateDoctorForm />
+                <CreateDoctorForm
+                  doctor={doctor}
+                  onSuccess={() => ModalCenter.close()}
+                />
               </ModalCenter.Window>
-
               <ModalCenter.Window name='delete'>
                 <ConfirmDelete
                   resourceName='bác sĩ'
-                  disabled={() => {}}
-                  onConfirm={() => {}}
-                  onCloseModal={close}
+                  disabled={isDeleting}
+                  onConfirm={() => deleteMutate(ID_NhanVien)}
+                  onCloseModal={ModalCenter.close}
                 />
               </ModalCenter.Window>
             </Menus.Menu>
           </Menus>
         </ModalCenter>
-
         <Button onClick={() => {}}>
           <CalendarDaysIcon className='w-5 h-5' />
         </Button>

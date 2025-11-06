@@ -24,7 +24,8 @@ return new class extends Migration
             $table->string("TrangThai", 50)->default("Đang làm việc");
             $table->unsignedInteger("ID_Nhom");
             $table->foreign("ID_Nhom")->references("ID_Nhom")->on("nhom_nguoi_dung");
-            $table->string("MatKhau", 255)->nullable(false);
+            $table->unsignedBigInteger('user_id')->unique();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

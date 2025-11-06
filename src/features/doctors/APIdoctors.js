@@ -1,22 +1,46 @@
+import axios from 'axios';
+
+const API = axios.create({
+  baseURL: 'http://localhost:8000/api',
+});
+
 export async function getDoctors({ page = 1, limit = 7 }) {
-  const totalCount = 24; // Tổng số bác sĩ (4 trang × 6 người)
+  const res = await API.get('/nhanvien', { params: { page, limit } });
+  return {
+    data: res.data.data,
+    totalCount: res.data.totalCount,
+  };
+}
 
-  // Tạo danh sách bác sĩ ảo
-  const allDoctors = Array.from({ length: totalCount }, (_, i) => ({
-    id: i + 1,
-    name: `Dr. Example ${i + 1}`,
-    role: ['Cardiologist', 'Dentist', 'Dermatologist', 'Pediatrician'][i % 4],
-    birthday: `19${70 + (i % 20)}-01-20`,
-    numberPhone: '0900123901',
-    avatarUrl: `https://i.pravatar.cc/150?img=${i + 1}`,
-  }));
+export async function createDoctor(newDoctor) {
+  try {
+    const response = await API.post('/nhanvien', newDoctor);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating doctor:', error);
+    if (error.response) {
+      console.error('Validation errors:', error.response.data);
+    }
+    throw error;
+  }
+}
 
-  const start = (page - 1) * limit;
-  const end = start + limit;
-  const data = allDoctors.slice(start, end);
+export async function fetchGroups() {
+  const resp = await API.get('/nhom-nguoi-dung');
+  return resp.data;
+}
 
-  // Giả delay 0.5s để mô phỏng fetch thật
-  await new Promise((resolve) => setTimeout(resolve, 500));
+export async function getDoctor(id) {
+  const res = await API.get(`/nhanvien/${id}`);
+  return res.data;
+}
 
-  return { data, totalCount };
+export async function updateDoctor(id, data) {
+  const res = await API.put(`/nhanvien/${id}`, data);
+  return res.data;
+}
+
+export async function deleteDoctor(id) {
+  const res = await API.delete(`/nhanvien/${id}`);
+  return res.data;
 }

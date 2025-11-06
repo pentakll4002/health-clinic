@@ -6,7 +6,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -58,9 +60,63 @@ class AuthController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        // In a real application, you would send a password reset email here.
-        // For now, we'll just return a success message.
-        return response()->json(['message' => 'Password reset link sent to your email.']);
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'We could not find a user with that email address.'], 404);
+        }
+
+        $token = Password::broker()->createToken($user);
+
+        return response()->json([
+            'message' => 'Password reset link sent to your email.',
+            'token' => $token,
+            'email' => $user->email
+        ]);
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+            'token' => ['required', 'string'],
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Password::broker()->tokenExists($user, $request->token)) {
+            throw ValidationException::withMessages([
+                'token' => ['This password reset token is invalid or has expired.'],
+            ]);
+        }
+
+        return response()->json(['message' => 'OTP verified successfully.']);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+            'token' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Password::broker()->tokenExists($user, $request->token)) {
+            throw ValidationException::withMessages([
+                'token' => ['This password reset token is invalid or has expired.'],
+            ]);
+        }
+
+        $user->forceFill([
+            'password' => Hash::make($request->password),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        Password::broker()->deleteToken($user);
+
+        return response()->json(['message' => 'Password reset successfully.']);
     }
 
     public function userProfile(Request $request)

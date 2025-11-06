@@ -14,7 +14,9 @@ import {
   LockClosedIcon,
 } from '@heroicons/react/24/outline';
 import Button from '../../ui/Button';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import axiosInstance from '../../utils/axiosInstance';
+import { useState } from 'react';
 
 const schema = yup.object({
   password: yup
@@ -30,6 +32,11 @@ const schema = yup.object({
 
 const ResetPassword = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { email, token } = location.state || {};
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const { value: showPassword, handleToggleValue: handleSetShowPassword } =
     useToggleValue(false);
   const {
@@ -46,9 +53,23 @@ const ResetPassword = () => {
     mode: 'onSubmit',
   });
 
-  function onSubmit(data) {
-    console.log(data);
-    navigate('/forgot-password/success');
+  async function onSubmit(data) {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axiosInstance.post('/reset-password', {
+        email,
+        token,
+        password: data.password,
+        password_confirmation: data.confirmPassword,
+      });
+      console.log(response.data.message);
+      navigate('/forgot-password/success');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Password reset failed');
+    } finally {
+      setLoading(false);
+    }
   }
   return (
     <LayoutAuth
@@ -60,7 +81,7 @@ const ResetPassword = () => {
         <FormRow
           label='Password'
           name='password'
-          error={errors.password?.message}
+          error={errors.password?.message || error}
         >
           <Input
             control={control}
@@ -106,8 +127,8 @@ const ResetPassword = () => {
           </Input>
         </FormRow>
 
-        <Button type='submit' className='w-full text-white bg-primary'>
-          Submit
+        <Button type='submit' className='w-full text-white bg-primary' disabled={loading}>
+          {loading ? 'Resetting...' : 'Submit'}
         </Button>
 
         <p className='m-5 text-sm leading-5 text-center text-grey-900'>

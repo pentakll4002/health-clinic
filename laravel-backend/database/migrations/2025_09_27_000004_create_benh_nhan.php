@@ -22,6 +22,8 @@ return new class extends Migration
             $table->string("Email", 255)->unique()->nullable(false);
             $table->boolean("Is_Deleted")->default(0);
             $table->date("NgayDK")->nullable(false);
+            $table->unsignedBigInteger('user_id')->unique(); // Thêm user_id và đảm bảo nó là duy nhất
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
