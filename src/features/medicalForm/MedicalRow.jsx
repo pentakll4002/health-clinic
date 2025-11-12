@@ -11,24 +11,43 @@ const Text = styled.span`
   margin: auto;
 `;
 
-const MedicalRow = ({
-  phieuKham: { ID_PhieuKham, NgayTN, CaTN, TienKham, TongTienThuoc },
-}) => {
+const MedicalRow = ({ phieuKham }) => {
+  const {
+    ID_PhieuKham,
+    CaKham,
+    TienKham,
+    TongTienThuoc,
+    danhSachTiepNhan,
+  } = phieuKham;
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(amount || 0);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN');
+  };
+
   return (
     <Table.Row>
       <Text>{ID_PhieuKham}</Text>
-      <Text>{NgayTN}</Text>
-      <Text>{CaTN}</Text>
-      <Text>{TienKham}</Text>
-      <Text>{TongTienThuoc}</Text>
+      <Text>{formatDate(danhSachTiepNhan?.NgayTN)}</Text>
+      <Text>{CaKham}</Text>
+      <Text>{formatCurrency(TienKham)}</Text>
+      <Text>{formatCurrency(TongTienThuoc)}</Text>
 
       <ModalCenter>
-        <ModalCenter.Open opens='medical-detail'>
+        <ModalCenter.Open opens={`medical-detail-${ID_PhieuKham}`}>
           <button className='text-white py-1 bg-error-950 w-[50%] flex items-center justify-center rounded-lg font-semibold mx-auto'>
             <EyeIcon className='w-5 h-5' />
           </button>
         </ModalCenter.Open>
-        <ModalCenter.Window name='medical-detail'>
+        <ModalCenter.Window name={`medical-detail-${ID_PhieuKham}`}>
           <MedicalDetail ID_PhieuKham={ID_PhieuKham} />
         </ModalCenter.Window>
       </ModalCenter>

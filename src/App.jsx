@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { Toaster } from 'react-hot-toast';
 
 import SignIn from './pages/SignIn';
 import Register from './pages/Register';
@@ -12,6 +13,9 @@ import LayoutApp from './layouts/LayoutApp';
 import Doctors from './pages/Doctors';
 import Patients from './pages/Patients';
 import Patient from './pages/Patient';
+import Drugs from './pages/Drugs';
+import MedicalForms from './pages/MedicalForms';
+import Appointments from './pages/Appointments';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,6 +28,7 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <Toaster position='top-right' />
       <ReactQueryDevtools initialIsOpen={false} />
       <BrowserRouter>
         <Routes>
@@ -31,6 +36,9 @@ function App() {
             <Route index element={<Doctors />} />
             <Route path='patients' element={<Patients />} />
             <Route path='patients/:ID_BenhNhan' element={<Patient />} />
+            <Route path='drugs' element={<Drugs />} />
+            <Route path='medical-forms' element={<MedicalForms />} />
+            <Route path='appointments' element={<Appointments />} />
           </Route>
 
           <Route path='/sign-in' element={<SignIn />} />
