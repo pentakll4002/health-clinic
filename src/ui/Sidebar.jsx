@@ -7,7 +7,9 @@ import {
   AppointmentsSvg,
   DashboardSvg,
   DoctorsSvg,
+  DrugSvg,
   LeavesSvg,
+  MedicalFormSvg,
   PatientsSvg,
 } from '../constants/Global';
 
@@ -83,16 +85,14 @@ const Sidebar = () => {
           ]}
         />
 
+        {/* Drug Management */}
+        <SidebarLink to='/drugs' icon={DrugSvg} label='Drug Management' />
+
+        {/* Medical Forms */}
+        <SidebarLink to='/medical-forms' icon={MedicalFormSvg} label='Medical Forms' />
+
         {/* Appointments */}
-        <Dropdown
-          icon={AppointmentsSvg}
-          label='Appointments'
-          items={[
-            { label: 'Appointments', to: '/admin-dashboard' },
-            { label: 'New Appointments', to: '/doctor-dashboard' },
-            { label: 'Calendar', to: '/patient-dashboard' },
-          ]}
-        />
+        <SidebarLink to='/appointments' icon={AppointmentsSvg} label='Appointments' />
 
         <SidebarLink to='/' icon={MapPinIcon} label='Locations' />
         <SidebarLink to='/' icon={ChatBubbleLeftRightIcon} label='Messages' />
