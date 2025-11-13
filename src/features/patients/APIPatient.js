@@ -1,13 +1,6 @@
-import { getPatients } from './APIPatients';
+import axiosInstance from '../../utils/axiosInstance';
 
 export async function getPatient(ID_BenhNhan) {
-  const { data } = await getPatients();
-
-  const patient = data.find((bn) => bn.ID_BenhNhan === Number(ID_BenhNhan));
-
-  await new Promise((resolve) => setTimeout(resolve, 300));
-
-  if (!patient) return null;
-
-  return patient;
+  const res = await axiosInstance.get(`/benh-nhan/${ID_BenhNhan}`);
+  return res.data;
 }

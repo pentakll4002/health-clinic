@@ -11,15 +11,9 @@ const Text = styled.span`
   margin: auto;
 `;
 
-const MedicalRow = ({ phieuKham }) => {
-  const {
-    ID_PhieuKham,
-    CaKham,
-    TienKham,
-    TongTienThuoc,
-    danhSachTiepNhan,
-  } = phieuKham;
-
+const MedicalRow = ({
+  phieuKham: { ID_PhieuKham, NgayTN, CaTN, TienKham, TongTienThuoc },
+}) => {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -27,17 +21,11 @@ const MedicalRow = ({ phieuKham }) => {
     }).format(amount || 0);
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN');
-  };
-
   return (
     <Table.Row>
       <Text>{ID_PhieuKham}</Text>
-      <Text>{formatDate(danhSachTiepNhan?.NgayTN)}</Text>
-      <Text>{CaKham}</Text>
+      <Text>{NgayTN}</Text>
+      <Text>{CaTN}</Text>
       <Text>{formatCurrency(TienKham)}</Text>
       <Text>{formatCurrency(TongTienThuoc)}</Text>
 

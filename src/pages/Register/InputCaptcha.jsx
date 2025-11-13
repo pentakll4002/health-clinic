@@ -55,3 +55,4 @@ const InputCaptcha = ({ onCaptchaSubmit }) => {
 };
 
 export default InputCaptcha;
+

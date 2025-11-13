@@ -1,9 +1,10 @@
 import styled from 'styled-components';
-import MedicalFormsContainer from '../features/medicalForm/MedicalFormsContainer';
+import InvoicesContainer from '../features/invoices/InvoicesContainer';
 import { FunnelIcon } from '@heroicons/react/24/outline';
-import { usePhieuKhamList } from '../features/medicalForm/usePhieuKhamList';
+import { useInvoices } from '../features/invoices/useInvoices';
+import AddInvoice from '../features/invoices/AddInvoice';
 
-const LayoutMedicalForms = styled.div`
+const LayoutInvoices = styled.div`
   width: 100%;
   height: 100%;
   padding: 20px;
@@ -17,19 +18,19 @@ const LayoutFlex = styled.div`
   margin-bottom: 20px;
 `;
 
-const MedicalForms = () => {
-  const { totalCount } = usePhieuKhamList();
+const Invoices = () => {
+  const { totalCount } = useInvoices();
 
   return (
-    <LayoutMedicalForms>
+    <LayoutInvoices>
       <LayoutFlex>
         <div className='flex items-center justify-center gap-x-3'>
           <h2 className='text-xl font-bold leading-6 text-grey-900'>
-            Phiếu Khám
+            Hoá Đơn
           </h2>
 
           <div className='flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium border rounded-md text-primary border-primary bg-primary-transparent'>
-            <span>Tổng phiếu khám:</span>
+            <span>Tổng hoá đơn:</span>
             <span>{totalCount}</span>
           </div>
         </div>
@@ -40,13 +41,17 @@ const MedicalForms = () => {
             <FunnelIcon className='w-5 h-5' />
             <span>Filter</span>
           </div>
+
+          {/* New Invoice */}
+          <AddInvoice />
         </div>
       </LayoutFlex>
 
-      <MedicalFormsContainer />
-    </LayoutMedicalForms>
+      <InvoicesContainer />
+    </LayoutInvoices>
   );
 };
 
-export default MedicalForms;
+export default Invoices;
+
 

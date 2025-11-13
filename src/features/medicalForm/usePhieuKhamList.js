@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
-import { getPhieuKhamList } from './APIPhieuKham';
+import { getPhieuKhamList } from './API_PhieuKham';
 import { PAGE_SIZE_LOAD_MORE } from '../../constants/Global';
 
 export function usePhieuKhamList() {
@@ -9,7 +9,7 @@ export function usePhieuKhamList() {
 
   const { isLoading, data } = useQuery({
     queryKey: ['phieukham-list'],
-    queryFn: () => getPhieuKhamList(1, 100),
+    queryFn: getPhieuKhamList,
   });
 
   const totalCount = data?.totalCount || 0;

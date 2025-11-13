@@ -10,3 +10,4 @@ class PendingRegister extends Model
     protected $guarded = [];
     public $timestamps = true;
 }
+
