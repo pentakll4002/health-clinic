@@ -1,15 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState, useEffect } from 'react';
-import { getPatients } from './APIPatients';
+import { useEffect, useState } from 'react';
+import { getInvoices } from './APIInvoices';
 import { PAGE_SIZE_LOAD_MORE } from '../../constants/Global';
 
-export function usePatients() {
+export function useInvoices() {
   const [page, setPage] = useState(1);
-  const [patients, setPatients] = useState([]);
+  const [invoices, setInvoices] = useState([]);
 
   const { isLoading, data } = useQuery({
-    queryKey: ['patients'],
-    queryFn: () => getPatients({ page: 1, limit: 100 }), 
+    queryKey: ['invoices'],
+    queryFn: () => getInvoices(1, 100),
   });
 
   const totalCount = data?.totalCount || 0;
@@ -17,14 +17,16 @@ export function usePatients() {
   useEffect(() => {
     if (!data?.data) return;
     const slice = data.data.slice(0, page * PAGE_SIZE_LOAD_MORE);
-    setPatients(slice);
+    setInvoices(slice);
   }, [data, page]);
 
   function loadMore() {
     setPage((prev) => prev + 1);
   }
 
-  const hasMore = patients.length < totalCount;
+  const hasMore = invoices.length < totalCount;
 
-  return { isLoading, patients, totalCount, hasMore, loadMore };
+  return { isLoading, invoices, totalCount, hasMore, loadMore };
 }
+
+

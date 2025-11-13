@@ -75,15 +75,7 @@ const Sidebar = () => {
         />
 
         {/* Patients */}
-        <Dropdown
-          icon={PatientsSvg}
-          label='Patients'
-          items={[
-            { label: 'Patients', to: '/admin-dashboard' },
-            { label: 'Patients Details', to: '/doctor-dashboard' },
-            { label: 'Create Patients', to: '/patient-dashboard' },
-          ]}
-        />
+        <SidebarLink to='/patients' icon={PatientsSvg} label='Patients' />
 
         {/* Drug Management */}
         <SidebarLink to='/drugs' icon={DrugSvg} label='Drug Management' />
@@ -93,6 +85,9 @@ const Sidebar = () => {
 
         {/* Appointments */}
         <SidebarLink to='/appointments' icon={AppointmentsSvg} label='Appointments' />
+
+        {/* Invoices */}
+        <SidebarLink to='/invoices' icon={CurrencyDollarIcon} label='Invoices' />
 
         <SidebarLink to='/' icon={MapPinIcon} label='Locations' />
         <SidebarLink to='/' icon={ChatBubbleLeftRightIcon} label='Messages' />

@@ -15,6 +15,7 @@ import Patients from './pages/Patients';
 import Patient from './pages/Patient';
 import Drugs from './pages/Drugs';
 import MedicalForms from './pages/MedicalForms';
+import Invoices from './pages/Invoices';
 import Appointments from './pages/Appointments';
 
 const queryClient = new QueryClient({
@@ -38,6 +39,7 @@ function App() {
             <Route path='patients/:ID_BenhNhan' element={<Patient />} />
             <Route path='drugs' element={<Drugs />} />
             <Route path='medical-forms' element={<MedicalForms />} />
+            <Route path='invoices' element={<Invoices />} />
             <Route path='appointments' element={<Appointments />} />
           </Route>
 

@@ -8,9 +8,7 @@ use App\Http\Controllers\NhomNguoiDungController;
 use App\Http\Controllers\ThuocController;
 use App\Http\Controllers\DanhSachTiepNhanController;
 use App\Http\Controllers\BenhNhanController;
-use App\Http\Controllers\PhieuKhamController;
-use App\Http\Controllers\ToaThuocController;
-use App\Http\Controllers\LoaiBenhController;
+use App\Http\Controllers\HoaDonController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +44,10 @@ Route::get('/nhom-nguoi-dung', [NhomNguoiDungController::class, 'index']);
 
 // BenhNhan routes
 Route::get('/benh-nhan', [BenhNhanController::class, 'index']); // danh sách bệnh nhân
+Route::get('/benh-nhan/{id}', [BenhNhanController::class, 'show']); // chi tiết
+Route::post('/benh-nhan', [BenhNhanController::class, 'store']); // tạo
+Route::put('/benh-nhan/{id}', [BenhNhanController::class, 'update']); // cập nhật
+Route::delete('/benh-nhan/{id}', [BenhNhanController::class, 'destroy']); // xoá mềm
 
 // Drug management routes
 Route::get('/thuoc', [ThuocController::class, 'index']); // danh sách
@@ -63,20 +65,9 @@ Route::get('/appointments/{id}', [DanhSachTiepNhanController::class, 'show']); /
 Route::put('/appointments/{id}', [DanhSachTiepNhanController::class, 'update']); // sửa
 Route::delete('/appointments/{id}', [DanhSachTiepNhanController::class, 'destroy']); // xoá
 
-// PhieuKham (Examination Form) routes
-Route::get('/phieu-kham', [PhieuKhamController::class, 'index']); // danh sách
-Route::post('/phieu-kham', [PhieuKhamController::class, 'store']); // tạo mới
-Route::get('/phieu-kham/{id}', [PhieuKhamController::class, 'show']); // lấy chi tiết
-Route::put('/phieu-kham/{id}', [PhieuKhamController::class, 'update']); // sửa
-Route::delete('/phieu-kham/{id}', [PhieuKhamController::class, 'destroy']); // xoá
-
-// ToaThuoc (Prescription) routes
-Route::post('/toa-thuoc', [ToaThuocController::class, 'store']); // thêm thuốc vào toa
-Route::delete('/toa-thuoc/{phieuKhamId}/{thuocId}', [ToaThuocController::class, 'destroy']); // xóa thuốc khỏi toa
-
-// LoaiBenh (Disease Type) routes
-Route::get('/loai-benh', [LoaiBenhController::class, 'index']); // danh sách
-Route::post('/loai-benh', [LoaiBenhController::class, 'store']); // tạo mới
-Route::get('/loai-benh/{id}', [LoaiBenhController::class, 'show']); // lấy chi tiết
-Route::put('/loai-benh/{id}', [LoaiBenhController::class, 'update']); // sửa
-Route::delete('/loai-benh/{id}', [LoaiBenhController::class, 'destroy']); // xoá
+// Invoices (Hoá đơn) routes
+Route::get('/invoices', [HoaDonController::class, 'index']); // danh sách
+Route::post('/invoices', [HoaDonController::class, 'store']); // tạo mới
+Route::get('/invoices/{id}', [HoaDonController::class, 'show']); // chi tiết
+Route::put('/invoices/{id}', [HoaDonController::class, 'update']); // cập nhật
+Route::delete('/invoices/{id}', [HoaDonController::class, 'destroy']); // xoá

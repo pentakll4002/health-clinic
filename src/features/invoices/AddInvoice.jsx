@@ -1,25 +1,26 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
 import Modal from '../../ui/Modal';
-import CreatePhieuKhamForm from './CreatePhieuKhamForm';
+import CreateInvoiceForm from './CreateInvoiceForm';
 
-const AddPhieuKham = () => {
+const AddInvoice = () => {
   return (
     <div>
       <Modal>
-        <Modal.Open opens='phieu-kham-form'>
+        <Modal.Open opens='invoice-form'>
           <button className='py-[6px] px-[10px] bg-primary rounded-md flex items-center justify-center gap-x-2 text-white text-sm font-semibold'>
             <PlusIcon className='w-5 h-5' />
-            <span>Tạo Phiếu Khám</span>
+            <span>Tạo Hoá Đơn</span>
           </button>
         </Modal.Open>
 
-        <Modal.Window name='phieu-kham-form'>
-          <CreatePhieuKhamForm />
+        <Modal.Window name='invoice-form'>
+          <CreateInvoiceForm />
         </Modal.Window>
       </Modal>
     </div>
   );
 };
 
-export default AddPhieuKham;
+export default AddInvoice;
+
 
