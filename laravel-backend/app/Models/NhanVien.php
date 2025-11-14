@@ -31,7 +31,13 @@ class NhanVien extends Model
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
+
+    public function nhomNguoiDung()
+    {
+        return $this->belongsTo(NhomNguoiDung::class, 'ID_Nhom', 'ID_Nhom');
+    }
 }
+
 
 
 

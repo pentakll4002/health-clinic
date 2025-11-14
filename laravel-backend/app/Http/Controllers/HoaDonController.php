@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\HoaDon;
+use App\Models\NhanVien;
+use App\Models\PhieuKham;
+use App\Models\QuiDinh;
 use Illuminate\Http\Request;
 
 class HoaDonController extends Controller
@@ -23,6 +26,34 @@ class HoaDonController extends Controller
         ]);
     }
 
+    public function preview($phieuKhamId)
+    {
+        $phieuKham = PhieuKham::with(['toaThuoc', 'hoaDon'])->find($phieuKhamId);
+        if (!$phieuKham || $phieuKham->Is_Deleted) {
+            return response()->json(['message' => 'Phiếu khám không hợp lệ'], 404);
+        }
+
+        if ($phieuKham->hoaDon) {
+            return response()->json(['message' => 'Phiếu khám này đã được lập hoá đơn'], 409);
+        }
+
+        $tienKhamTheoQuyDinh = QuiDinh::getValue('TienKham', 0);
+        $tienKham = $tienKhamTheoQuyDinh > 0 ? $tienKhamTheoQuyDinh : ($phieuKham->TienKham ?? 0);
+
+        $tienThuoc = $phieuKham->toaThuoc->sum(function ($item) {
+            return (float) $item->TienThuoc;
+        });
+        if ($tienThuoc <= 0 && $phieuKham->TongTienThuoc !== null) {
+            $tienThuoc = (float) $phieuKham->TongTienThuoc;
+        }
+
+        return response()->json([
+            'TienKham' => $tienKham,
+            'TienThuoc' => $tienThuoc,
+            'TongTien' => $tienKham + $tienThuoc,
+        ]);
+    }
+
     public function show($id)
     {
         $hoaDon = HoaDon::with(['nhanVien', 'phieuKham'])->find($id);
@@ -34,19 +65,49 @@ class HoaDonController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'ID_PhieuKham' => 'required|integer|exists:phieu_kham,ID_PhieuKham',
             'ID_NhanVien' => 'required|integer|exists:nhan_vien,ID_NhanVien',
-            'NgayHoaDon' => 'required|date',
-            'TienKham' => 'nullable|numeric|min:0',
-            'TienThuoc' => 'nullable|numeric|min:0',
-            'TongTien' => 'nullable|numeric|min:0',
+            'NgayHoaDon' => 'sometimes|date',
         ]);
 
-        $payload = $request->all();
-        if (!isset($payload['TongTien'])) {
-            $payload['TongTien'] = (float) ($payload['TienKham'] ?? 0) + (float) ($payload['TienThuoc'] ?? 0);
+        $phieuKham = PhieuKham::with(['toaThuoc', 'hoaDon'])->find($validated['ID_PhieuKham']);
+        if (!$phieuKham || $phieuKham->Is_Deleted) {
+            return response()->json(['message' => 'Phiếu khám không hợp lệ'], 422);
         }
+
+        if ($phieuKham->hoaDon) {
+            return response()->json(['message' => 'Phiếu khám này đã được lập hoá đơn'], 409);
+        }
+
+        $nhanVien = NhanVien::with('nhomNguoiDung')->find($validated['ID_NhanVien']);
+        if (!$nhanVien) {
+            return response()->json(['message' => 'Nhân viên không tồn tại'], 404);
+        }
+
+        if (!$nhanVien->nhomNguoiDung || $nhanVien->nhomNguoiDung->MaNhom !== '@doctors') {
+            return response()->json(['message' => 'Nhân viên không có quyền lập hoá đơn'], 403);
+        }
+
+        $tienKhamTheoQuyDinh = QuiDinh::getValue('TienKham', 0);
+        $tienKham = $tienKhamTheoQuyDinh > 0 ? $tienKhamTheoQuyDinh : ($phieuKham->TienKham ?? 0);
+
+        $tienThuoc = $phieuKham->toaThuoc->sum(function ($item) {
+            return (float) $item->TienThuoc;
+        });
+
+        if ($tienThuoc <= 0 && $phieuKham->TongTienThuoc !== null) {
+            $tienThuoc = (float) $phieuKham->TongTienThuoc;
+        }
+
+        $payload = [
+            'ID_PhieuKham' => $validated['ID_PhieuKham'],
+            'ID_NhanVien' => $validated['ID_NhanVien'],
+            'NgayHoaDon' => $validated['NgayHoaDon'] ?? now()->toDateString(),
+            'TienKham' => $tienKham,
+            'TienThuoc' => $tienThuoc,
+            'TongTien' => $tienKham + $tienThuoc,
+        ];
 
         $hoaDon = HoaDon::create($payload);
 
@@ -63,20 +124,22 @@ class HoaDonController extends Controller
             return response()->json(['message' => 'Không tìm thấy hoá đơn'], 404);
         }
 
-        $request->validate([
-            'ID_PhieuKham' => 'sometimes|required|integer|exists:phieu_kham,ID_PhieuKham',
-            'ID_NhanVien' => 'sometimes|required|integer|exists:nhan_vien,ID_NhanVien',
-            'NgayHoaDon' => 'sometimes|required|date',
-            'TienKham' => 'nullable|numeric|min:0',
-            'TienThuoc' => 'nullable|numeric|min:0',
-            'TongTien' => 'nullable|numeric|min:0',
+        $validated = $request->validate([
+            'NgayHoaDon' => 'sometimes|date',
+            'TienKham' => 'sometimes|numeric|min:0',
+            'TienThuoc' => 'sometimes|numeric|min:0',
         ]);
 
-        $payload = $request->all();
-        if (!isset($payload['TongTien'])) {
-            $payload['TongTien'] = (float) ($payload['TienKham'] ?? $hoaDon->TienKham ?? 0)
-                + (float) ($payload['TienThuoc'] ?? $hoaDon->TienThuoc ?? 0);
-        }
+        $payload = [
+            'NgayHoaDon' => $validated['NgayHoaDon'] ?? $hoaDon->NgayHoaDon,
+        ];
+
+        $tienKham = array_key_exists('TienKham', $validated) ? (float) $validated['TienKham'] : (float) $hoaDon->TienKham;
+        $tienThuoc = array_key_exists('TienThuoc', $validated) ? (float) $validated['TienThuoc'] : (float) $hoaDon->TienThuoc;
+
+        $payload['TienKham'] = $tienKham;
+        $payload['TienThuoc'] = $tienThuoc;
+        $payload['TongTien'] = $tienKham + $tienThuoc;
 
         $hoaDon->fill($payload);
         $hoaDon->save();

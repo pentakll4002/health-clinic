@@ -67,18 +67,34 @@ const Sidebar = () => {
           icon={DoctorsSvg}
           label='Doctors'
           items={[
-            { label: 'Doctors', to: '/admin-dashboard' },
-            { label: 'Doctors Details', to: '/doctor-dashboard' },
-            { label: 'Add Doctors', to: '/patient-dashboard' },
-            { label: 'Doctors Schedule', to: '/patient-dashboard' },
+            { label: 'Doctors', to: '/' },
+            { label: 'Doctors Details', to: '/?view=detail' },
+            { label: 'Add Doctors', to: '/?modal=add-doctor' },
+            { label: 'Doctors Schedule', to: '/appointments' },
           ]}
         />
 
         {/* Patients */}
-        <SidebarLink to='/patients' icon={PatientsSvg} label='Patients' />
+        <Dropdown
+          icon={PatientsSvg}
+          label='Patients'
+          items={[
+            { label: 'Patients', to: '/patients' },
+            { label: 'Patient Details', to: '/patients?view=detail' },
+            { label: 'Add Patient', to: '/patients?modal=add-patient' },
+          ]}
+        />
 
         {/* Drug Management */}
-        <SidebarLink to='/drugs' icon={DrugSvg} label='Drug Management' />
+        <Dropdown
+          icon={DrugSvg}
+          label='Drug Management'
+          items={[
+            { label: 'All Drugs', to: '/drugs' },
+            { label: 'Add Drug', to: '/drugs?modal=add-drug' },
+            { label: 'Drug Usage Reports', to: '/drugs?tab=reports' },
+          ]}
+        />
 
         {/* Medical Forms */}
         <SidebarLink to='/medical-forms' icon={MedicalFormSvg} label='Medical Forms' />

@@ -36,3 +36,6 @@ class BenhNhan extends Model
 
 
 
+
+
+

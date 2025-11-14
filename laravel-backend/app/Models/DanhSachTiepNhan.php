@@ -38,9 +38,9 @@ class DanhSachTiepNhan extends Model
         return $this->belongsTo(NhanVien::class, 'ID_NhanVien', 'ID_NhanVien');
     }
 
-    // public function phieuKham()
-    // {
-    //     return $this->hasMany(PhieuKham::class, 'ID_TiepNhan', 'ID_TiepNhan');
-    // }
+    public function phieuKhams()
+    {
+        return $this->hasMany(PhieuKham::class, 'ID_TiepNhan', 'ID_TiepNhan');
+    }
 }
 

@@ -15,6 +15,8 @@ return new class extends Migration
             $table->increments("ID_HoaDon");
             $table->unsignedInteger("ID_PhieuKham");
             $table->foreign("ID_PhieuKham")->references("ID_PhieuKham")->on("phieu_kham");
+            $table->unsignedInteger("ID_NhanVien");
+            $table->foreign("ID_NhanVien")->references("ID_NhanVien")->on("nhan_vien");
             $table->date("NgayHoaDon")->nullable(false);
             $table->decimal("TienKham", 10, 2)->nullable(true);
             $table->decimal("TienThuoc", 10, 2)->nullable(true);
