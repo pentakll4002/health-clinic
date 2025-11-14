@@ -32,3 +32,11 @@ class BenhNhan extends Model
     }
 }
 
+
+
+
+
+
+
+
+

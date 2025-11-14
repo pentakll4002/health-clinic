@@ -10,16 +10,23 @@ const ContainerGrid = styled.div`
   gap: 24px;
 `;
 
-const PatientsCardContainer = () => {
-  const { isLoading, patients, hasMore, loadMore } = usePatients();
+const PatientsCardContainer = ({ searchParams = {} }) => {
+  const { isLoading, patients, totalCount, hasMore, loadMore } = usePatients(searchParams);
 
   if (isLoading) return <Spinner />;
+  
   return (
     <>
       <ContainerGrid>
-        {patients.map((patient) => (
-          <PatientsCard key={patient.ID_BenhNhan} patient={patient} />
-        ))}
+        {patients.length === 0 ? (
+          <div className='col-span-3 text-center py-8 text-grey-500'>
+            Không tìm thấy bệnh nhân nào
+          </div>
+        ) : (
+          patients.map((patient) => (
+            <PatientsCard key={patient.ID_BenhNhan} patient={patient} />
+          ))
+        )}
       </ContainerGrid>
       
       {!hasMore ? (

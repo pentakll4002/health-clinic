@@ -7,7 +7,9 @@ import {
   AppointmentsSvg,
   DashboardSvg,
   DoctorsSvg,
+  DrugSvg,
   LeavesSvg,
+  MedicalFormSvg,
   PatientsSvg,
 } from '../constants/Global';
 
@@ -65,10 +67,10 @@ const Sidebar = () => {
           icon={DoctorsSvg}
           label='Doctors'
           items={[
-            { label: 'Doctors', to: '/admin-dashboard' },
-            { label: 'Doctors Details', to: '/doctor-dashboard' },
-            { label: 'Add Doctors', to: '/patient-dashboard' },
-            { label: 'Doctors Schedule', to: '/patient-dashboard' },
+            { label: 'Doctors', to: '/' },
+            { label: 'Doctors Details', to: '/?view=detail' },
+            { label: 'Add Doctors', to: '/?modal=add-doctor' },
+            { label: 'Doctors Schedule', to: '/appointments' },
           ]}
         />
 
@@ -77,22 +79,33 @@ const Sidebar = () => {
           icon={PatientsSvg}
           label='Patients'
           items={[
-            { label: 'Patients', to: '/admin-dashboard' },
-            { label: 'Patients Details', to: '/doctor-dashboard' },
-            { label: 'Create Patients', to: '/patient-dashboard' },
+            { label: 'Patients', to: '/patients' },
+            { label: 'Patient Details', to: '/patients?view=detail' },
+            { label: 'Add Patient', to: '/patients?modal=add-patient' },
           ]}
         />
 
-        {/* Appointments */}
+        {/* Drug Management */}
         <Dropdown
-          icon={AppointmentsSvg}
-          label='Appointments'
+          icon={DrugSvg}
+          label='Drug Management'
           items={[
-            { label: 'Appointments', to: '/admin-dashboard' },
-            { label: 'New Appointments', to: '/doctor-dashboard' },
-            { label: 'Calendar', to: '/patient-dashboard' },
+            { label: 'All Drugs', to: '/drugs' },
+            { label: 'Add Drug', to: '/drugs?modal=add-drug' },
+            { label: 'Drug Usage Reports', to: '/drugs?tab=reports' },
           ]}
         />
+
+        <SidebarLink to='/regulations' icon={Cog8ToothIcon} label='Regulations' />
+
+        {/* Medical Forms */}
+        <SidebarLink to='/medical-forms' icon={MedicalFormSvg} label='Medical Forms' />
+
+        {/* Appointments */}
+        <SidebarLink to='/appointments' icon={AppointmentsSvg} label='Appointments' />
+
+        {/* Invoices */}
+        <SidebarLink to='/invoices' icon={CurrencyDollarIcon} label='Invoices' />
 
         <SidebarLink to='/' icon={MapPinIcon} label='Locations' />
         <SidebarLink to='/' icon={ChatBubbleLeftRightIcon} label='Messages' />
