@@ -12,6 +12,7 @@ use App\Http\Controllers\HoaDonController;
 use App\Http\Controllers\PhieuKhamController;
 use App\Http\Controllers\BaoCaoDoanhThuController;
 use App\Http\Controllers\BaoCaoSuDungThuocController;
+use App\Http\Controllers\QuiDinhController;
 
 /*
 |--------------------------------------------------------------------------
@@ -92,3 +93,7 @@ Route::post('/bao-cao-su-dung-thuoc', [BaoCaoSuDungThuocController::class, 'stor
 Route::get('/bao-cao-su-dung-thuoc/{id}', [BaoCaoSuDungThuocController::class, 'show']); // chi tiết
 Route::delete('/bao-cao-su-dung-thuoc/{id}', [BaoCaoSuDungThuocController::class, 'destroy']); // xoá
 Route::delete('/bao-cao-su-dung-thuoc', [BaoCaoSuDungThuocController::class, 'destroyByMonth']); // xoá theo tháng
+
+// Regulations (Quy định) routes
+Route::get('/qui-dinh', [QuiDinhController::class, 'index']); // lấy các quy định
+Route::put('/qui-dinh', [QuiDinhController::class, 'update']); // cập nhật quy định

@@ -4,6 +4,7 @@ import FormRow from '../../ui/FormRow';
 import InputNew from '../../ui/InputNew';
 import Button from '../../ui/Button';
 import InputImage from '../../ui/InputImage';
+import Select from '../../ui/Select';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateDoctor, createDoctor, fetchGroups } from './APIdoctors';
 import { useEffect, useState } from 'react';
@@ -40,14 +41,17 @@ const CreateDoctorForm = ({ doctor = null, onSuccess }) => {
 
   const [groups, setGroups] = useState([]);
   useEffect(() => {
-    fetchGroups().then(setGroups);
+    fetchGroups().then((data) => setGroups(data || []));
   }, []);
 
   useEffect(() => {
-    if (isEdit) {
-      Object.keys(doctor).forEach(key => {
+    if (isEdit && doctor) {
+      Object.keys(doctor).forEach((key) => {
         setValue(key, doctor[key]);
       });
+      if (doctor.ID_Nhom) {
+        setValue('id_nhom', String(doctor.ID_Nhom));
+      }
     }
   }, [isEdit, doctor, setValue]);
 
@@ -192,17 +196,21 @@ const CreateDoctorForm = ({ doctor = null, onSuccess }) => {
         </FormRow>
 
         <FormRow label='Nhóm người dùng*' error={errors.id_nhom?.message}>
-          <select
+          <Select
             id='id_nhom'
             disabled={isLoading}
-            {...register('id_nhom', {required: 'Bắt buộc !'})}
+            {...register('id_nhom', { required: 'Bắt buộc !' })}
             defaultValue=''
           >
-            <option value='' disabled>-- Chọn nhóm --</option>
-            {groups.map(({ID_Nhom, TenNhom}) => (
-              <option key={ID_Nhom} value={ID_Nhom}>{TenNhom}</option>
+            <option value='' disabled>
+              -- Chọn nhóm --
+            </option>
+            {groups.map(({ ID_Nhom, TenNhom }) => (
+              <option key={ID_Nhom} value={ID_Nhom}>
+                {TenNhom}
+              </option>
             ))}
-          </select>
+          </Select>
         </FormRow>
 
         <div className='flex items-end justify-end gap-x-3'>
