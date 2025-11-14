@@ -4,6 +4,7 @@ import DoctorsCardContainer from '../features/doctors/DoctorsCardContainer';
 import { FunnelIcon } from '@heroicons/react/24/outline';
 import AddDoctor from '../features/doctors/AddDoctor';
 import { useDoctors } from '../features/doctors/useDoctors';
+import Spinner from '../ui/Spinner';
 
 const LayoutDoctors = styled.div`
   width: 100%;
@@ -22,7 +23,7 @@ const LayoutFlex = styled.div`
 const Doctors = () => {
   const { totalCount, isLoading } = useDoctors();
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <Spinner />;
 
   return (
     <LayoutDoctors>

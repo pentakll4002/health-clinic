@@ -8,13 +8,14 @@ import InputImage from '../../ui/InputImage';
 const Form = styled.form`
   display: grid;
   grid-template-columns: 1fr 1fr;
+  row-gap: 16px;
   column-gap: 24px;
   margin: 0 auto;
   min-width: 600px;
 `;
 
 const CreatePatientForm = () => {
-  const { register, handleSubmit, reset, getValues, formState } = useForm();
+  const { register, handleSubmit, reset, formState } = useForm();
 
   const { errors } = formState;
 
@@ -110,35 +111,13 @@ const CreatePatientForm = () => {
             })}
           />
         </FormRow>
-        
-        <FormRow label='Trạng thái' error={errors.status?.message}>
-          <InputNew
-            id='status'
-            type='text'
-            {...register('status', {
-              required: 'Bắt buộc !',
-            })}
-          />
-        </FormRow>
-        
-        <FormRow label='Ngày đăng ký' error={errors.ngaydk?.message}>
-          <InputNew
-            id='ngaydk'
-            type='text'
-            {...register('ngaydk', {
-              required: 'Bắt buộc !',
-            })}
-          />
-        </FormRow>
 
         <div />
 
         <div className='flex items-end justify-end gap-x-3'>
           <Button
             className='bg-light text-grey-900 px-[10px] py-[6px]'
-            onClick={() => {
-              reset;
-            }}
+            onClick={() => reset()}
           >
             Huỷ
           </Button>
@@ -155,4 +134,3 @@ const CreatePatientForm = () => {
 };
 
 export default CreatePatientForm;
-

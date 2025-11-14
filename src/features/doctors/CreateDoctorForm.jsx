@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 const Form = styled.form`
   display: grid;
   grid-template-columns: 1fr 1fr;
+  row-gap: 16px;
   column-gap: 24px;
   margin: 0 auto;
   min-width: 600px;
@@ -18,7 +19,7 @@ const Form = styled.form`
 
 const CreateDoctorForm = ({ doctor = null, onSuccess }) => {
   const isEdit = !!doctor;
-  const { register, handleSubmit, reset, getValues, setValue, formState } = useForm({
+  const { register, handleSubmit, reset, setValue, formState } = useForm({
     defaultValues: doctor || {},
   });
 
@@ -73,22 +74,7 @@ const CreateDoctorForm = ({ doctor = null, onSuccess }) => {
       <div className='w-full pb-4 mb-10 border-b border-grey-transparent'>
         <h2 className='text-xl font-bold'>Thông tin bác sĩ</h2>
       </div>
-      <Form onSubmit={handleSubmit((data) => {
-        const payload = {
-          email: data.email,
-          password: data.password,
-          HoTenNV: data.name,
-          NgaySinh: data.birthday,
-          GioiTinh: data.gender,
-          CCCD: data.cccd,
-          DienThoai: data.sdt,
-          DiaChi: data.address,
-          HinhAnh: data.avatarUrl || 'default_avatar.jpg',
-          ID_Nhom: Number(data.id_nhom),
-        };
-        if (isEdit && !payload.password) delete payload.password; // Sửa không cần gửi password nếu bỏ trống
-        mutate(payload);
-      })}>
+      <Form onSubmit={handleSubmit(onSubmit)}>
         <InputImage />
 
         <FormRow label='Name*' error={errors.name?.message}>

@@ -4,17 +4,20 @@ import { useMoveBack } from '../../hooks/useMoveBack';
 import Spinner from '../../ui/Spinner';
 import Table from '../../ui/Table';
 import Button from '../../ui/Button';
+import MedicalRow from '../medicalForm/MedicalRow';
+import ModalCenter from '../../ui/ModalCenter';
 
 import { usePatient } from './usePatient';
 import { usePhieuKhamByBenhNhan } from '../medicalForm/usePhieuKham';
 
 import {
-  CalendarDateRangeIcon,
   ChevronLeftIcon,
+  ClipboardDocumentListIcon,
   PhoneIcon,
 } from '@heroicons/react/24/outline';
+
 import PatientImg from '../../assets/patient.jpg';
-import MedicalRow from '../medicalForm/MedicalRow';
+import ReceptionForm from '../receptionList/ReceptionForm';
 
 const LayoutPatient = styled.div`
   width: 100%;
@@ -70,27 +73,69 @@ const PatientDetail = () => {
       <ProfilePatient>
         <Img src={PatientImg} alt='patient' />
 
-        <div className='flex flex-col items-start justify-between h-full gap-[4px] flex-[1_0_0]'>
-          <div>
-            <span className='text-sm text-primary'>#{patient.ID_BenhNhan}</span>
-            <h3 className='text-grey-900 text-[18px] font-bold leading-5'>
-              {patient.HoTenBN}
-            </h3>
-            <span className='text-sm leading-5 text-grey-500'>
-              {patient.DiaChi}
-            </span>
+        <div className='flex flex-row gap-7'>
+          <div className='flex flex-col items-start gap-y-7 flex-[1_0_0]'>
+            <div>
+              <span className='text-sm text-primary'>
+                #{patient.ID_BenhNhan}
+              </span>
+              <h3 className='text-grey-900 text-[18px] font-bold leading-5'>
+                {patient.HoTenBN}
+              </h3>
+              <span className='text-sm leading-5 text-grey-500'>
+                {patient.DiaChi}
+              </span>
+            </div>
+
+            <div className='flex items-center gap-2 text-sm leading-5 text-grey-500'>
+              <PhoneIcon className='w-4 h-4' />
+              <span>Phone: {patient.DienThoai}</span>
+            </div>
           </div>
 
-          <div className='flex items-center gap-2 text-sm leading-5 text-grey-500'>
-            <PhoneIcon className='w-4 h-4' />
-            <span>Phone: {patient.DienThoai}</span>
+          <div className='border-l-[2px] border-grey-500 pl-7 flex flex-col justify-between'>
+            <p className='text-grey-900 text-[16px]  leading-5'>
+              CCCD:
+              <span className='pl-3 text-sm leading-5 text-grey-500'>
+                {patient.CCCD}
+              </span>
+            </p>
+            
+            <p className='text-grey-900 text-[16px]  leading-5'>
+              Giới tính:
+              <span className='pl-3 text-sm leading-5 text-grey-500'>
+                {patient.GioiTinh}
+              </span>
+            </p>
+
+            <p className='text-grey-900 text-[16px]  leading-5'>
+              Ngày sinh:
+              <span className='pl-3 text-sm leading-5 text-grey-500'>
+                {patient.NgaySinh}
+              </span>
+            </p>
+            
+            <p className='text-grey-900 text-[16px]  leading-5'>
+              Ngày Đăng ký:
+              <span className='pl-3 text-sm leading-5 text-grey-500'>
+                {patient.NgayDK}
+              </span>
+            </p>
           </div>
         </div>
 
-        <Button className='text-white bg-primary text-sm px-[15px] mt-auto'>
-          <CalendarDateRangeIcon className='w-5 h-5 mr-4' />
-          Đặt lịch hẹn
-        </Button>
+        <ModalCenter>
+          <ModalCenter.Open opens='receipt'>
+            <Button className='text-white bg-primary text-sm px-[15px] mt-auto ml-auto'>
+              <ClipboardDocumentListIcon className='w-5 h-5 mr-4' />
+              Tạo hồ sơ
+            </Button>
+          </ModalCenter.Open>
+
+          <ModalCenter.Window name='receipt'>
+            <ReceptionForm patient={patient} />
+          </ModalCenter.Window>
+        </ModalCenter>
       </ProfilePatient>
 
       <p className='pb-3 m-6 text-sm font-semibold text-center border-b text-primary border-grey-transparent'>
