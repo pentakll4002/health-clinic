@@ -12,6 +12,7 @@ import LayoutApp from './layouts/LayoutApp';
 import Doctors from './pages/Doctors';
 import Patients from './pages/Patients';
 import Patient from './pages/Patient';
+import Reception from './pages/Reception';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +32,7 @@ function App() {
             <Route index element={<Doctors />} />
             <Route path='patients' element={<Patients />} />
             <Route path='patients/:ID_BenhNhan' element={<Patient />} />
+            <Route path='reception' element={<Reception />} />
           </Route>
 
           <Route path='/sign-in' element={<SignIn />} />
