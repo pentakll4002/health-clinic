@@ -18,6 +18,7 @@ import MedicalForms from './pages/MedicalForms';
 import Invoices from './pages/Invoices';
 import Appointments from './pages/Appointments';
 import Reports from './pages/Reports';
+import Regulations from './pages/Regulations';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,6 +44,7 @@ function App() {
             <Route path='invoices' element={<Invoices />} />
             <Route path='appointments' element={<Appointments />} />
             <Route path='reports' element={<Reports />} />
+            <Route path='regulations' element={<Regulations />} />
           </Route>
 
           <Route path='/sign-in' element={<SignIn />} />

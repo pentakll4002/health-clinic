@@ -96,6 +96,8 @@ const Sidebar = () => {
           ]}
         />
 
+        <SidebarLink to='/regulations' icon={Cog8ToothIcon} label='Regulations' />
+
         {/* Medical Forms */}
         <SidebarLink to='/medical-forms' icon={MedicalFormSvg} label='Medical Forms' />
 

@@ -9,10 +9,18 @@ class NhomNguoiDungSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('nhom_nguoi_dung')->insert([
-            ['ID_Nhom' => 1, 'TenNhom' => 'Bác sĩ', 'MaNhom' => '@doctors'],
-            ['ID_Nhom' => 2, 'TenNhom' => 'Y tá', 'MaNhom' => '@doctors'],
-            ['ID_Nhom' => 3, 'TenNhom' => 'Lễ tân', 'MaNhom' => '@receptionists'],
-        ]);
+        $groups = [
+            ['TenNhom' => 'Bác sĩ', 'MaNhom' => '@doctors'],
+            ['TenNhom' => 'Y tá', 'MaNhom' => '@nurses'],
+            ['TenNhom' => 'Lễ tân', 'MaNhom' => '@receptionists'],
+            ['TenNhom' => 'Kế toán', 'MaNhom' => '@accountants'],
+        ];
+
+        foreach ($groups as $group) {
+            DB::table('nhom_nguoi_dung')->updateOrInsert(
+                ['MaNhom' => $group['MaNhom']],
+                ['TenNhom' => $group['TenNhom']]
+            );
+        }
     }
 }
