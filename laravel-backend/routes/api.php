@@ -9,6 +9,9 @@ use App\Http\Controllers\ThuocController;
 use App\Http\Controllers\DanhSachTiepNhanController;
 use App\Http\Controllers\BenhNhanController;
 use App\Http\Controllers\HoaDonController;
+use App\Http\Controllers\PhieuKhamController;
+use App\Http\Controllers\BaoCaoDoanhThuController;
+use App\Http\Controllers\BaoCaoSuDungThuocController;
 
 /*
 |--------------------------------------------------------------------------
@@ -65,9 +68,27 @@ Route::get('/appointments/{id}', [DanhSachTiepNhanController::class, 'show']); /
 Route::put('/appointments/{id}', [DanhSachTiepNhanController::class, 'update']); // sửa
 Route::delete('/appointments/{id}', [DanhSachTiepNhanController::class, 'destroy']); // xoá
 
+// Medical records (Phiếu khám) routes
+Route::get('/phieu-kham', [PhieuKhamController::class, 'index']);
+Route::get('/phieu-kham/{id}', [PhieuKhamController::class, 'show']);
+
 // Invoices (Hoá đơn) routes
 Route::get('/invoices', [HoaDonController::class, 'index']); // danh sách
+Route::get('/invoices/preview/{phieuKham}', [HoaDonController::class, 'preview']); // xem trước tiền
 Route::post('/invoices', [HoaDonController::class, 'store']); // tạo mới
 Route::get('/invoices/{id}', [HoaDonController::class, 'show']); // chi tiết
 Route::put('/invoices/{id}', [HoaDonController::class, 'update']); // cập nhật
 Route::delete('/invoices/{id}', [HoaDonController::class, 'destroy']); // xoá
+
+// Revenue Reports (Báo cáo doanh thu) routes
+Route::get('/bao-cao-doanh-thu', [BaoCaoDoanhThuController::class, 'index']); // danh sách
+Route::post('/bao-cao-doanh-thu', [BaoCaoDoanhThuController::class, 'store']); // lập báo cáo mới
+Route::get('/bao-cao-doanh-thu/{id}', [BaoCaoDoanhThuController::class, 'show']); // chi tiết
+Route::delete('/bao-cao-doanh-thu/{id}', [BaoCaoDoanhThuController::class, 'destroy']); // xoá
+
+// Drug Usage Reports (Báo cáo sử dụng thuốc) routes
+Route::get('/bao-cao-su-dung-thuoc', [BaoCaoSuDungThuocController::class, 'index']); // danh sách
+Route::post('/bao-cao-su-dung-thuoc', [BaoCaoSuDungThuocController::class, 'store']); // lập báo cáo mới
+Route::get('/bao-cao-su-dung-thuoc/{id}', [BaoCaoSuDungThuocController::class, 'show']); // chi tiết
+Route::delete('/bao-cao-su-dung-thuoc/{id}', [BaoCaoSuDungThuocController::class, 'destroy']); // xoá
+Route::delete('/bao-cao-su-dung-thuoc', [BaoCaoSuDungThuocController::class, 'destroyByMonth']); // xoá theo tháng

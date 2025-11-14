@@ -10,9 +10,9 @@ class NhomNguoiDungSeeder extends Seeder
     public function run(): void
     {
         DB::table('nhom_nguoi_dung')->insert([
-            ['ID_Nhom' => 1, 'TenNhom' => 'Bác sĩ'],
-            ['ID_Nhom' => 2, 'TenNhom' => 'Y tá'],
-            ['ID_Nhom' => 3, 'TenNhom' => 'Lễ tân'],
+            ['ID_Nhom' => 1, 'TenNhom' => 'Bác sĩ', 'MaNhom' => '@doctors'],
+            ['ID_Nhom' => 2, 'TenNhom' => 'Y tá', 'MaNhom' => '@doctors'],
+            ['ID_Nhom' => 3, 'TenNhom' => 'Lễ tân', 'MaNhom' => '@receptionists'],
         ]);
     }
 }

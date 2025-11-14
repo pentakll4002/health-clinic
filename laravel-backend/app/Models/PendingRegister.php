@@ -11,3 +11,6 @@ class PendingRegister extends Model
     public $timestamps = true;
 }
 
+
+
+

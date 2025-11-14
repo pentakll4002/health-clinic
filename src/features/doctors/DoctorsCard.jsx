@@ -54,7 +54,11 @@ const DoctorsCard = ({ doctor }) => {
     NgaySinh,
     DienThoai,
     HinhAnh,
+    nhom_nguoi_dung: nhomNguoiDung,
   } = doctor;
+
+  const groupName = nhomNguoiDung?.TenNhom ?? 'Không xác định';
+  const groupCode = nhomNguoiDung?.MaNhom;
 
   const queryClient = useQueryClient();
   const { mutate: deleteMutate, isLoading: isDeleting } = useMutation({
@@ -70,9 +74,17 @@ const DoctorsCard = ({ doctor }) => {
           {HoTenNV}
         </h3>
       </div>
-      <p className='text-grey-500 text-[13px] mr-10 w-[200px]'>
-        Ngày sinh: {NgaySinh}
-      </p>
+      <div className='flex flex-col mr-10 w-[200px] text-[13px] text-grey-500'>
+        <span>Ngày sinh: {NgaySinh}</span>
+        <span className='mt-1'>
+          Nhóm: <span className='font-medium text-grey-700'>{groupName}</span>
+          {groupCode && (
+            <span className='ml-2 inline-block rounded-full bg-primary-transparent text-primary text-[11px] px-2 py-[1px]'>
+              {groupCode}
+            </span>
+          )}
+        </span>
+      </div>
       <p className='text-grey-500 text-[13px] mr-auto'>
         Số điện thoại: <span className='text-sm font-semibold text-primary'>{DienThoai}</span>
       </p>

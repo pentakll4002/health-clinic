@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import styled from 'styled-components';
 import FormRow from '../../ui/FormRow';
@@ -19,21 +20,27 @@ const Form = styled.form`
 
 async function getNhanVienList() {
   const response = await axiosInstance.get('/nhanvien', {
-    params: { limit: 100 },
+    params: { limit: 100, ma_nhom: '@doctors' },
   });
   return response.data;
 }
 
 async function getPhieuKhamList() {
-  // For now, reuse mock data from medicalForm API via client; if needed, replace with backend route
-  // Expect backend to provide /phieu-kham list later
-  return { data: Array.from({ length: 20 }, (_, i) => ({ ID_PhieuKham: i + 1 })) };
+  const response = await axiosInstance.get('/phieu-kham', {
+    params: { limit: 100, only_without_invoice: true },
+  });
+  return response.data;
 }
 
 const CreateInvoiceForm = ({ onCloseModal }) => {
-  const { register, handleSubmit, reset, formState, watch } = useForm();
+  const { register, handleSubmit, reset, formState, watch, setError } = useForm({
+    defaultValues: {
+      NgayHoaDon: new Date().toISOString().slice(0, 10),
+    },
+  });
   const { errors } = formState;
   const queryClient = useQueryClient();
+  const [preview, setPreview] = useState(null);
 
   const { data: nhanVienData } = useQuery({
     queryKey: ['nhanvien-list'],
@@ -47,13 +54,57 @@ const CreateInvoiceForm = ({ onCloseModal }) => {
 
   const nhanVienList = nhanVienData?.data || [];
   const phieuKhamList = phieuKhamData?.data || [];
+  const selectedPhieuKham = watch('ID_PhieuKham');
+
+  useEffect(() => {
+    let ignore = false;
+    async function fetchPreview(id) {
+      try {
+        const response = await axiosInstance.get(`/invoices/preview/${id}`);
+        if (!ignore) {
+          setPreview(response.data);
+          setError('ID_PhieuKham', undefined);
+        }
+      } catch (error) {
+        if (!ignore) {
+          setPreview(null);
+          if (error.response?.status === 409) {
+            toast.error('Phiếu khám đã được lập hoá đơn');
+            setError('ID_PhieuKham', {
+              type: 'manual',
+              message: 'Phiếu khám đã được lập hoá đơn',
+            });
+          } else if (error.response?.status === 404) {
+            toast.error('Phiếu khám không tồn tại');
+          } else {
+            toast.error('Không tải được dữ liệu xem trước');
+          }
+        }
+      }
+    }
+
+    if (selectedPhieuKham) {
+      fetchPreview(selectedPhieuKham);
+    } else {
+      setPreview(null);
+    }
+
+    return () => {
+      ignore = true;
+    };
+  }, [selectedPhieuKham, setError]);
 
   const { mutate: createInvoiceMutation, isLoading } = useMutation({
     mutationFn: createInvoice,
     onSuccess: () => {
       toast.success('Tạo hoá đơn thành công');
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      reset();
+      reset({
+        ID_PhieuKham: '',
+        ID_NhanVien: '',
+        NgayHoaDon: new Date().toISOString().slice(0, 10),
+      });
+      setPreview(null);
       if (onCloseModal) onCloseModal();
     },
     onError: (error) => {
@@ -66,9 +117,6 @@ const CreateInvoiceForm = ({ onCloseModal }) => {
       ID_PhieuKham: parseInt(data.ID_PhieuKham),
       ID_NhanVien: parseInt(data.ID_NhanVien),
       NgayHoaDon: data.NgayHoaDon,
-      TienKham: parseFloat(data.TienKham) || 0,
-      TienThuoc: parseFloat(data.TienThuoc) || 0,
-      TongTien: parseFloat(data.TongTien) || undefined,
     };
     createInvoiceMutation(payload);
   }
@@ -121,26 +169,33 @@ const CreateInvoiceForm = ({ onCloseModal }) => {
           />
         </FormRow>
 
-        <FormRow label='Tiền khám' error={errors.TienKham?.message}>
-          <InputNew type='number' step='0.01' id='TienKham' {...register('TienKham')} />
-        </FormRow>
-
-        <FormRow label='Tiền thuốc' error={errors.TienThuoc?.message}>
+        <FormRow label='Tiền khám'>
           <InputNew
             type='number'
-            step='0.01'
-            id='TienThuoc'
-            {...register('TienThuoc')}
+            id='TienKhamPreview'
+            value={preview?.TienKham ?? ''}
+            readOnly
+            disabled
           />
         </FormRow>
 
-        <FormRow label='Tổng tiền (tùy chọn)' error={errors.TongTien?.message}>
+        <FormRow label='Tiền thuốc'>
           <InputNew
             type='number'
-            step='0.01'
-            id='TongTien'
-            placeholder='Để trống để tự tính'
-            {...register('TongTien')}
+            id='TienThuocPreview'
+            value={preview?.TienThuoc ?? ''}
+            readOnly
+            disabled
+          />
+        </FormRow>
+
+        <FormRow label='Tổng tiền'>
+          <InputNew
+            type='number'
+            id='TongTienPreview'
+            value={preview?.TongTien ?? ''}
+            readOnly
+            disabled
           />
         </FormRow>
 
@@ -150,7 +205,12 @@ const CreateInvoiceForm = ({ onCloseModal }) => {
           <Button
             className='bg-light text-grey-900 px-[10px] py-[6px]'
             onClick={() => {
-              reset();
+              reset({
+                ID_PhieuKham: '',
+                ID_NhanVien: '',
+                NgayHoaDon: new Date().toISOString().slice(0, 10),
+              });
+              setPreview(null);
             }}
             type='button'
           >

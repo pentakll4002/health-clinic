@@ -3,16 +3,24 @@ import { useState, useEffect } from 'react';
 import { getPatients } from './APIPatients';
 import { PAGE_SIZE_LOAD_MORE } from '../../constants/Global';
 
-export function usePatients() {
+export function usePatients(searchParams = {}) {
   const [page, setPage] = useState(1);
   const [patients, setPatients] = useState([]);
 
+  // Tạo query key dựa trên search params để refetch khi search thay đổi
+  const searchKey = JSON.stringify(searchParams);
+
   const { isLoading, data } = useQuery({
-    queryKey: ['patients'],
-    queryFn: () => getPatients({ page: 1, limit: 100 }), 
+    queryKey: ['patients', searchKey],
+    queryFn: () => getPatients({ page: 1, limit: 100, searchParams }), 
   });
 
   const totalCount = data?.totalCount || 0;
+
+  useEffect(() => {
+    // Reset page khi search thay đổi
+    setPage(1);
+  }, [searchKey]);
 
   useEffect(() => {
     if (!data?.data) return;
