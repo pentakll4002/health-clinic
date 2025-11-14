@@ -190,6 +190,83 @@ export const PatientsSvg = () => (
   </svg>
 );
 
+export const DrugSvg = () => (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
+    width='20'
+    height='20'
+    viewBox='0 0 14 15'
+    fill='none'
+  >
+    <path
+      d='M3.5 2.25H10.5C10.9142 2.25 11.25 2.58579 11.25 3V12C11.25 12.4142 10.9142 12.75 10.5 12.75H3.5C3.08579 12.75 2.75 12.4142 2.75 12V3C2.75 2.58579 3.08579 2.25 3.5 2.25Z'
+      stroke='#2E37A4'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M4.66667 4.58333H9.33333'
+      stroke='#2E37A4'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M4.66667 7.5H9.33333'
+      stroke='#2E37A4'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M4.66667 10.4167H7'
+      stroke='#2E37A4'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <circle cx='10.5' cy='3.5' r='1' fill='#2E37A4' />
+  </svg>
+);
+
+export const MedicalFormSvg = () => (
+  <svg
+    xmlns='http://www.w3.org/2000/svg'
+    width='20'
+    height='20'
+    viewBox='0 0 14 15'
+    fill='none'
+  >
+    <path
+      d='M2.91667 2.25H11.0833C11.3927 2.25 11.6895 2.37292 11.9083 2.59171C12.1271 2.8105 12.25 3.10725 12.25 3.41667V11.5833C12.25 11.8928 12.1271 12.1895 11.9083 12.4083C11.6895 12.6271 11.3927 12.75 11.0833 12.75H2.91667C2.60725 12.75 2.3105 12.6271 2.09171 12.4083C1.87292 12.1895 1.75 11.8928 1.75 11.5833V3.41667C1.75 3.10725 1.87292 2.8105 2.09171 2.59171C2.3105 2.37292 2.60725 2.25 2.91667 2.25Z'
+      stroke='#2E37A4'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M4.66667 5.25H9.33333'
+      stroke='#2E37A4'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M4.66667 7.5H9.33333'
+      stroke='#2E37A4'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M4.66667 9.75H7'
+      stroke='#2E37A4'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+    <path
+      d='M10.5 4.5L11.6667 5.66667L10.5 6.83333'
+      stroke='#2E37A4'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+    />
+  </svg>
+);
+
 export const AppointmentsSvg = () => (
   <svg
     xmlns='http://www.w3.org/2000/svg'

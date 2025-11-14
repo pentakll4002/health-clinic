@@ -14,15 +14,15 @@ return new class extends Migration
         Schema::create('benh_nhan', function (Blueprint $table) {
             $table->increments("ID_BenhNhan");
             $table->string("HoTenBN", 100)->nullable(false);
-            $table->date("NgaySinh")->nullable(false);
-            $table->string("GioiTinh", 10)->nullable(false);
-            $table->string("CCCD", 20)->unique()->nullable(false);
-            $table->string("DienThoai", 15)->unique()->nullable(false);
-            $table->string("DiaChi", 500)->nullable(false);
+            $table->date("NgaySinh")->nullable();
+            $table->string("GioiTinh", 10)->nullable();
+            $table->string("CCCD", 20)->unique()->nullable();
+            $table->string("DienThoai", 15)->unique()->nullable();
+            $table->string("DiaChi", 500)->nullable();
             $table->string("Email", 255)->unique()->nullable(false);
             $table->boolean("Is_Deleted")->default(0);
             $table->date("NgayDK")->nullable(false);
-            $table->unsignedBigInteger('user_id')->unique(); // Thêm user_id và đảm bảo nó là duy nhất
+            $table->unsignedBigInteger('user_id')->unique();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }

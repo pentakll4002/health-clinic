@@ -50,7 +50,7 @@ class NhanVienController extends Controller
             DB::commit();
 
             return response()->json(['message' => 'Employee created successfully', 'nhan_vien' => $nhanVien], 201);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Error creating employee', 'error' => $e->getMessage()], 500);
         }
@@ -60,7 +60,14 @@ class NhanVienController extends Controller
     {
         $limit = $request->get('limit', 7);
         $page = $request->get('page', 1);
-        $query = \App\Models\NhanVien::query();
+        $query = \App\Models\NhanVien::with('nhomNguoiDung');
+
+        if ($request->filled('ma_nhom')) {
+            $maNhom = $request->get('ma_nhom');
+            $query->whereHas('nhomNguoiDung', function ($q) use ($maNhom) {
+                $q->where('MaNhom', $maNhom);
+            });
+        }
 
         $totalCount = $query->count();
         $data = $query->offset(($page - 1) * $limit)->limit($limit)->get();
@@ -76,7 +83,7 @@ class NhanVienController extends Controller
         if (!$nhanVien) {
             return response()->json(['message' => 'Không tìm thấy bác sĩ'], 404);
         }
-        return response()->json($nhanVien);
+        return response()->json($nhanVien->load('nhomNguoiDung'));
     }
 
     public function update(Request $request, $id) {
@@ -87,7 +94,7 @@ class NhanVienController extends Controller
         // Có thể validate tuỳ ý nếu muốn, ở đây giữ đơn giản
         $nhanVien->fill($request->all());
         $nhanVien->save();
-        return response()->json(['message' => 'Cập nhật thành công', 'nhan_vien' => $nhanVien]);
+        return response()->json(['message' => 'Cập nhật thành công', 'nhan_vien' => $nhanVien->load('nhomNguoiDung')]);
     }
 
     public function destroy($id) {
