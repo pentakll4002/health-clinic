@@ -47,3 +47,5 @@ class PhieuKhamController extends Controller
 
 
 
+
+
