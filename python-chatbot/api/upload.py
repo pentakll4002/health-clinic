@@ -57,3 +57,4 @@ async def upload_text(text: str, metadata: dict = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+

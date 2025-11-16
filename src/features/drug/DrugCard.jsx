@@ -41,7 +41,7 @@ const DrugCard = ({ drug }) => {
     DonGiaNhap,
     HinhAnh,
     dvt,
-    cachDung,
+    cach_dung: cachDung,
   } = drug;
   const navigate = useNavigate();
   const queryClient = useQueryClient();

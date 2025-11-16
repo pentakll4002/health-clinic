@@ -20,6 +20,9 @@ class DatabaseSeeder extends Seeder
         // ]);
         $this->call([
             NhomNguoiDungSeeder::class,
+            DVTSeeder::class,
+            CachDungSeeder::class,
+            ThuocSeeder::class,
         ]);
     }
 }

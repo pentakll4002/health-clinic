@@ -1,9 +1,10 @@
 import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
 import styled from 'styled-components';
 import Button from '../../ui/Button';
 import DrugFormFields from './DrugFormFields';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createDrug, getDVT, getCachDung } from './APIDrugs';
+import { updateDrug, getDVT, getCachDung } from './APIDrugs';
 import toast from 'react-hot-toast';
 
 const Form = styled.form`
@@ -14,7 +15,7 @@ const Form = styled.form`
   min-width: 600px;
 `;
 
-const CreateDrugForm = ({ onCloseModal }) => {
+const UpdateDrugForm = ({ drug, onCloseModal }) => {
   const { register, handleSubmit, reset, formState } = useForm();
   const { errors } = formState;
   const queryClient = useQueryClient();
@@ -29,17 +30,35 @@ const CreateDrugForm = ({ onCloseModal }) => {
     queryFn: getCachDung,
   });
 
-  const { mutate: createDrugMutation, isLoading } = useMutation({
-    mutationFn: createDrug,
+  // Set default values when drug data is loaded
+  useEffect(() => {
+    if (drug) {
+      reset({
+        TenThuoc: drug.TenThuoc || '',
+        ID_DVT: drug.ID_DVT || '',
+        ID_CachDung: drug.ID_CachDung || '',
+        ThanhPhan: drug.ThanhPhan || '',
+        XuatXu: drug.XuatXu || '',
+        SoLuongTon: drug.SoLuongTon || 0,
+        DonGiaNhap: drug.DonGiaNhap || '',
+        TyLeGiaBan: drug.TyLeGiaBan || '',
+        DonGiaBan: drug.DonGiaBan || '',
+        HinhAnh: drug.HinhAnh || '',
+      });
+    }
+  }, [drug, reset]);
+
+  const { mutate: updateDrugMutation, isLoading } = useMutation({
+    mutationFn: ({ id, data }) => updateDrug(id, data),
     onSuccess: () => {
-      toast.success('Thêm thuốc thành công');
+      toast.success('Cập nhật thuốc thành công');
       queryClient.invalidateQueries({ queryKey: ['drugs'] });
-      reset();
+      queryClient.invalidateQueries({ queryKey: ['drug', drug?.ID_Thuoc] });
       if (onCloseModal) onCloseModal();
     },
     onError: (error) => {
       toast.error(
-        error?.response?.data?.message || 'Thêm thuốc thất bại'
+        error?.response?.data?.message || 'Cập nhật thuốc thất bại'
       );
     },
   });
@@ -57,13 +76,15 @@ const CreateDrugForm = ({ onCloseModal }) => {
       TyLeGiaBan: parseFloat(data.TyLeGiaBan) || null,
       DonGiaBan: parseFloat(data.DonGiaBan) || null,
     };
-    createDrugMutation(formData);
+    updateDrugMutation({ id: drug.ID_Thuoc, data: formData });
   }
+
+  if (!drug) return null;
 
   return (
     <div>
       <div className='w-full pb-4 mb-10 border-b border-grey-transparent'>
-        <h2 className='text-xl font-bold'>Thông tin thuốc</h2>
+        <h2 className='text-xl font-bold'>Cập nhật thông tin thuốc</h2>
       </div>
       <Form onSubmit={handleSubmit(onSubmit)}>
         <DrugFormFields
@@ -79,7 +100,7 @@ const CreateDrugForm = ({ onCloseModal }) => {
           <Button
             className='bg-light text-grey-900 px-[10px] py-[6px]'
             onClick={() => {
-              reset();
+              if (onCloseModal) onCloseModal();
             }}
             type='button'
           >
@@ -90,7 +111,7 @@ const CreateDrugForm = ({ onCloseModal }) => {
             type='submit'
             isLoading={isLoading}
           >
-            Thêm Thuốc
+            Cập nhật
           </Button>
         </div>
       </Form>
@@ -98,5 +119,5 @@ const CreateDrugForm = ({ onCloseModal }) => {
   );
 };
 
-export default CreateDrugForm;
+export default UpdateDrugForm;
 

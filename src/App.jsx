@@ -17,6 +17,7 @@ import Patient from './pages/Patient';
 import Reception from './pages/Reception';
 
 import Drugs from './pages/Drugs';
+import DrugDetail from './pages/DrugDetail';
 import MedicalForms from './pages/MedicalForms';
 import Invoices from './pages/Invoices';
 import Appointments from './pages/Appointments';
@@ -47,6 +48,7 @@ function App() {
             <Route path='reception' element={<Reception />} />
 
             <Route path='drugs' element={<Drugs />} />
+            <Route path='drugs/:id' element={<DrugDetail />} />
             <Route path='medical-forms' element={<MedicalForms />} />
             <Route path='invoices' element={<Invoices />} />
             <Route path='appointments' element={<Appointments />} />
