@@ -3,6 +3,8 @@ import AppointmentsContainer from '../features/appointments/AppointmentsContaine
 import { FunnelIcon } from '@heroicons/react/24/outline';
 import { useAppointments } from '../features/appointments/useAppointments';
 import AddAppointment from '../features/appointments/AddAppointment';
+import Spinner from  '../ui/Spinner'
+import Search from '../features/Search/Search';
 
 const LayoutAppointments = styled.div`
   width: 100%;
@@ -19,7 +21,9 @@ const LayoutFlex = styled.div`
 `;
 
 const Appointments = () => {
-  const { totalCount } = useAppointments();
+  const { totalCount, isLoading } = useAppointments();
+  
+  if (isLoading) return <Spinner />
 
   return (
     <LayoutAppointments>
@@ -32,6 +36,10 @@ const Appointments = () => {
           <div className='flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium border rounded-md text-primary border-primary bg-primary-transparent'>
             <span>Tổng lịch hẹn:</span>
             <span>{totalCount}</span>
+          </div>
+
+          <div className='ml-4'>
+            <Search />
           </div>
         </div>
 

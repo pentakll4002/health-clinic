@@ -11,6 +11,8 @@ import { useDrugReports } from '../features/drug/useDrugReports';
 import Select from '../ui/Select';
 import { useQuery } from '@tanstack/react-query';
 import { getDrugs } from '../features/drug/APIDrugs';
+import Spinner from '../ui/Spinner';
+import Search from '../features/Search/Search';
 
 const LayoutDrugs = styled.div`
   width: 100%;
@@ -76,9 +78,11 @@ const Drugs = () => {
     setSearchParams(newSearchParams);
   };
 
-  const { totalCount } = useDrugs();
-  const { totalCount: reportsCount } = useDrugReports({ 
-    thang: thang || undefined, 
+  const { totalCount, isLoading } = useDrugs();
+  if (isLoading) return <Spinner />;
+
+  const { totalCount: reportsCount } = useDrugReports({
+    thang: thang || undefined,
     nam: nam || undefined,
     id_thuoc: idThuoc || undefined,
   });
@@ -106,13 +110,13 @@ const Drugs = () => {
   return (
     <LayoutDrugs>
       <TabContainer>
-        <Tab 
+        <Tab
           active={activeTab === 'drugs'}
           onClick={() => handleTabChange('drugs')}
         >
           Danh Sách Thuốc
         </Tab>
-        <Tab 
+        <Tab
           active={activeTab === 'reports'}
           onClick={() => handleTabChange('reports')}
         >
@@ -131,6 +135,10 @@ const Drugs = () => {
               <div className='flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium border rounded-md text-primary border-primary bg-primary-transparent'>
                 <span>Tổng thuốc:</span>
                 <span>{totalCount}</span>
+              </div>
+
+              <div className='ml-4'>
+                <Search />
               </div>
             </div>
 
@@ -222,8 +230,8 @@ const Drugs = () => {
             </div>
           </LayoutFlex>
 
-          <DrugReportsContainer 
-            thang={thang || undefined} 
+          <DrugReportsContainer
+            thang={thang || undefined}
             nam={nam || undefined}
             id_thuoc={idThuoc || undefined}
           />

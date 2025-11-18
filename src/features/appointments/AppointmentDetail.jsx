@@ -4,12 +4,19 @@ import InputNew from '../../ui/InputNew';
 import { useQuery } from '@tanstack/react-query';
 import { getAppointment } from './APIAppointments';
 import Spinner from '../../ui/Spinner';
+import { useUser } from '../../hooks/useUser';
+import ModalCenter from '../../ui/ModalCenter';
+import Button from '../../ui/Button';
+import EditAppointmentForm from './EditAppointmentForm';
+import { PencilIcon } from '@heroicons/react/24/outline';
 
 const LayoutAppointmentDetail = styled.div`
   padding: 20px;
-  background-color: #f5f6f8;
-  width: 1200px;
-  height: 100%;
+  background-color: #fff;
+  border-radius: 6px;
+  border: 1px solid #e7e8eb;
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.05);
+  width: 100%;
 `;
 
 const Text = styled.span`
@@ -35,6 +42,8 @@ const AppointmentDetail = ({ ID_TiepNhan }) => {
     enabled: !!ID_TiepNhan,
   });
 
+  const { isNhanVien, user } = useUser();
+
   if (isLoading) return <Spinner />;
   if (!appointment) return <div>Không tìm thấy thông tin tiếp nhận</div>;
 
@@ -46,9 +55,31 @@ const AppointmentDetail = ({ ID_TiepNhan }) => {
 
   return (
     <LayoutAppointmentDetail>
-      <h2 className='mb-5 text-xl font-bold leading-6 text-grey-900'>
-        Thông Tin Tiếp Nhận #{appointment.ID_TiepNhan}
-      </h2>
+      <div className='flex items-center justify-between mb-5'>
+        <h2 className='text-xl font-bold leading-6 text-grey-900'>
+          Thông Tin Tiếp Nhận #{appointment.ID_TiepNhan}
+        </h2>
+        
+        {/* Hiển thị nút chỉnh sửa nếu user là nhân viên */}
+        {user && (isNhanVien || user?.role === 'nhan_vien') && (
+          <ModalCenter>
+            <ModalCenter.Open opens={`edit-appointment-${ID_TiepNhan}`}>
+              <Button className='text-white bg-primary px-[10px] py-[6px] flex items-center gap-x-2 text-sm'>
+                <PencilIcon className='w-4 h-4' />
+                <span>Chỉnh sửa</span>
+              </Button>
+            </ModalCenter.Open>
+            <ModalCenter.Window name={`edit-appointment-${ID_TiepNhan}`}>
+              <EditAppointmentForm 
+                appointment={appointment} 
+                onCloseModal={() => {
+                  // Close modal logic is handled by ModalCenter
+                }}
+              />
+            </ModalCenter.Window>
+          </ModalCenter>
+        )}
+      </div>
 
       <Grid2Col>
         <FormRow inline={true} label='Mã Tiếp Nhận: '>

@@ -31,3 +31,8 @@ class LoaiBenh extends Model
 
 
 
+
+
+
+
+

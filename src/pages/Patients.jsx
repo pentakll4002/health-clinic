@@ -5,6 +5,8 @@ import { FunnelIcon } from '@heroicons/react/24/outline';
 import AddPatient from '../features/patients/AddPatient';
 import PatientSearchForm from '../features/patients/PatientSearchForm';
 import { usePatients } from '../features/patients/usePatients';
+import Spinner from '../ui/Spinner';
+import Search from '../features/Search/Search';
 
 const LayoutPatients = styled.div`
   width: 100%;
@@ -25,7 +27,9 @@ const Patients = () => {
   const [searchParams, setSearchParams] = useState({});
   
   // Lấy totalCount để hiển thị (React Query sẽ cache nên không có vấn đề gì)
-  const { totalCount } = usePatients(searchParams);
+  const { totalCount, isLoading } = usePatients(searchParams);
+  
+  if (isLoading) return <Spinner />;
 
   function handleSearch(params) {
     setSearchParams(params);
@@ -55,6 +59,10 @@ const Patients = () => {
           <div className='flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium border rounded-md text-primary border-primary bg-primary-transparent'>
             <span>Tổng bệnh nhân:</span>
             <span>{totalCount || 0}</span>
+          </div>
+
+          <div className='ml-4'>
+            <Search />
           </div>
         </div>
 

@@ -1,11 +1,12 @@
 import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
 import styled from 'styled-components';
 import FormRow from '../../ui/FormRow';
 import InputNew from '../../ui/InputNew';
 import Select from '../../ui/Select';
 import Button from '../../ui/Button';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createAppointment } from './APIAppointments';
+import { updateAppointment } from './APIAppointments';
 import toast from 'react-hot-toast';
 import axiosInstance from '../../utils/axiosInstance';
 
@@ -33,7 +34,6 @@ async function getPatientsList() {
   }
 }
 
-// Lấy danh sách nhân viên (tất cả nhân viên, không filter theo nhóm)
 async function getNhanVienList() {
   try {
     const response = await axiosInstance.get('/nhanvien', {
@@ -52,26 +52,7 @@ async function getNhanVienList() {
   }
 }
 
-// Lấy danh sách bác sĩ (doctors) - có thể dùng sau này
-async function getDoctorsList() {
-  try {
-    const response = await axiosInstance.get('/nhanvien', {
-      params: { 
-        limit: 100,
-        ma_nhom: '@doctors' // Lọc theo mã nhóm bác sĩ
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching doctors:', error);
-    return {
-      data: [],
-      totalCount: 0,
-    };
-  }
-}
-
-const CreateAppointmentForm = ({ onCloseModal }) => {
+const EditAppointmentForm = ({ appointment, onCloseModal }) => {
   const { register, handleSubmit, reset, formState } = useForm();
   const { errors } = formState;
   const queryClient = useQueryClient();
@@ -96,17 +77,35 @@ const CreateAppointmentForm = ({ onCloseModal }) => {
     (nv) => nv.TrangThai === 'Đang làm việc'
   );
 
-  const { mutate: createAppointmentMutation, isLoading } = useMutation({
-    mutationFn: createAppointment,
+  // Set default values when appointment data is loaded
+  useEffect(() => {
+    if (appointment) {
+      // Format datetime for input
+      const ngayTN = appointment.NgayTN 
+        ? new Date(appointment.NgayTN).toISOString().slice(0, 16)
+        : '';
+      
+      reset({
+        ID_BenhNhan: appointment.ID_BenhNhan?.toString() || '',
+        NgayTN: ngayTN,
+        CaTN: appointment.CaTN || '',
+        ID_NhanVien: appointment.ID_NhanVien?.toString() || '',
+        TrangThai: appointment.TrangThai?.toString() || 'false',
+      });
+    }
+  }, [appointment, reset]);
+
+  const { mutate: updateAppointmentMutation, isLoading } = useMutation({
+    mutationFn: ({ id, data }) => updateAppointment(id, data),
     onSuccess: () => {
-      toast.success('Đặt lịch hẹn thành công');
+      toast.success('Cập nhật lịch hẹn thành công');
+      queryClient.invalidateQueries({ queryKey: ['appointment', appointment?.ID_TiepNhan] });
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
-      reset();
       if (onCloseModal) onCloseModal();
     },
     onError: (error) => {
       toast.error(
-        error?.response?.data?.message || 'Đặt lịch hẹn thất bại'
+        error?.response?.data?.message || 'Cập nhật lịch hẹn thất bại'
       );
     },
   });
@@ -119,13 +118,13 @@ const CreateAppointmentForm = ({ onCloseModal }) => {
       ID_NhanVien: parseInt(data.ID_NhanVien),
       TrangThai: data.TrangThai === 'true' || data.TrangThai === true,
     };
-    createAppointmentMutation(formData);
+    updateAppointmentMutation({ id: appointment.ID_TiepNhan, data: formData });
   }
 
   return (
     <div>
       <div className='w-full pb-4 mb-10 border-b border-grey-transparent'>
-        <h2 className='text-xl font-bold'>Thông tin đặt lịch hẹn</h2>
+        <h2 className='text-xl font-bold'>Chỉnh sửa thông tin đặt lịch hẹn</h2>
       </div>
       <Form onSubmit={handleSubmit(onSubmit)}>
         <FormRow label='Bệnh nhân*' error={errors.ID_BenhNhan?.message}>
@@ -205,7 +204,7 @@ const CreateAppointmentForm = ({ onCloseModal }) => {
           <Button
             className='bg-light text-grey-900 px-[10px] py-[6px]'
             onClick={() => {
-              reset();
+              if (onCloseModal) onCloseModal();
             }}
             type='button'
           >
@@ -216,7 +215,7 @@ const CreateAppointmentForm = ({ onCloseModal }) => {
             type='submit'
             isLoading={isLoading}
           >
-            Đặt Lịch Hẹn
+            Cập Nhật
           </Button>
         </div>
       </Form>
@@ -224,5 +223,9 @@ const CreateAppointmentForm = ({ onCloseModal }) => {
   );
 };
 
-export default CreateAppointmentForm;
+export default EditAppointmentForm;
+
+
+
+
 

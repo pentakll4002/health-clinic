@@ -2,6 +2,8 @@ import styled from 'styled-components';
 import MedicalFormsContainer from '../features/medicalForm/MedicalFormsContainer';
 import { FunnelIcon } from '@heroicons/react/24/outline';
 import { usePhieuKhamList } from '../features/medicalForm/usePhieuKhamList';
+import Spinner from '../ui/Spinner'
+import Search from '../features/Search/Search';
 
 const LayoutMedicalForms = styled.div`
   width: 100%;
@@ -18,7 +20,9 @@ const LayoutFlex = styled.div`
 `;
 
 const MedicalForms = () => {
-  const { totalCount } = usePhieuKhamList();
+  const { totalCount, isLoading } = usePhieuKhamList();
+
+  if (isLoading) return <Spinner />;
 
   return (
     <LayoutMedicalForms>
@@ -31,6 +35,10 @@ const MedicalForms = () => {
           <div className='flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium border rounded-md text-primary border-primary bg-primary-transparent'>
             <span>Tổng phiếu khám:</span>
             <span>{totalCount}</span>
+          </div>
+
+          <div className='ml-4'>
+            <Search />
           </div>
         </div>
 

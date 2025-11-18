@@ -5,6 +5,7 @@ import { FunnelIcon } from '@heroicons/react/24/outline';
 import AddDoctor from '../features/doctors/AddDoctor';
 import { useDoctors } from '../features/doctors/useDoctors';
 import Spinner from '../ui/Spinner';
+import Search from '../features/Search/Search';
 
 const LayoutDoctors = styled.div`
   width: 100%;
@@ -36,6 +37,9 @@ const Doctors = () => {
           <div className='flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium border rounded-md text-primary border-primary bg-primary-transparent'>
             <span>Tổng bác sĩ:</span>
             <span>{totalCount}</span>
+          </div>
+          <div className='ml-4'>
+            <Search />
           </div>
         </div>
 

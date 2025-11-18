@@ -198,7 +198,9 @@ class AuthController extends Controller
 
     public function userProfile(Request $request)
     {
-        return response()->json(['user' => $request->user()]);
+        $user = $request->user();
+        $user->load('nhanVien.nhomNguoiDung', 'benhNhan');
+        return response()->json(['user' => $user]);
     }
 
     public function logout(Request $request)
