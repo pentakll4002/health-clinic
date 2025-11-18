@@ -59,20 +59,30 @@ const SignIn = () => {
 
   
 
-  async function onSubmit(data) {
+  const onSubmit = async (data) => {
     setLoading(true);
     setError(null);
     try {
       const response = await axiosInstance.post('/login', data);
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      navigate('/'); // Redirect to home or dashboard after successful login
+      // Kiểm tra group/role, điều hướng phù hợp
+      const user = response.data.user;
+      if (user.group === 'benh_nhan' || user.role === 'benh_nhan') {
+        navigate('/benh-nhan');
+      } else if (user.group === 'nhan_vien' || user.role === 'nhan_vien') {
+        navigate('/dashboard');
+      } else if (user.group === 'admin' || user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <LayoutAuth

@@ -3,22 +3,24 @@ import { useState, useEffect } from 'react';
 import { getDrugs } from './APIDrugs';
 import { PAGE_SIZE_LOAD_MORE } from '../../constants/Global';
 
-export function useDrugs() {
-  const [page, setPage] = useState(1);
+export function useDrugs({ keyword = '', page = 1, limit = 100 } = {}) {
+  const [curPage, setPage] = useState(page);
   const [drugs, setDrugs] = useState([]);
-
   const { isLoading, data } = useQuery({
-    queryKey: ['drugs'],
-    queryFn: () => getDrugs(1, 100), // Get all drugs first, then paginate client-side
+    queryKey: ['drugs', keyword, curPage, limit],
+    queryFn: () => getDrugs(curPage, limit, keyword),
   });
 
   const totalCount = data?.totalCount || 0;
 
   useEffect(() => {
+    setPage(page);
+  }, [page]);
+
+  useEffect(() => {
     if (!data?.data) return;
-    const slice = data.data.slice(0, page * PAGE_SIZE_LOAD_MORE);
-    setDrugs(slice);
-  }, [data, page]);
+    setDrugs(data.data);
+  }, [data]);
 
   function loadMore() {
     setPage((prev) => prev + 1);

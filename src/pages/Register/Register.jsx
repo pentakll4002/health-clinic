@@ -130,8 +130,8 @@ const Register = () => {
 
   return (
     <LayoutAuth
-      heading='Register'
-      paragraph='Please enter your details to create account'
+      heading='Đăng ký tài khoản BỆNH NHÂN'
+      paragraph='Vui lòng nhập thông tin để tạo tài khoản. Bạn sẽ chỉ có quyền truy cập chức năng dành cho bệnh nhân.'
       picture={SignUpImg}
     >
       {step === 1 && (

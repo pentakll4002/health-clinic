@@ -1,9 +1,14 @@
 import axiosInstance from '../../utils/axiosInstance';
 
-export async function getDrugs(page = 1, limit = 7) {
-  const response = await axiosInstance.get('/thuoc', {
-    params: { page, limit },
-  });
+export async function getDrugs(page = 1, limit = 7, keyword = "") {
+  const params = { page, limit };
+  if (keyword) {
+    params.keyword = keyword;
+    params.search = keyword;
+    params.ten = keyword;
+    params.name = keyword;
+  }
+  const response = await axiosInstance.get('/thuoc', { params });
   return response.data;
 }
 

@@ -23,11 +23,11 @@ const LayoutFlex = styled.div`
 `;
 
 const Patients = () => {
+  const [searchKeyword, setSearchKeyword] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchParams, setSearchParams] = useState({});
   
-  // Lấy totalCount để hiển thị (React Query sẽ cache nên không có vấn đề gì)
-  const { totalCount, isLoading } = usePatients(searchParams);
+  const { totalCount, isLoading } = usePatients({ ...searchParams, keyword: searchKeyword });
   
   if (isLoading) return <Spinner />;
 
@@ -62,7 +62,7 @@ const Patients = () => {
           </div>
 
           <div className='ml-4'>
-            <Search />
+            <Search onSearch={setSearchKeyword} />
           </div>
         </div>
 
@@ -92,7 +92,7 @@ const Patients = () => {
         onReset={handleReset}
       />
 
-      <PatientsCardContainer searchParams={searchParams} />
+      <PatientsCardContainer searchParams={{ ...searchParams, keyword: searchKeyword }} />
     </LayoutPatients>
   );
 };

@@ -5,6 +5,7 @@ import { useInvoices } from '../features/invoices/useInvoices';
 import AddInvoice from '../features/invoices/AddInvoice';
 import Spinner from '../ui/Spinner';
 import Search from '../features/Search/Search';
+import { useState } from 'react';
 
 const LayoutInvoices = styled.div`
   width: 100%;
@@ -21,7 +22,8 @@ const LayoutFlex = styled.div`
 `;
 
 const Invoices = () => {
-  const { totalCount, isLoading } = useInvoices();
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const { totalCount, isLoading } = useInvoices({ keyword: searchKeyword });
 
   if (isLoading) return <Spinner />;
 
@@ -39,7 +41,7 @@ const Invoices = () => {
           </div>
 
           <div className='ml-4'>
-            <Search />
+            <Search onSearch={setSearchKeyword} />
           </div>
         </div>
 
@@ -55,7 +57,7 @@ const Invoices = () => {
         </div>
       </LayoutFlex>
 
-      <InvoicesContainer />
+      <InvoicesContainer searchKeyword={searchKeyword} />
     </LayoutInvoices>
   );
 };

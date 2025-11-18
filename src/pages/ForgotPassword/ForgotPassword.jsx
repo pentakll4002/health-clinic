@@ -59,8 +59,8 @@ const ForgotPassword = () => {
 
   return (
     <LayoutAuth
-      heading='Forgot Password'
-      paragraph='No worries, we’ll send you reset instructions'
+      heading='Quên mật khẩu'
+      paragraph='Bạn chỉ có thể lấy lại mật khẩu với tài khoản hợp lệ; email không tồn tại trong hệ thống hoặc không có quyền truy cập sẽ không nhận được liên kết đặt lại.'
       picture={forgotPasswordImg}
     >
       <form onSubmit={handleSubmit(onSubmit)}>

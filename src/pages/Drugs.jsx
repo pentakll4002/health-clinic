@@ -59,39 +59,29 @@ const Drugs = () => {
   const [thang, setThang] = useState('');
   const [nam, setNam] = useState('');
   const [idThuoc, setIdThuoc] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState("");
 
-  // Sync tab with URL params
   useEffect(() => {
     const tab = searchParams.get('tab') || 'drugs';
     setActiveTab(tab);
   }, [searchParams]);
 
-  // Update URL when tab changes
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    const newSearchParams = new URLSearchParams(searchParams);
-    if (tab === 'reports') {
-      newSearchParams.set('tab', 'reports');
-    } else {
-      newSearchParams.delete('tab');
-    }
-    setSearchParams(newSearchParams);
-  };
+  // Top-level: all hooks always called
+  // Search keyword only used on 'drugs' tab
+  const drugsHook = useDrugs({ keyword: activeTab === 'drugs' ? searchKeyword : '' });
+  const { totalCount, isLoading } = drugsHook;
 
-  const { totalCount, isLoading } = useDrugs();
-  if (isLoading) return <Spinner />;
-
-  const { totalCount: reportsCount } = useDrugReports({
+  const drugReportsHook = useDrugReports({
     thang: thang || undefined,
     nam: nam || undefined,
     id_thuoc: idThuoc || undefined,
   });
+  const { totalCount: reportsCount } = drugReportsHook;
 
   const { data: drugsData } = useQuery({
     queryKey: ['drugs-list'],
     queryFn: () => getDrugs(1, 100),
   });
-
   const drugs = drugsData?.data || [];
 
   // Tạo danh sách tháng (1-12)
@@ -107,18 +97,30 @@ const Drugs = () => {
     setIdThuoc('');
   }
 
+  if (isLoading) return <Spinner />;
+
   return (
     <LayoutDrugs>
       <TabContainer>
         <Tab
           active={activeTab === 'drugs'}
-          onClick={() => handleTabChange('drugs')}
+          onClick={() => {
+            setActiveTab('drugs');
+            const newSearchParams = new URLSearchParams(searchParams);
+            newSearchParams.delete('tab');
+            setSearchParams(newSearchParams);
+          }}
         >
           Danh Sách Thuốc
         </Tab>
         <Tab
           active={activeTab === 'reports'}
-          onClick={() => handleTabChange('reports')}
+          onClick={() => {
+            setActiveTab('reports');
+            const newSearchParams = new URLSearchParams(searchParams);
+            newSearchParams.set('tab', 'reports');
+            setSearchParams(newSearchParams);
+          }}
         >
           Báo Cáo Sử Dụng Thuốc
         </Tab>
@@ -131,30 +133,25 @@ const Drugs = () => {
               <h2 className='text-xl font-bold leading-6 text-grey-900'>
                 Quản Lý Thuốc
               </h2>
-
               <div className='flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium border rounded-md text-primary border-primary bg-primary-transparent'>
                 <span>Tổng thuốc:</span>
                 <span>{totalCount}</span>
               </div>
-
               <div className='ml-4'>
-                <Search />
+                <Search onSearch={setSearchKeyword} />
               </div>
             </div>
-
             <div className='flex items-center justify-center gap-x-4'>
               {/* Filter */}
               <div className='flex items-center justify-center p-2 text-sm font-medium bg-white border rounded-md border-grey-transparent shadow-1 gap-x-2 text-grey-900'>
                 <FunnelIcon className='w-5 h-5' />
                 <span>Filter</span>
               </div>
-
               {/* New drug */}
               <AddDrug />
             </div>
           </LayoutFlex>
-
-          <DrugCardContainer />
+          <DrugCardContainer {...drugsHook} searchKeyword={searchKeyword} />
         </>
       ) : (
         <>
@@ -163,13 +160,11 @@ const Drugs = () => {
               <h2 className='text-xl font-bold leading-6 text-grey-900'>
                 Báo Cáo Sử Dụng Thuốc
               </h2>
-
               <div className='flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium border rounded-md text-primary border-primary bg-primary-transparent'>
                 <span>Tổng báo cáo:</span>
                 <span>{reportsCount}</span>
               </div>
             </div>
-
             <div className='flex items-center justify-center gap-x-4'>
               {/* Filter */}
               <div className='flex items-center justify-center gap-x-2'>
@@ -186,7 +181,6 @@ const Drugs = () => {
                     ))}
                   </Select>
                 </div>
-
                 <div style={{ minWidth: '120px' }}>
                   <Select
                     value={nam}
@@ -200,7 +194,6 @@ const Drugs = () => {
                     ))}
                   </Select>
                 </div>
-
                 <div style={{ minWidth: '150px' }}>
                   <Select
                     value={idThuoc}
@@ -214,7 +207,6 @@ const Drugs = () => {
                     ))}
                   </Select>
                 </div>
-
                 {(thang || nam || idThuoc) && (
                   <button
                     onClick={handleResetFilter}
@@ -224,13 +216,12 @@ const Drugs = () => {
                   </button>
                 )}
               </div>
-
               {/* New Report */}
               <AddDrugReport />
             </div>
           </LayoutFlex>
-
           <DrugReportsContainer
+            {...drugReportsHook}
             thang={thang || undefined}
             nam={nam || undefined}
             id_thuoc={idThuoc || undefined}

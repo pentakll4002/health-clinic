@@ -4,6 +4,7 @@ import { FunnelIcon } from '@heroicons/react/24/outline';
 import { usePhieuKhamList } from '../features/medicalForm/usePhieuKhamList';
 import Spinner from '../ui/Spinner'
 import Search from '../features/Search/Search';
+import { useState } from 'react';
 
 const LayoutMedicalForms = styled.div`
   width: 100%;
@@ -20,7 +21,8 @@ const LayoutFlex = styled.div`
 `;
 
 const MedicalForms = () => {
-  const { totalCount, isLoading } = usePhieuKhamList();
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const { totalCount, isLoading } = usePhieuKhamList({ keyword: searchKeyword });
 
   if (isLoading) return <Spinner />;
 
@@ -38,7 +40,7 @@ const MedicalForms = () => {
           </div>
 
           <div className='ml-4'>
-            <Search />
+            <Search onSearch={setSearchKeyword} />
           </div>
         </div>
 
@@ -51,7 +53,7 @@ const MedicalForms = () => {
         </div>
       </LayoutFlex>
 
-      <MedicalFormsContainer />
+      <MedicalFormsContainer searchKeyword={searchKeyword} />
     </LayoutMedicalForms>
   );
 };
