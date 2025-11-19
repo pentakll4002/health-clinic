@@ -13,6 +13,7 @@ use App\Http\Controllers\PhieuKhamController;
 use App\Http\Controllers\BaoCaoDoanhThuController;
 use App\Http\Controllers\BaoCaoSuDungThuocController;
 use App\Http\Controllers\QuiDinhController;
+use App\Http\Controllers\PatientProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +29,16 @@ use App\Http\Controllers\QuiDinhController;
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user-profile', [AuthController::class, 'userProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/patient/profile', [PatientProfileController::class, 'show']);
+    Route::match(['put', 'patch'], '/patient/profile', [PatientProfileController::class, 'update']);
+    Route::post('/patient/change-password', [PatientProfileController::class, 'changePassword']);
+    Route::get('/patient/medical-records', [PatientProfileController::class, 'medicalRecords']);
+    Route::get('/patient/invoices', [PatientProfileController::class, 'invoices']);
+    Route::get('/patient/appointments', [PatientProfileController::class, 'appointments']);
+    Route::post('/patient/appointments', [PatientProfileController::class, 'storeAppointment']);
+    Route::patch('/patient/appointments/{appointment}', [PatientProfileController::class, 'cancelAppointment']);
+    Route::get('/patient/notifications', [PatientProfileController::class, 'notifications']);
+    Route::get('/patient/dashboard', [PatientProfileController::class, 'dashboard']);
 });
 
 Route::post('/login', [AuthController::class, 'login']);

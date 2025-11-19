@@ -24,6 +24,7 @@ import MedicalForms from './pages/MedicalForms';
 import Invoices from './pages/Invoices';
 import Appointments from './pages/Appointments';
 import AppointmentProfile from './pages/AppointmentProfile';
+import PatientProfilePage from './pages/PatientProfile';
 import Reports from './pages/Reports';
 import Regulations from './pages/Regulations';
 
@@ -69,6 +70,7 @@ function App() {
           >
             <Route index element={<Doctors />} />
             <Route path='patients' element={<Patients />} />
+            <Route path='patients/profile' element={<PatientProfilePage />} />
             <Route path='patients/:ID_BenhNhan' element={<Patient />} />
             <Route path='reception' element={<Reception />} />
             <Route path='drugs' element={<Drugs />} />

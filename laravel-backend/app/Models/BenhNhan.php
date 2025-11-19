@@ -20,6 +20,7 @@ class BenhNhan extends Model
         'CCCD',
         'DienThoai',
         'DiaChi',
+        'Avatar',
         'Email',
         'Is_Deleted',
         'NgayDK',

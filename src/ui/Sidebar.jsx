@@ -82,6 +82,7 @@ const Sidebar = () => {
             { label: 'Patients', to: '/patients' },
             { label: 'Patient Details', to: '/patients?view=detail' },
             { label: 'Add Patient', to: '/patients?modal=add-patient' },
+            { label: 'My Profile', to: '/patients/profile' },
           ]}
         />
 
@@ -134,7 +135,7 @@ const Sidebar = () => {
 
         <SidebarLink to='/' icon={QuestionMarkCircleIcon} label='FAQ' />
         <SidebarLink to='/' icon={EnvelopeIcon} label='Newsletters' />
-        <SidebarLink to='/' icon={UserCircleIcon} label='Profile' />
+        <SidebarLink to='/patients/profile' icon={UserCircleIcon} label='Profile' />
         <SidebarLink
           to='/'
           icon={ShieldExclamationIcon}
