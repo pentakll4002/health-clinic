@@ -13,6 +13,7 @@ import ButtonSocial from '../../ui/ButtonSocial';
 import CheckBox from '../../ui/CheckBox';
 import useToggleValue from '../../hooks/useToggleValue';
 import InputCaptcha from '../../pages/Register/InputCaptcha';
+import Spinner from '../../ui/Spinner';
 
 import {
   EnvelopeIcon,
@@ -131,12 +132,18 @@ const Register = () => {
   return (
     <LayoutAuth
       heading='Đăng ký tài khoản BỆNH NHÂN'
-      paragraph='Vui lòng nhập thông tin để tạo tài khoản. Bạn sẽ chỉ có quyền truy cập chức năng dành cho bệnh nhân.'
+      paragraph='Chỉ dành cho đối tượng BỆNH NHÂN. Nhân viên không thể đăng ký tại đây, vui lòng liên hệ admin để được cấp tài khoản.'
       picture={SignUpImg}
     >
+      {loading && (
+        <div style={{position:'fixed',inset:0,zIndex:50,background:'rgba(255,255,255,0.6)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <Spinner />
+        </div>
+      )}
       {step === 1 && (
         <form onSubmit={handleSubmit(onSubmit)}>
           {error && <p className="mb-4 text-center text-red-500">{error}</p>}
+          <div className="mb-4 p-2 bg-blue-100 text-blue-800 rounded text-center text-sm font-semibold">Chỉ dành cho đăng ký tài khoản bệnh nhân. Nếu bạn là nhân viên, hãy liên hệ quản trị hệ thống để được tạo tài khoản!</div>
           <FormRow label='Full name' name='name' error={errors.name?.message}>
             <Input control={control} name='name' type='name' placeholder='Enter name' icon={<UserIcon />} />
           </FormRow>
@@ -173,7 +180,7 @@ const Register = () => {
               Terms of Service & Privacy Policy
             </Link>
           </CheckBox>
-          <Button type='submit' className='w-full text-white bg-primary' disabled={loading}>
+          <Button type='submit' className='w-full text-white bg-primary' disabled={loading} isLoading={loading}>
             {loading ? 'Registering...' : 'Register'}
           </Button>
 

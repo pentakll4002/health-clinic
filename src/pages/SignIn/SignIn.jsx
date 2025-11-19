@@ -13,6 +13,7 @@ import Input from '../../ui/Input';
 import Button from '../../ui/Button';
 import CheckBox from '../../ui/CheckBox';
 import ButtonSocial from '../../ui/ButtonSocial';
+import Spinner from '../../ui/Spinner';
 
 import {
   EyeIcon,
@@ -66,7 +67,7 @@ const SignIn = () => {
       const response = await axiosInstance.post('/login', data);
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      // Kiểm tra group/role, điều hướng phù hợp
+
       const user = response.data.user;
       if (user.group === 'benh_nhan' || user.role === 'benh_nhan') {
         navigate('/benh-nhan');
@@ -90,6 +91,11 @@ const SignIn = () => {
       paragraph='Please enter below details to access the dashboard'
       picture={SignInImg}
     >
+      {loading && (
+        <div style={{position:'fixed',inset:0,zIndex:50,background:'rgba(255,255,255,0.6)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <Spinner />
+        </div>
+      )}
       <form onSubmit={handleSubmit(onSubmit)}>
         {error && <p className="mb-4 text-center text-red-500">{error}</p>}
         <FormRow
@@ -141,7 +147,7 @@ const SignIn = () => {
           </Link>
         </div>
 
-        <Button type='submit' className='w-full text-white bg-primary' disabled={loading}>
+        <Button type='submit' className='w-full text-white bg-primary' disabled={loading} isLoading={loading}>
           {loading ? 'Logging in...' : 'Login'}
         </Button>
 

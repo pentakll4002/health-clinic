@@ -10,6 +10,7 @@ import LayoutAuth from '../../layouts/LayoutAuth';
 import FormRow from '../../ui/FormRow';
 import Input from '../../ui/Input';
 import Button from '../../ui/Button';
+import Spinner from '../../ui/Spinner';
 
 import { EnvelopeIcon } from '@heroicons/react/24/outline';
 import forgotPasswordImg from '../../assets/forgot_password.png';
@@ -63,6 +64,11 @@ const ForgotPassword = () => {
       paragraph='Bạn chỉ có thể lấy lại mật khẩu với tài khoản hợp lệ; email không tồn tại trong hệ thống hoặc không có quyền truy cập sẽ không nhận được liên kết đặt lại.'
       picture={forgotPasswordImg}
     >
+      {loading && (
+        <div style={{position:'fixed',inset:0,zIndex:50,background:'rgba(255,255,255,0.6)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <Spinner />
+        </div>
+      )}
       <form onSubmit={handleSubmit(onSubmit)}>
         {error && <p className='mb-4 text-center text-red-500'>{error}</p>}
         {message && (
@@ -86,6 +92,7 @@ const ForgotPassword = () => {
           type='submit'
           className='w-full text-white bg-primary'
           disabled={loading}
+          isLoading={loading}
         >
           {loading ? 'Sending...' : 'Submit'}
         </Button>

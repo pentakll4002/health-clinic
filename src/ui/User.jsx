@@ -10,9 +10,11 @@ const User = () => {
     try {
       await axiosInstance.post('/logout');
     } catch (error) {
-      console.error('Logout failed:', error);
+      // Hoàn toàn im lặng, không log gì cho mọi lỗi (kể cả 401)
     } finally {
       localStorage.removeItem('auth_token');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       navigate('/sign-in');
     }
   };

@@ -2,6 +2,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'react-hot-toast';
+import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import SignIn from './pages/SignIn';
 import Register from './pages/Register';
@@ -34,6 +36,23 @@ const queryClient = new QueryClient({
   },
 });
 
+function RequireAuth({ children }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+
+  useEffect(() => {
+    if (!token) {
+      // Nếu chưa đăng nhập thì chuyển về /sign-in
+      if (location.pathname !== '/sign-in' && location.pathname !== '/sign-up' && !location.pathname.startsWith('/forgot-password')) {
+        navigate('/sign-in');
+      }
+    }
+  }, [token, navigate, location]);
+
+  return children;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -41,13 +60,17 @@ function App() {
       <ReactQueryDevtools initialIsOpen={false} />
       <BrowserRouter>
         <Routes>
-          <Route element={<LayoutApp />}>
+          <Route
+            element={
+              <RequireAuth>
+                <LayoutApp />
+              </RequireAuth>
+            }
+          >
             <Route index element={<Doctors />} />
             <Route path='patients' element={<Patients />} />
             <Route path='patients/:ID_BenhNhan' element={<Patient />} />
-
             <Route path='reception' element={<Reception />} />
-
             <Route path='drugs' element={<Drugs />} />
             <Route path='drugs/:id' element={<DrugDetail />} />
             <Route path='medical-forms' element={<MedicalForms />} />
@@ -56,9 +79,9 @@ function App() {
             <Route path='appointments/:id' element={<AppointmentProfile />} />
             <Route path='reports' element={<Reports />} />
             <Route path='regulations' element={<Regulations />} />
-
           </Route>
 
+          {/* Các route public */}
           <Route path='/sign-in' element={<SignIn />} />
           <Route path='/sign-up' element={<Register />} />
           <Route path='/forgot-password'>
