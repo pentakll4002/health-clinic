@@ -17,7 +17,7 @@
 -    
 ## GIỚI THIỆU ĐỒ ÁN
 
--    **Đề tài:** Quản lí đề tài Traleletralolo
+-    **Đề tài:** Quản lí phòng mạch tư 
 -    **Repository:** 
 -    **Behance:** 
 -    **Trang giới thiệu nhóm:** 
