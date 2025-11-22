@@ -16,12 +16,12 @@ const Search = ({ onSearch }) => {
   };
 
   return (
-    <div className="relative w-[220px] drop-shadow-lg flex items-center">
+    <div className="relative w-[320px] flex items-center">
       <MagnifyingGlassIcon
         className="absolute w-4 h-4 left-3 top-1/2 -translate-y-1/2 text-indigo-500 peer-focus:text-indigo-700 transition-colors duration-150 z-10"
       />
       <input
-        className="peer w-full h-9 pl-9 pr-9 py-1.5 rounded-lg border-2 border-transparent bg-white focus:bg-indigo-50 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 outline-none shadow-md hover:shadow-xl transition-all placeholder:text-gray-400 text-gray-800 text-sm font-normal"
+        className="peer w-full h-9 pl-9 pr-9 py-1.5 rounded-lg border border-transparent bg-white focus:bg-indigo-50 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100 outline-none shadow-1 hover:shadow-xl transition-all placeholder:text-gray-400 text-gray-800 text-sm font-normal"
         name="search"
         type="text"
         placeholder="Tìm kiếm..."

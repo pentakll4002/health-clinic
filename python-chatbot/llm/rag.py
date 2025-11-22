@@ -2,10 +2,11 @@
 RAG (Retrieval-Augmented Generation) implementation
 """
 from typing import List, Dict, Optional
-from langchain.schema import Document
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.schema.runnable import RunnablePassthrough
-from langchain.schema.output_parser import StrOutputParser
+from langchain_core.documents import Document
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
 from llm.client import get_llm_client
 import config.setting as config
 
@@ -15,8 +16,16 @@ class RAGPipeline:
     
     def __init__(self, vector_store, model_type: Optional[str] = None):
         self.vector_store = vector_store
-        self.llm_client = get_llm_client(model_type)
+        self.model_type = model_type
+        self._llm_client = None
         self.system_prompt = self._create_system_prompt()
+    
+    @property
+    def llm_client(self):
+        """Lazy initialization of LLM client"""
+        if self._llm_client is None:
+            self._llm_client = get_llm_client(self.model_type)
+        return self._llm_client
     
     def _create_system_prompt(self) -> str:
         """Create system prompt for RAG"""
@@ -144,6 +153,11 @@ Instructions:
         # Stream answer
         for chunk in self.stream_answer(query, context, conversation_history):
             yield chunk
+
+
+
+
+
 
 
 

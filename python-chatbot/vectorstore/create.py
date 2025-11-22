@@ -3,7 +3,7 @@ Vector store creation and management
 Supports ChromaDB and FAISS
 """
 from typing import List
-from langchain.schema import Document
+from langchain_core.documents import Document
 from langchain_community.vectorstores import Chroma, FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 import config.setting as config
@@ -107,6 +107,11 @@ def get_vector_store(store_type: str = None):
         return manager
     
     return vector_store
+
+
+
+
+
 
 
 

@@ -1,28 +1,14 @@
-"""
-Configuration settings for the chatbot
-Supports OpenAI/GPT and OSS-20B models
-"""
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Model Configuration
-MODEL_TYPE = os.getenv("MODEL_TYPE", "openai")  # "openai" or "oss-20b"
+MODEL_TYPE = os.getenv("MODEL_TYPE", "groq")
 
-# OpenAI Configuration
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
-OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-OPENAI_TEMPERATURE = float(os.getenv("OPENAI_TEMPERATURE", "0.7"))
-OPENAI_MAX_TOKENS = int(os.getenv("OPENAI_MAX_TOKENS", "2000"))
-
-# OSS-20B Configuration
-OSS_20B_BASE_URL = os.getenv("OSS_20B_BASE_URL", "http://localhost:8000/v1")
-OSS_20B_API_KEY = os.getenv("OSS_20B_API_KEY", "not-needed")
-OSS_20B_MODEL = os.getenv("OSS_20B_MODEL", "gpt-oss-20b")
-OSS_20B_TEMPERATURE = float(os.getenv("OSS_20B_TEMPERATURE", "0.7"))
-OSS_20B_MAX_TOKENS = int(os.getenv("OSS_20B_MAX_TOKENS", "2000"))
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
+GROQ_TEMPERATURE = float(os.getenv("GROQ_TEMPERATURE", "0.7"))
+GROQ_MAX_TOKENS = int(os.getenv("GROQ_MAX_TOKENS", "2000"))
 
 # Vector Store Configuration
 VECTOR_STORE_TYPE = os.getenv("VECTOR_STORE_TYPE", "chroma")  # "chroma" or "faiss"
@@ -51,6 +37,11 @@ API_PORT = int(os.getenv("API_PORT", "8000"))
 
 # Streamlit Configuration
 STREAMLIT_PORT = int(os.getenv("STREAMLIT_PORT", "8501"))
+
+
+
+
+
 
 
 
