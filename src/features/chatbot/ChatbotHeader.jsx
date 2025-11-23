@@ -1,11 +1,24 @@
-import React from "react";
-import botIcon from "../../assets/icon-chatbot.png";
+import { MinusCircleIcon } from '@heroicons/react/24/outline';
+import botIcon from '../../assets/chatbot-logo.png';
 
 const ChatbotHeader = ({ onClose }) => (
-  <div style={{ background: '#2e37a4', color: '#fff', padding: 12, display: 'flex', alignItems: 'center' }}>
-    <img src={botIcon} alt="Bot" style={{ width: 32, height: 32, marginRight: 8 }} />
-    <span style={{ fontWeight: 600 }}>Chatbot hỗ trợ</span>
-    <button style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#fff', fontWeight: 'bold', fontSize: 20, cursor: 'pointer' }} onClick={onClose}>×</button>
+  <div className='flex items-center p-3 text-white bg-primary'>
+    <img src={botIcon} alt='Bot' className='w-8 h-8 mr-2' />
+    <span className='font-semibold'>Chatbot hỗ trợ</span>
+    <button
+      style={{
+        marginLeft: 'auto',
+        background: 'none',
+        border: 'none',
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 20,
+        cursor: 'pointer',
+      }}
+      onClick={onClose}
+    >
+      <MinusCircleIcon className='w-6 h-6' />
+    </button>
   </div>
 );
 

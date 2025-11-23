@@ -62,7 +62,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster position='top-right' />
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
       <BrowserRouter>
         <Routes>
           <Route
