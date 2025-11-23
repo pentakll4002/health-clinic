@@ -1,17 +1,25 @@
 """
-LLM Client for OpenAI/GPT and OSS-20B models
+LLM Client for Groq/Llama3, OpenAI/GPT and OSS-20B models
 """
 from typing import List, Dict, Optional
-from langchain_openai import ChatOpenAI
+try:
+    from langchain_groq import ChatGroq
+except ImportError:
+    ChatGroq = None
+try:
+    from langchain_openai import ChatOpenAI
+except ImportError:
+    ChatOpenAI = None
 from langchain_community.llms import Ollama
-from langchain.schema import BaseMessage, HumanMessage, AIMessage, SystemMessage
-from langchain.callbacks.manager import CallbackManager
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
+# Callbacks are optional and not used in current implementation
+# from langchain.callbacks.manager import CallbackManager
+# from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 import config.setting as config
 
 
 class LLMClient:
-    """Unified LLM client supporting OpenAI and OSS-20B"""
+    """Unified LLM client supporting Groq/Llama3, OpenAI and OSS-20B"""
     
     def __init__(self, model_type: Optional[str] = None):
         self.model_type = model_type or config.MODEL_TYPE
@@ -19,15 +27,36 @@ class LLMClient:
     
     def _initialize_llm(self):
         """Initialize the LLM based on model type"""
-        if self.model_type == "openai":
+        if self.model_type == "groq":
+            return self._init_groq()
+        elif self.model_type == "openai":
             return self._init_openai()
         elif self.model_type == "oss-20b":
             return self._init_oss_20b()
         else:
             raise ValueError(f"Unsupported model type: {self.model_type}")
     
+    def _init_groq(self):
+        """Initialize Groq/Llama3 model (Default - Free tier available)"""
+        if ChatGroq is None:
+            raise ImportError("langchain_groq is not installed. Run: pip install langchain_groq")
+        
+        if not config.GROQ_API_KEY:
+            raise ValueError("GROQ_API_KEY is required for Groq model. Get free API key at https://console.groq.com/")
+        
+        return ChatGroq(
+            model=config.GROQ_MODEL,
+            groq_api_key=config.GROQ_API_KEY,
+            temperature=config.GROQ_TEMPERATURE,
+            max_tokens=config.GROQ_MAX_TOKENS,
+            streaming=True,
+        )
+    
     def _init_openai(self):
         """Initialize OpenAI/GPT model"""
+        if ChatOpenAI is None:
+            raise ImportError("langchain_openai is not installed. Run: pip install langchain_openai")
+        
         if not config.OPENAI_API_KEY:
             raise ValueError("OPENAI_API_KEY is required for OpenAI model")
         
@@ -42,6 +71,9 @@ class LLMClient:
     
     def _init_oss_20b(self):
         """Initialize OSS-20B model (using OpenAI-compatible API)"""
+        if ChatOpenAI is None:
+            raise ImportError("langchain_openai is not installed. Run: pip install langchain_openai")
+        
         return ChatOpenAI(
             model=config.OSS_20B_MODEL,
             api_key=config.OSS_20B_API_KEY,
@@ -126,6 +158,10 @@ class LLMClient:
 def get_llm_client(model_type: Optional[str] = None) -> LLMClient:
     """Factory function to get LLM client"""
     return LLMClient(model_type)
+
+
+
+
 
 
 

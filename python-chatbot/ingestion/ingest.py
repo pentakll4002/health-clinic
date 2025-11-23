@@ -2,7 +2,7 @@
 Document ingestion pipeline
 """
 from typing import List, Dict, Optional
-from langchain.schema import Document
+from langchain_core.documents import Document
 from langchain_community.document_loaders import (
     PyPDFLoader,
     TextLoader,
@@ -136,6 +136,11 @@ class DocumentIngester:
             }
         
         return {"num_chunks": 0}
+
+
+
+
+
 
 
 

@@ -2,7 +2,7 @@
 Vector store search functionality
 """
 from typing import List, Dict
-from langchain.schema import Document
+from langchain_core.documents import Document
 from vectorstore.create import get_vector_store
 import config.setting as config
 
@@ -78,6 +78,11 @@ class VectorStoreSearch:
                 filtered.append(doc)
         
         return filtered
+
+
+
+
+
 
 
 
