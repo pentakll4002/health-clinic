@@ -3,8 +3,9 @@ import AppointmentsContainer from '../features/appointments/AppointmentsContaine
 import { FunnelIcon } from '@heroicons/react/24/outline';
 import { useAppointments } from '../features/appointments/useAppointments';
 import AddAppointment from '../features/appointments/AddAppointment';
-import Spinner from  '../ui/Spinner'
+import Spinner from '../ui/Spinner';
 import Search from '../features/Search/Search';
+import Filter from '../ui/Filter';
 
 const LayoutAppointments = styled.div`
   width: 100%;
@@ -22,8 +23,8 @@ const LayoutFlex = styled.div`
 
 const Appointments = () => {
   const { totalCount, isLoading } = useAppointments();
-  
-  if (isLoading) return <Spinner />
+
+  if (isLoading) return <Spinner />;
 
   return (
     <LayoutAppointments>
@@ -44,11 +45,15 @@ const Appointments = () => {
         </div>
 
         <div className='flex items-center justify-center gap-x-4'>
-          {/* Filter */}
-          <div className='flex items-center justify-center p-2 text-sm font-medium bg-white border rounded-md border-grey-transparent shadow-1 gap-x-2 text-grey-900'>
-            <FunnelIcon className='w-5 h-5' />
-            <span>Filter</span>
-          </div>
+          <Filter
+            filterField='status'
+            options={[
+              { value: 'Tất cả', label: 'All' },
+              { value: '', label: '' },
+              { value: '', label: '' },
+              { value: '', label: '' },
+            ]}
+          />
 
           {/* New Appointment */}
           <AddAppointment />
@@ -61,4 +66,3 @@ const Appointments = () => {
 };
 
 export default Appointments;
-

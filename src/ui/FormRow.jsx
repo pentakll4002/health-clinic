@@ -2,7 +2,7 @@ const FormRow = ({ label, children, name, error, inline = false }) => {
   return (
     <div
       className={`${
-        inline ? 'flex items-start gap-3' : 'grid items-center gap-y-1.5'
+        inline ? 'flex items-start gap-3' : 'grid items-center gap-y-1.5 mb-5'
       } [&:first-child]:pt-0 [&:last-child]:pb-0`}
     >
       {label && (
@@ -16,7 +16,6 @@ const FormRow = ({ label, children, name, error, inline = false }) => {
         </label>
       )}
 
-      
       <div className='flex flex-col flex-1'>
         {children}
         {error && (

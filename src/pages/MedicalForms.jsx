@@ -5,6 +5,7 @@ import { usePhieuKhamList } from '../features/medicalForm/usePhieuKhamList';
 import Spinner from '../ui/Spinner'
 import Search from '../features/Search/Search';
 import { useState } from 'react';
+import Filter from '../ui/Filter';
 
 const LayoutMedicalForms = styled.div`
   width: 100%;
@@ -46,10 +47,13 @@ const MedicalForms = () => {
 
         <div className='flex items-center justify-center gap-x-4'>
           {/* Filter */}
-          <div className='flex items-center justify-center p-2 text-sm font-medium bg-white border rounded-md border-grey-transparent shadow-1 gap-x-2 text-grey-900'>
-            <FunnelIcon className='w-5 h-5' />
-            <span>Filter</span>
-          </div>
+          <Filter
+            filterField='status'
+            options={[
+              { value: 'All', label: 'Tất cả' },
+              { value: '', label: 'Ca' },
+            ]}
+          />
         </div>
       </LayoutFlex>
 
