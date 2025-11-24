@@ -40,10 +40,7 @@ const ForgotPassword = () => {
     setError(null);
     setMessage(null);
     try {
-      const response = await axiosInstance.post(
-        '/forgot-password',
-        data
-      );
+      const response = await axiosInstance.post('/forgot-password', data);
       setMessage(response.data.message);
       navigate('/forgot-password/email-verification', {
         state: {
@@ -59,13 +56,19 @@ const ForgotPassword = () => {
   }
 
   return (
-    <LayoutAuth
-      heading='Quên mật khẩu'
-      paragraph='Bạn chỉ có thể lấy lại mật khẩu với tài khoản hợp lệ; email không tồn tại trong hệ thống hoặc không có quyền truy cập sẽ không nhận được liên kết đặt lại.'
-      picture={forgotPasswordImg}
-    >
+    <LayoutAuth heading='Quên mật khẩu' picture={forgotPasswordImg}>
       {loading && (
-        <div style={{position:'fixed',inset:0,zIndex:50,background:'rgba(255,255,255,0.6)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 50,
+            background: 'rgba(255,255,255,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           <Spinner />
         </div>
       )}
@@ -90,14 +93,14 @@ const ForgotPassword = () => {
 
         <Button
           type='submit'
-          className='w-full text-white bg-primary'
+          className='w-full mt-5 text-white bg-primary'
           disabled={loading}
           isLoading={loading}
         >
           {loading ? 'Sending...' : 'Submit'}
         </Button>
 
-        <span className='flex items-center justify-center mt-5 text-sm font-normal text-center gap-x-3'>
+        <span className='flex items-center justify-center mt-5 text-sm font-normal text-center gap-x-2'>
           Return to{' '}
           <Link to='/sign-in' className='text-primary hover:underline '>
             Login

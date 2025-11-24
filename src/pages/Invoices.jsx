@@ -1,11 +1,11 @@
 import styled from 'styled-components';
 import InvoicesContainer from '../features/invoices/InvoicesContainer';
-import { FunnelIcon } from '@heroicons/react/24/outline';
 import { useInvoices } from '../features/invoices/useInvoices';
 import AddInvoice from '../features/invoices/AddInvoice';
 import Spinner from '../ui/Spinner';
 import Search from '../features/Search/Search';
 import { useState } from 'react';
+import Filter from '../ui/Filter';
 
 const LayoutInvoices = styled.div`
   width: 100%;
@@ -47,10 +47,15 @@ const Invoices = () => {
 
         <div className='flex items-center justify-center gap-x-4'>
           {/* Filter */}
-          <div className='flex items-center justify-center p-2 text-sm font-medium bg-white border rounded-md border-grey-transparent shadow-1 gap-x-2 text-grey-900'>
-            <FunnelIcon className='w-5 h-5' />
-            <span>Filter</span>
-          </div>
+          <Filter
+            filterField='status'
+            options={[
+              { value: 'Tất cả', label: 'All' },
+              { value: '', label: '' },
+              { value: '', label: '' },
+              { value: '', label: '' },
+            ]}
+          />
 
           {/* New Invoice */}
           <AddInvoice />

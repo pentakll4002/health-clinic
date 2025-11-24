@@ -34,10 +34,14 @@ const Reception = () => {
 
         <div className='flex items-center justify-center gap-x-4'>
           {/* Filter */}
-          <div className='flex items-center justify-center p-2 text-sm font-medium bg-white border rounded-md border-grey-transparent shadow-1 gap-x-2 text-grey-900'>
-            <FunnelIcon className='w-5 h-5' />
-            <span>Filter</span>
-          </div>
+          <Filter
+            filterField='status'
+            options={[
+              { value: 'Tất cả', label: 'All' },
+              { value: 'Đã khám', label: '' },
+              { value: 'Chưa khám', label: '' },
+            ]}
+          />
 
           <AddReception />
         </div>

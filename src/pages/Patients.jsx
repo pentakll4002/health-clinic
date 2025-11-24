@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 import PatientsCardContainer from '../features/patients/PatientsCardContainer';
-import { FunnelIcon } from '@heroicons/react/24/outline';
 import AddPatient from '../features/patients/AddPatient';
 import PatientSearchForm from '../features/patients/PatientSearchForm';
 import { usePatients } from '../features/patients/usePatients';
 import Spinner from '../ui/Spinner';
 import Search from '../features/Search/Search';
+import Filter from '../ui/Filter';
 
 const LayoutPatients = styled.div`
   width: 100%;
@@ -23,12 +23,15 @@ const LayoutFlex = styled.div`
 `;
 
 const Patients = () => {
-  const [searchKeyword, setSearchKeyword] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchParams, setSearchParams] = useState({});
-  
-  const { totalCount, isLoading } = usePatients({ ...searchParams, keyword: searchKeyword });
-  
+
+  const { totalCount, isLoading } = usePatients({
+    ...searchParams,
+    keyword: searchKeyword,
+  });
+
   if (isLoading) return <Spinner />;
 
   function handleSearch(params) {
@@ -39,13 +42,6 @@ const Patients = () => {
   function handleReset() {
     setSearchParams({});
     setIsSearchOpen(false);
-  }
-
-  function toggleSearch() {
-    setIsSearchOpen(!isSearchOpen);
-    if (isSearchOpen) {
-      setSearchParams({});
-    }
   }
 
   return (
@@ -68,18 +64,15 @@ const Patients = () => {
 
         <div className='flex items-center justify-center gap-x-4'>
           {/* Filter */}
-          <button
-            onClick={toggleSearch}
-            className={`flex items-center justify-center p-2 text-sm font-medium border rounded-md shadow-1 gap-x-2 ${
-              isSearchOpen
-                ? 'bg-primary text-white border-primary'
-                : 'bg-white border-grey-transparent text-grey-900'
-            }`}
-          >
-            <FunnelIcon className='w-5 h-5' />
-            <span>Tra cứu</span>
-          </button>
-
+          <Filter
+            filterField='status'
+            options={[
+              { value: 'Tất cả', label: 'All' },
+              { value: '', label: '' },
+              { value: '', label: '' },
+              { value: '', label: '' },
+            ]}
+          />
 
           {/* New patient */}
           <AddPatient />
@@ -92,7 +85,9 @@ const Patients = () => {
         onReset={handleReset}
       />
 
-      <PatientsCardContainer searchParams={{ ...searchParams, keyword: searchKeyword }} />
+      <PatientsCardContainer
+        searchParams={{ ...searchParams, keyword: searchKeyword }}
+      />
     </LayoutPatients>
   );
 };

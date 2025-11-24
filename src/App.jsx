@@ -5,8 +5,8 @@ import { Toaster } from 'react-hot-toast';
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import SignIn from './pages/SignIn';
-import Register from './pages/Register';
+import SignIn from './pages/SignIn/SignIn';
+import Register from './pages/Register/Register';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import EmailVerification from './pages/ForgotPassword/EmailVerification';
 import ResetPassword from './pages/ForgotPassword/ResetPassword';
@@ -28,7 +28,6 @@ import PatientProfilePage from './pages/PatientProfile';
 import Reports from './pages/Reports';
 import Regulations from './pages/Regulations';
 
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -40,12 +39,17 @@ const queryClient = new QueryClient({
 function RequireAuth({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+  const token =
+    localStorage.getItem('token') || localStorage.getItem('auth_token');
 
   useEffect(() => {
     if (!token) {
       // Nếu chưa đăng nhập thì chuyển về /sign-in
-      if (location.pathname !== '/sign-in' && location.pathname !== '/sign-up' && !location.pathname.startsWith('/forgot-password')) {
+      if (
+        location.pathname !== '/sign-in' &&
+        location.pathname !== '/sign-up' &&
+        !location.pathname.startsWith('/forgot-password')
+      ) {
         navigate('/sign-in');
       }
     }
@@ -58,14 +62,14 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster position='top-right' />
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
       <BrowserRouter>
         <Routes>
           <Route
             element={
-              <RequireAuth>
-                <LayoutApp />
-              </RequireAuth>
+              // <RequireAuth>
+              <LayoutApp />
+              // </RequireAuth>
             }
           >
             <Route index element={<Doctors />} />
