@@ -10,10 +10,10 @@ class NhomNguoiDungSeeder extends Seeder
     public function run(): void
     {
         $groups = [
-            ['TenNhom' => 'Bác sĩ', 'MaNhom' => '@doctors'],
-            ['TenNhom' => 'Y tá', 'MaNhom' => '@nurses'],
-            ['TenNhom' => 'Lễ tân', 'MaNhom' => '@receptionists'],
-            ['TenNhom' => 'Kế toán', 'MaNhom' => '@accountants'],
+            ['TenNhom' => 'Bác sĩ', 'MaNhom' => 'doctors'],
+            ['TenNhom' => 'Y tá', 'MaNhom' => 'nurses'],
+            ['TenNhom' => 'Lễ tân', 'MaNhom' => 'receptionists'],
+            ['TenNhom' => 'Kế toán', 'MaNhom' => 'accountants'],
         ];
 
         foreach ($groups as $group) {
