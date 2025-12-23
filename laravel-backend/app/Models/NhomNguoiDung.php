@@ -22,7 +22,20 @@ class NhomNguoiDung extends Model
     {
         return $this->hasMany(NhanVien::class, 'ID_Nhom', 'ID_Nhom');
     }
+
+    public function phanQuyens()
+    {
+        return $this->hasMany(PhanQuyen::class, 'ID_Nhom', 'ID_Nhom');
+    }
+
+    public function chucNangs()
+    {
+        return $this->belongsToMany(ChucNang::class, 'phan_quyen', 'ID_Nhom', 'ID_ChucNang');
+    }
 }
+
+
+
 
 
 

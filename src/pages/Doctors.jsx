@@ -1,8 +1,11 @@
+import { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import DoctorsCardContainer from '../features/doctors/DoctorsCardContainer';
+import DoctorsTableContainer from '../features/doctors/DoctorsTableContainer';
+import AddDoctor from '../features/doctors/AddDoctor';
 
 import { FunnelIcon } from '@heroicons/react/24/outline';
-import AddDoctor from '../features/doctors/AddDoctor';
 import { useDoctors } from '../features/doctors/useDoctors';
 import Spinner from '../ui/Spinner';
 import Search from '../features/Search/Search';
@@ -22,9 +25,22 @@ const LayoutFlex = styled.div`
 `;
 
 const Doctors = () => {
+  const [searchParams] = useSearchParams();
   const { totalCount, isLoading } = useDoctors();
 
+  // Get view from URL query params
+  const view = searchParams.get('view') || 'default';
+
   if (isLoading) return <Spinner />;
+
+  // Determine which container to render based on view
+  const renderContent = () => {
+    if (view === 'detail') {
+      return <DoctorsTableContainer />;
+    }
+    // Default: card view
+    return <DoctorsCardContainer />;
+  };
 
   return (
     <LayoutDoctors>
@@ -44,18 +60,17 @@ const Doctors = () => {
         </div>
 
         <div className='flex items-center justify-center gap-x-4'>
-          {/* Filter */}
           <div className='flex items-center justify-center p-2 text-sm font-medium bg-white border rounded-md border-grey-transparent shadow-1 gap-x-2 text-grey-900'>
             <FunnelIcon className='w-5 h-5' />
             <span>Filter</span>
           </div>
-
-          {/* New doctors */}
+          
+          {/* Add Doctor button */}
           <AddDoctor />
         </div>
       </LayoutFlex>
 
-      <DoctorsCardContainer />
+      {renderContent()}
     </LayoutDoctors>
   );
 };

@@ -6,6 +6,7 @@ use App\Models\HoaDon;
 use App\Models\NhanVien;
 use App\Models\PhieuKham;
 use App\Models\QuiDinh;
+use App\Helpers\RoleHelper;
 use Illuminate\Http\Request;
 
 class HoaDonController extends Controller
@@ -65,6 +66,14 @@ class HoaDonController extends Controller
 
     public function store(Request $request)
     {
+        // Kiểm tra quyền: Chỉ thu ngân và admin được lập hóa đơn
+        $user = $request->user();
+        if (!RoleHelper::canCashierCreateHoaDon($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền lập hóa đơn. Chỉ thu ngân mới được phép thực hiện chức năng này.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'ID_PhieuKham' => 'required|integer|exists:phieu_kham,ID_PhieuKham',
             'ID_NhanVien' => 'required|integer|exists:nhan_vien,ID_NhanVien',
@@ -85,7 +94,11 @@ class HoaDonController extends Controller
             return response()->json(['message' => 'Nhân viên không tồn tại'], 404);
         }
 
-        if (!$nhanVien->nhomNguoiDung || $nhanVien->nhomNguoiDung->MaNhom !== '@doctors') {
+        $allowedRoles = ['@cashiers', '@admin'];
+        if (
+            !$nhanVien->nhomNguoiDung
+            || !in_array($nhanVien->nhomNguoiDung->MaNhom, $allowedRoles, true)
+        ) {
             return response()->json(['message' => 'Nhân viên không có quyền lập hoá đơn'], 403);
         }
 

@@ -18,6 +18,7 @@ class ToaThuoc extends Model
         'ID_PhieuKham',
         'ID_Thuoc',
         'SoLuong',
+        'CachDung',
         'DonGiaBan_LuocMua',
         'TienThuoc',
     ];
@@ -38,6 +39,16 @@ class ToaThuoc extends Model
         return $this->belongsTo(Thuoc::class, 'ID_Thuoc', 'ID_Thuoc');
     }
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

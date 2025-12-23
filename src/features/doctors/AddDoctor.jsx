@@ -1,8 +1,13 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
 import Modal from '../../ui/Modal';
 import CreateDoctorForm from './CreateDoctorForm';
+import { useRolePermissions } from '../../hooks/useRolePermissions';
 
 const AddDoctor = () => {
+  const { isRole } = useRolePermissions();
+
+  if (!isRole('@admin')) return null;
+
   return (
     <div>
       <Modal>

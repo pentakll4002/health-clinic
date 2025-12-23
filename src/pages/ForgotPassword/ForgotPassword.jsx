@@ -44,13 +44,16 @@ const ForgotPassword = () => {
         '/forgot-password',
         data
       );
-      setMessage(response.data.message);
-      navigate('/forgot-password/email-verification', {
-        state: {
-          email: data.email,
-          token: response.data.token,
-        },
-      });
+      // Show success message to user
+      setMessage('✅ Nếu email này tồn tại trong hệ thống, bạn sẽ nhận được mã xác nhận trong inbox hoặc thư mục spam. Vui lòng kiểm tra email của bạn.');
+      // Wait a moment then navigate
+      setTimeout(() => {
+        navigate('/forgot-password/email-verification', {
+          state: {
+            email: data.email,
+          },
+        });
+      }, 2000);
     } catch (err) {
       setError(err.response?.data?.message || 'Password reset failed');
     } finally {
@@ -61,7 +64,7 @@ const ForgotPassword = () => {
   return (
     <LayoutAuth
       heading='Quên mật khẩu'
-      paragraph='Bạn chỉ có thể lấy lại mật khẩu với tài khoản hợp lệ; email không tồn tại trong hệ thống hoặc không có quyền truy cập sẽ không nhận được liên kết đặt lại.'
+      paragraph='Nhập email của bạn để nhận mã xác nhận đặt lại mật khẩu. Nếu email tồn tại trong hệ thống, bạn sẽ nhận được mã trong email trong vòng vài phút.'
       picture={forgotPasswordImg}
     >
       {loading && (

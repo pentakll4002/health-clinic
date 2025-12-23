@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BenhNhan;
+use App\Helpers\RoleHelper;
 use Illuminate\Http\Request;
 
 class BenhNhanController extends Controller
@@ -33,6 +34,15 @@ class BenhNhanController extends Controller
 
     public function store(Request $request)
     {
+        // Kiểm tra quyền: Chỉ lễ tân và admin được tạo bệnh nhân mới
+        // Bác sĩ KHÔNG được tạo bệnh nhân mới
+        $user = $request->user();
+        if (!RoleHelper::canReceptionistCreateTiepNhan($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền tạo bệnh nhân mới. Chỉ lễ tân mới được phép thực hiện chức năng này.',
+            ], 403);
+        }
+
         $request->validate([
             'HoTenBN' => 'required|string|max:500',
             'NgaySinh' => 'required|date',
@@ -42,6 +52,7 @@ class BenhNhanController extends Controller
             'DiaChi' => 'nullable|string|max:500',
             'Email' => 'nullable|email|max:255|unique:benh_nhan',
             'NgayDK' => 'nullable|date',
+            'user_id' => 'required|integer|exists:users,id|unique:benh_nhan',
         ]);
 
         $payload = $request->all();
@@ -58,6 +69,14 @@ class BenhNhanController extends Controller
 
     public function update(Request $request, $id)
     {
+        // Kiểm tra quyền: Chỉ lễ tân và admin được cập nhật bệnh nhân
+        $user = $request->user();
+        if (!RoleHelper::canReceptionistCreateTiepNhan($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền cập nhật thông tin bệnh nhân. Chỉ lễ tân mới được phép thực hiện chức năng này.',
+            ], 403);
+        }
+
         $benhNhan = BenhNhan::find($id);
         if (!$benhNhan) {
             return response()->json(['message' => 'Không tìm thấy bệnh nhân'], 404);

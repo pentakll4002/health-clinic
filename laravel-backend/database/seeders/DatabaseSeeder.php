@@ -20,9 +20,14 @@ class DatabaseSeeder extends Seeder
         // ]);
         $this->call([
             NhomNguoiDungSeeder::class,
+            ChucNangSeeder::class,
+            PhanQuyenSeeder::class,
             DVTSeeder::class,
             CachDungSeeder::class,
+            LoaiBenhSeeder::class,
+            QuiDinhSeeder::class, // Thêm seeder cho quy định hệ thống
             ThuocSeeder::class,
+            AdminSeeder::class,
         ]);
     }
 }

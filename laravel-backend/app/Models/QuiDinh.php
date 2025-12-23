@@ -47,3 +47,17 @@ class QuiDinh extends Model
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -13,6 +13,7 @@ import ButtonSocial from '../../ui/ButtonSocial';
 import CheckBox from '../../ui/CheckBox';
 import useToggleValue from '../../hooks/useToggleValue';
 import InputCaptcha from '../../pages/Register/InputCaptcha';
+import InputOTP from '../../pages/Register/InputOTP';
 import Spinner from '../../ui/Spinner';
 
 import {
@@ -92,6 +93,12 @@ const Register = () => {
     try {
       if (captchaValue === captchaText) {
         // If captcha is correct, proceed to request OTP
+        console.log('Sending OTP request with data:', {
+          name: registerData.name,
+          email: registerData.email,
+          password: registerData.password,
+        });
+        
         const response = await axiosInstance.post('/register/request-otp', {
           name: registerData.name,
           email: registerData.email,
@@ -104,7 +111,24 @@ const Register = () => {
       }
     } catch (err) {
       console.error('Error during CAPTCHA verification or OTP request:', err);
-      setCaptchaError(err.response?.data?.message || err.message || 'Xác thực CAPTCHA thất bại');
+      console.error('Error Response Status:', err.response?.status);
+      console.error('Error Response Data:', err.response?.data);
+      
+      let errorMessage = 'Xác thực CAPTCHA thất bại';
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      }
+      
+      if (err.response?.data?.errors) {
+        // Convert validation errors object to readable string
+        const errors = err.response.data.errors;
+        const errorList = Object.values(errors).flat();
+        
+        if (errorList.length > 0) {
+          errorMessage = errorList.join('\n');
+        }
+      }
+      setCaptchaError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -206,7 +230,15 @@ const Register = () => {
       )}
       {step === 2 && (
         <div>
-          {captchaError && <p className="mb-4 text-center text-red-500">{captchaError}</p>}
+          {captchaError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700">
+              {captchaError.includes('<') ? (
+                <div dangerouslySetInnerHTML={{ __html: captchaError }} />
+              ) : (
+                <p>{captchaError}</p>
+              )}
+            </div>
+          )}
           <InputCaptcha onCaptchaSubmit={handleCaptchaSubmit} />
           <Button type="button" disabled={loading} onClick={() => setStep(1)} className="mt-4 w-full">Nhập lại thông tin</Button>
         </div>

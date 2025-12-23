@@ -69,6 +69,8 @@ export function usePatientSelfProfile() {
   return useQuery({
     queryKey: PROFILE_QUERY_KEY,
     queryFn: fetchPatientProfile,
+    retry: false,
+    enabled: false, // Tạm thời disable vì endpoint chưa có ở backend
   });
 }
 
@@ -115,6 +117,8 @@ export function usePatientMedicalRecords() {
   return useQuery({
     queryKey: MEDICAL_RECORDS_QUERY_KEY,
     queryFn: fetchMedicalRecords,
+    retry: false,
+    enabled: false, // Tạm thời disable vì endpoint chưa có ở backend
   });
 }
 
@@ -122,6 +126,8 @@ export function usePatientInvoices() {
   return useQuery({
     queryKey: INVOICES_QUERY_KEY,
     queryFn: fetchInvoices,
+    retry: false,
+    enabled: false, // Tạm thời disable vì endpoint chưa có ở backend
   });
 }
 
@@ -129,6 +135,8 @@ export function usePatientAppointments() {
   return useQuery({
     queryKey: APPOINTMENTS_QUERY_KEY,
     queryFn: fetchAppointments,
+    retry: false,
+    enabled: false, // Tạm thời disable vì endpoint chưa có ở backend
   });
 }
 
@@ -172,6 +180,8 @@ export function usePatientNotifications() {
     queryKey: NOTIFICATIONS_QUERY_KEY,
     queryFn: fetchNotifications,
     refetchInterval: 60000,
+    retry: false,
+    enabled: false, // Tạm thời disable vì endpoint chưa có ở backend
   });
 }
 
@@ -179,6 +189,8 @@ export function usePatientDashboard() {
   return useQuery({
     queryKey: DASHBOARD_QUERY_KEY,
     queryFn: fetchDashboard,
+    retry: false,
+    enabled: false, // Tạm thời disable vì endpoint chưa có ở backend
   });
 }
 

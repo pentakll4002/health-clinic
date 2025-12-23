@@ -50,12 +50,12 @@ const EmailVerification = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axiosInstance.post('/verify-otp', {
+      const response = await axiosInstance.post('/verify-forgot-password-otp', {
         email,
-        token: token,
+        otp: data.otp,
       });
       console.log(response.data.message);
-      navigate('/forgot-password/reset', { state: { email, token } });
+      navigate('/forgot-password/reset', { state: { email, token: response.data.token } });
     } catch (err) {
       setError(err.response?.data?.message || 'Xác nhận mã OTP thất bại');
     } finally {
@@ -83,9 +83,6 @@ const EmailVerification = () => {
       paragraph={email ? `Chúng tôi đã gửi một mã đến ${email}` : 'Chúng tôi đã gửi một mã đến email của bạn'}
       picture={EmailSendImg}
     >
-      {token && (
-        <p className="mb-4 text-center text-blue-500">[DEV-MODE] Token: {token}</p>
-      )}
       <form onSubmit={handleSubmit(onSubmit)}>
         <Controller
           name='otp'

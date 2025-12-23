@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently --names \"VITE,LARAVEL,CHATBOT\" --prefix-colors \"blue,green,yellow\" \"vite\" \"cd laravel-backend && php artisan serve\" \"cd python-chatbot && python start_chatbot.py\"",
+    "dev": "concurrently --names \"VITE,LARAVEL,QUEUE,CHATBOT\" --prefix-colors \"blue,green,cyan,yellow\" \"vite\" \"cd laravel-backend && php artisan serve\" \"cd laravel-backend && php artisan queue:work database\" \"cd python-chatbot && python start_chatbot.py\"",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"

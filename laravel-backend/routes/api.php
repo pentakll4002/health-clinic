@@ -14,6 +14,8 @@ use App\Http\Controllers\BaoCaoDoanhThuController;
 use App\Http\Controllers\BaoCaoSuDungThuocController;
 use App\Http\Controllers\QuiDinhController;
 use App\Http\Controllers\PatientProfileController;
+use App\Http\Controllers\LichKhamController;
+use App\Http\Controllers\LoaiBenhController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,10 +41,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/patient/appointments/{appointment}', [PatientProfileController::class, 'cancelAppointment']);
     Route::get('/patient/notifications', [PatientProfileController::class, 'notifications']);
     Route::get('/patient/dashboard', [PatientProfileController::class, 'dashboard']);
+    
+    // Lịch khám routes (cho bệnh nhân)
+    Route::get('/patient/lich-kham', [LichKhamController::class, 'index']); // Danh sách lịch khám của bệnh nhân
+    Route::post('/patient/lich-kham', [LichKhamController::class, 'store']); // Đặt lịch khám
+    Route::get('/patient/lich-kham/{id}', [LichKhamController::class, 'show']); // Chi tiết lịch khám
+    Route::post('/patient/lich-kham/{id}/cancel', [LichKhamController::class, 'cancel']); // Hủy lịch khám
 });
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/verify-forgot-password-otp', [AuthController::class, 'verifyForgotPasswordOtp']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::post('/register/request-otp', [AuthController::class, 'requestOtp']);
@@ -76,6 +86,7 @@ Route::get('/cach-dung', [ThuocController::class, 'getCachDung']); // lấy danh
 // Appointments (Danh sách tiếp nhận) routes
 Route::get('/appointments', [DanhSachTiepNhanController::class, 'index']); // danh sách
 Route::post('/appointments', [DanhSachTiepNhanController::class, 'store']); // tạo mới
+Route::post('/appointments/from-lich-kham', [DanhSachTiepNhanController::class, 'createFromLichKham']); // tạo tiếp nhận từ lịch khám
 Route::get('/appointments/{id}', [DanhSachTiepNhanController::class, 'show']); // lấy chi tiết
 Route::put('/appointments/{id}', [DanhSachTiepNhanController::class, 'update']); // sửa
 Route::delete('/appointments/{id}', [DanhSachTiepNhanController::class, 'destroy']); // xoá
@@ -83,6 +94,10 @@ Route::delete('/appointments/{id}', [DanhSachTiepNhanController::class, 'destroy
 // Medical records (Phiếu khám) routes
 Route::get('/phieu-kham', [PhieuKhamController::class, 'index']);
 Route::get('/phieu-kham/{id}', [PhieuKhamController::class, 'show']);
+Route::post('/phieu-kham', [PhieuKhamController::class, 'store']); // Tạo phiếu khám mới
+Route::put('/phieu-kham/{id}', [PhieuKhamController::class, 'update']); // Cập nhật phiếu khám
+Route::post('/phieu-kham/{id}/complete', [PhieuKhamController::class, 'complete']); // Hoàn tất khám
+Route::post('/phieu-kham/check-can-create', [PhieuKhamController::class, 'checkCanCreate']); // Kiểm tra có thể tạo phiếu khám
 
 // Invoices (Hoá đơn) routes
 Route::get('/invoices', [HoaDonController::class, 'index']); // danh sách
@@ -108,3 +123,15 @@ Route::delete('/bao-cao-su-dung-thuoc', [BaoCaoSuDungThuocController::class, 'de
 // Regulations (Quy định) routes
 Route::get('/qui-dinh', [QuiDinhController::class, 'index']); // lấy các quy định
 Route::put('/qui-dinh', [QuiDinhController::class, 'update']); // cập nhật quy định
+
+// Loai Benh routes
+Route::get('/loai-benh', [LoaiBenhController::class, 'index']); // danh sách loại bệnh
+
+// Lịch khám routes (cho admin/lễ tân - cần authentication)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/lich-kham', [LichKhamController::class, 'getAll']); // Tất cả lịch khám
+    Route::get('/lich-kham/{id}', [LichKhamController::class, 'show']); // Chi tiết lịch khám
+    Route::put('/lich-kham/{id}', [LichKhamController::class, 'update']); // Cập nhật lịch khám
+    Route::post('/lich-kham/{id}/confirm', [LichKhamController::class, 'confirm']); // Xác nhận lịch khám
+    Route::delete('/lich-kham/{id}', [LichKhamController::class, 'destroy']); // Xóa lịch khám
+});

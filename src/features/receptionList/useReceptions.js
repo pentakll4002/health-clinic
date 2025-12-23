@@ -1,10 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { getReceptions } from './APIReception';
 
-export function useReceptions() {
-  return useQuery({
-    queryKey: ['receptions'],
-    queryFn: getReceptions,
+export function useReceptions(params = {}) {
+  const { isLoading, data, refetch } = useQuery({
+    queryKey: ['receptions', params],
+    queryFn: () => getReceptions(params),
     staleTime: 1000 * 60 * 2, 
   });
+
+  return {
+    isLoading,
+    data: data?.data || data || [],
+    totalCount: data?.totalCount || (Array.isArray(data) ? data.length : 0),
+    refetch,
+  };
 }

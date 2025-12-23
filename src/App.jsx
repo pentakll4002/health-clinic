@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import SignIn from './pages/SignIn';
-import Register from './pages/Register';
+import Register from './pages/Register/Register';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import EmailVerification from './pages/ForgotPassword/EmailVerification';
 import ResetPassword from './pages/ForgotPassword/ResetPassword';
@@ -14,6 +14,7 @@ import Success from './pages/ForgotPassword/Success';
 import LayoutApp from './layouts/LayoutApp';
 import Doctors from './pages/Doctors';
 import Patients from './pages/Patients';
+import PatientsToday from './pages/PatientsToday';
 import Patient from './pages/Patient';
 
 import Reception from './pages/Reception';
@@ -27,6 +28,11 @@ import AppointmentProfile from './pages/AppointmentProfile';
 import PatientProfilePage from './pages/PatientProfile';
 import Reports from './pages/Reports';
 import Regulations from './pages/Regulations';
+import RoleGuard from './ui/RoleGuard';
+import RoleLanding from './pages/RoleLanding';
+import Employees from './pages/Employees';
+import LichKham from './pages/LichKham';
+import LichKhamDoctor from './pages/LichKhamDoctor';
 
 
 const queryClient = new QueryClient({
@@ -68,19 +74,143 @@ function App() {
               </RequireAuth>
             }
           >
-            <Route index element={<Doctors />} />
-            <Route path='patients' element={<Patients />} />
-            <Route path='patients/profile' element={<PatientProfilePage />} />
-            <Route path='patients/:ID_BenhNhan' element={<Patient />} />
-            <Route path='reception' element={<Reception />} />
-            <Route path='drugs' element={<Drugs />} />
-            <Route path='drugs/:id' element={<DrugDetail />} />
-            <Route path='medical-forms' element={<MedicalForms />} />
-            <Route path='invoices' element={<Invoices />} />
-            <Route path='appointments' element={<Appointments />} />
-            <Route path='appointments/:id' element={<AppointmentProfile />} />
-            <Route path='reports' element={<Reports />} />
-            <Route path='regulations' element={<Regulations />} />
+            <Route index element={<RoleLanding />} />
+            <Route
+              path='employees'
+              element={
+                <RoleGuard route='employees'>
+                  <Employees />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='doctors'
+              element={
+                <RoleGuard route='doctors'>
+                  <Doctors />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='patients'
+              element={
+                <RoleGuard route='patients'>
+                  <Patients />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='patients/today'
+              element={
+                <RoleGuard route='patients'>
+                  <PatientsToday />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='patients/profile'
+              element={
+                <RoleGuard route='patientProfile'>
+                  <PatientProfilePage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='patients/:ID_BenhNhan'
+              element={
+                <RoleGuard route='patientDetail'>
+                  <Patient />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='reception'
+              element={
+                <RoleGuard route='reception'>
+                  <Reception />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='drugs'
+              element={
+                <RoleGuard route='drugs'>
+                  <Drugs />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='drugs/:id'
+              element={
+                <RoleGuard route='drugs'>
+                  <DrugDetail />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='medical-forms'
+              element={
+                <RoleGuard route='medicalForms'>
+                  <MedicalForms />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='invoices'
+              element={
+                <RoleGuard route='invoices'>
+                  <Invoices />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='appointments'
+              element={
+                <RoleGuard route='appointments'>
+                  <Appointments />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='appointments/:id'
+              element={
+                <RoleGuard route='appointments'>
+                  <AppointmentProfile />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='reports'
+              element={
+                <RoleGuard route='reports'>
+                  <Reports />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='regulations'
+              element={
+                <RoleGuard route='regulations'>
+                  <Regulations />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='lich-kham'
+              element={
+                <RoleGuard route='patientProfile'>
+                  <LichKham />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path='lich-kham-doctor'
+              element={
+                <RoleGuard route='doctors'>
+                  <LichKhamDoctor />
+                </RoleGuard>
+              }
+            />
           </Route>
 
           {/* Các route public */}

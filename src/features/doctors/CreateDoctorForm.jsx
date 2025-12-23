@@ -18,10 +18,26 @@ const Form = styled.form`
   min-width: 600px;
 `;
 
-const CreateDoctorForm = ({ doctor = null, onSuccess }) => {
+const CreateDoctorForm = ({
+  doctor = null,
+  onSuccess,
+  onCloseModal,
+  title = 'Thông tin bác sĩ',
+  submitLabel = 'Thêm Bác sĩ',
+}) => {
   const isEdit = !!doctor;
   const { register, handleSubmit, reset, setValue, formState } = useForm({
-    defaultValues: doctor || {},
+    defaultValues: doctor ? {
+      name: doctor.HoTenNV || '',
+      birthday: doctor.NgaySinh || '',
+      sdt: doctor.DienThoai || '',
+      cccd: doctor.CCCD || '',
+      address: doctor.DiaChi || '',
+      gender: doctor.GioiTinh || '',
+      email: doctor.Email || '',
+      avatarUrl: doctor.HinhAnh || 'default_avatar.jpg',
+      id_nhom: doctor.ID_Nhom ? String(doctor.ID_Nhom) : '',
+    } : {},
   });
 
   const { errors } = formState;
@@ -33,9 +49,11 @@ const CreateDoctorForm = ({ doctor = null, onSuccess }) => {
       ? (data) => updateDoctor(doctor.ID_NhanVien, data)
       : createDoctor,
     onSuccess: () => {
-      if (onSuccess) onSuccess();
       queryClient.invalidateQueries({ queryKey: ['doctors'] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       reset();
+      if (onSuccess) onSuccess();
+      if (onCloseModal) onCloseModal();
     },
     onError: (err) => alert(err.message),
   });
@@ -47,12 +65,19 @@ const CreateDoctorForm = ({ doctor = null, onSuccess }) => {
 
   useEffect(() => {
     if (isEdit && doctor) {
-      Object.keys(doctor).forEach((key) => {
-        setValue(key, doctor[key]);
-      });
+      // Map dữ liệu từ API sang form fields
+      setValue('name', doctor.HoTenNV || '');
+      setValue('birthday', doctor.NgaySinh || '');
+      setValue('sdt', doctor.DienThoai || '');
+      setValue('cccd', doctor.CCCD || '');
+      setValue('address', doctor.DiaChi || '');
+      setValue('gender', doctor.GioiTinh || '');
+      setValue('email', doctor.Email || '');
+      setValue('avatarUrl', doctor.HinhAnh || 'default_avatar.jpg');
       if (doctor.ID_Nhom) {
         setValue('id_nhom', String(doctor.ID_Nhom));
       }
+      // Password không set khi edit (để trống, chỉ required khi tạo mới)
     }
   }, [isEdit, doctor, setValue]);
 
@@ -76,7 +101,7 @@ const CreateDoctorForm = ({ doctor = null, onSuccess }) => {
   return (
     <div>
       <div className='w-full pb-4 mb-10 border-b border-grey-transparent'>
-        <h2 className='text-xl font-bold'>Thông tin bác sĩ</h2>
+        <h2 className='text-xl font-bold'>{title}</h2>
       </div>
       <Form onSubmit={handleSubmit(onSubmit)}>
         <InputImage />
@@ -92,14 +117,15 @@ const CreateDoctorForm = ({ doctor = null, onSuccess }) => {
           />
         </FormRow>
 
-        <FormRow label='Password*' error={errors.password?.message}>
+        <FormRow label={isEdit ? 'Password (để trống nếu không đổi)' : 'Password*'} error={errors.password?.message}>
           <InputNew
             type='password'
             id='password'
             disabled={isLoading}
+            placeholder={isEdit ? 'Để trống nếu không đổi mật khẩu' : ''}
             {...register('password', {
-              required: 'Bắt buộc !',
-              minLength: {value: 8, message: 'Mật khẩu phải có ít nhất 8 ký tự'}
+              required: isEdit ? false : 'Bắt buộc !',
+              minLength: isEdit ? undefined : {value: 8, message: 'Mật khẩu phải có ít nhất 8 ký tự'}
             })}
           />
         </FormRow>
@@ -215,7 +241,13 @@ const CreateDoctorForm = ({ doctor = null, onSuccess }) => {
             type='submit'
             disabled={isLoading}
           >
-            {isEdit ? (isLoading ? 'Đang lưu...' : 'Lưu thay đổi') : (isLoading ? 'Đang thêm...' : 'Thêm Bác sĩ')}
+            {isEdit
+              ? isLoading
+                ? 'Đang lưu...'
+                : 'Lưu thay đổi'
+              : isLoading
+              ? 'Đang thêm...'
+              : submitLabel}
           </Button>
         </div>
       </Form>

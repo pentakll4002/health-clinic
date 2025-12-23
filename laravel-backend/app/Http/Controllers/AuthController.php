@@ -7,10 +7,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use App\Models\BenhNhan;
-use App\Models\PendingRegister;
 use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
@@ -18,27 +18,26 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'unique:users', 'max:255'],
             'password' => ['required', 'string', 'min:8'],
-            'NgaySinh' => ['nullable', 'date'],
-            'GioiTinh' => ['nullable', 'string', 'max:10'],
+            'HoTenBN' => ['required', 'string', 'max:500'],
+            'NgaySinh' => ['required', 'date'],
+            'GioiTinh' => ['required', 'string', 'max:10'],
             'CCCD' => ['nullable', 'string', 'max:20', 'unique:benh_nhan'],
             'DienThoai' => ['nullable', 'string', 'max:15', 'unique:benh_nhan'],
             'DiaChi' => ['nullable', 'string', 'max:500'],
         ]);
 
         $user = User::create([
-            'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'patient',
         ]);
 
         BenhNhan::create([
-            'HoTenBN' => $request->name,
-            'NgaySinh' => $request->NgaySinh ?? null,
-            'GioiTinh' => $request->GioiTinh ?? null,
+            'HoTenBN' => $request->HoTenBN,
+            'NgaySinh' => $request->NgaySinh,
+            'GioiTinh' => $request->GioiTinh,
             'CCCD' => $request->CCCD ?? null,
             'DienThoai' => $request->DienThoai ?? null,
             'DiaChi' => $request->DiaChi ?? null,
@@ -65,6 +64,8 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
+        // Load relationships để frontend có thể lấy role code
+        $user->load('nhanVien.nhomNguoiDung', 'benhNhan');
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -82,46 +83,91 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
+        // Always return the same message for security - don't reveal if email exists or not
         if (!$user) {
-            return response()->json(['message' => 'We could not find a user with that email address.'], 404);
+            return response()->json([
+                'message' => 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được liên kết đặt lại mật khẩu trong vòng vài phút.',
+            ]);
         }
 
-        $token = Password::broker()->createToken($user);
+        // Generate OTP for password reset
+        $otp = rand(100000, 999999);
+        $expired = now()->addMinutes(10);
+
+        // Store OTP in password_reset_tokens table
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $request->email],
+            [
+                'otp' => $otp,
+                'otp_het_han' => $expired,
+                'token' => Str::random(40),
+                'created_at' => now(),
+            ]
+        );
+
+        // Queue the OTP email for password reset
+        Mail::to($request->email)->queue(new \App\Mail\SendOtpMail($otp, $request->email));
 
         return response()->json([
-            'message' => 'Password reset link sent to your email.',
-            'token' => $token,
-            'email' => $user->email
+            'message' => 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được liên kết đặt lại mật khẩu trong vòng vài phút.',
         ]);
     }
 
     public function requestOtp(Request $request)
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255'],
-            'password' => ['required', 'string', 'min:8'],
-        ]);
+        try {
+            $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                'password' => ['required', 'string', 'min:8'],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Format errors to be more readable
+            $errors = $e->errors();
+            $errorMessages = [];
+            
+            foreach ($errors as $field => $messages) {
+                $fieldName = match($field) {
+                    'name' => 'Tên',
+                    'email' => 'Email',
+                    'password' => 'Mật khẩu',
+                    default => $field
+                };
+                
+                // Customize email error message
+                if ($field === 'email' && in_array('The email has already been taken.', $messages)) {
+                    $errorMessages[$field] = 'Email này đã được đăng ký. Vui lòng sử dụng email khác hoặc <a href="/forgot-password" style="color: #0066cc; text-decoration: underline;">đặt lại mật khẩu</a> nếu bạn quên mật khẩu.';
+                } else {
+                    $errorMessages[$field] = "$fieldName: " . implode(', ', $messages);
+                }
+            }
+            
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $errorMessages
+            ], 422);
+        }
+        
         $otp = rand(100000, 999999);
         $expired = now()->addMinutes(10);
 
-        PendingRegister::updateOrCreate(
+        // Store OTP in password_reset_tokens table
+        DB::table('password_reset_tokens')->updateOrInsert(
             ['email' => $request->email],
             [
-                'name' => $request->name,
-                'password' => Hash::make($request->password),
+                'ho_ten' => $request->name,
+                'mat_khau' => Hash::make($request->password),
                 'otp' => $otp,
-                'otp_expired_at' => $expired,
+                'otp_het_han' => $expired,
+                'token' => Str::random(40),
+                'created_at' => now(),
             ]
         );
 
-        Mail::raw("Mã xác thực OTP đăng ký tài khoản của bạn là: $otp", function (
-            $message
-        ) use ($request) {
-            $message->to($request->email)
-                ->subject('Xác thực OTP đăng ký tài khoản');
-        });
-        return response()->json(['message' => 'OTP sent to email', 'email' => $request->email, 'expired' => $expired]);
+        // Queue the OTP email (will be sent asynchronously)
+        Mail::to($request->email)->queue(new \App\Mail\SendOtpMail($otp, $request->email));
+        
+        return response()->json(['message' => 'OTP đã được gửi đến email của bạn', 'email' => $request->email, 'expired' => $expired]);
     }
 
     public function verifyOtp(Request $request)
@@ -130,44 +176,105 @@ class AuthController extends Controller
             'email' => ['required', 'email'],
             'otp' => ['required', 'string'],
         ]);
-        $pending = PendingRegister::where('email', $request->email)
+        
+        // Get record from password_reset_tokens table
+        $record = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
             ->where('otp', $request->otp)
             ->first();
-        if (!$pending) {
+            
+        if (!$record) {
             return response()->json(['message' => 'OTP không đúng hoặc không tồn tại!'], 400);
         }
-        if (now()->greaterThan($pending->otp_expired_at)) {
+        
+        if (now()->greaterThan($record->otp_het_han)) {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
             return response()->json(['message' => 'OTP đã hết hạn!'], 400);
         }
-        // Kiểm tra lại các trường unique trước khi tạo
-        if (
-            \App\Models\User::where('email', $pending->email)->exists() ||
-            \App\Models\BenhNhan::where('Email', $pending->email)->exists()
-        ) {
-            $pending->delete();
-            return response()->json(['message' => 'Email đã tồn tại, vui lòng dùng email khác!'], 400);
+        
+        // Check if user already exists
+        if (User::where('email', $record->email)->exists()) {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            return response()->json(['message' => 'Email đã được đăng ký trong hệ thống!'], 400);
         }
-        // Tạo user role patient
+        
+        // Check if patient already exists with this email but no user account
+        $existingPatient = BenhNhan::where('Email', $record->email)->first();
+
+        // Create user
         $user = User::create([
-            'name' => $pending->name,
-            'email' => $pending->email,
-            'password' => $pending->password,
+            'email' => $record->email,
+            'password' => $record->mat_khau,
             'role' => 'patient',
         ]);
 
-        BenhNhan::create([
-            'HoTenBN' => $pending->name,
-            'NgaySinh' => null,
-            'GioiTinh' => null,
-            'CCCD' => null,
-            'DienThoai' => null,
-            'DiaChi' => null,
-            'Email' => $pending->email,
-            'NgayDK' => now()->toDateString(),
-            'user_id' => $user->id,
-        ]);
-        $pending->delete();
+        // If patient already exists, link user to it; otherwise create new patient
+        if ($existingPatient) {
+            // Update existing patient with user_id and update info if provided
+            $existingPatient->update([
+                'HoTenBN' => $record->ho_ten ?? $existingPatient->HoTenBN,
+                'user_id' => $user->id,
+            ]);
+        } else {
+            // Create new patient record
+            BenhNhan::create([
+                'HoTenBN' => $record->ho_ten,
+                'NgaySinh' => null,
+                'GioiTinh' => null,
+                'CCCD' => null,
+                'DienThoai' => null,
+                'DiaChi' => null,
+                'Email' => $record->email,
+                'NgayDK' => now()->toDateString(),
+                'user_id' => $user->id,
+            ]);
+        }
+        
+        // Delete the record
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+        
         return response()->json(['message' => 'Đăng ký xác thực thành công!'], 201);
+    }
+
+    public function verifyForgotPasswordOtp(Request $request)
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+            'otp' => ['required', 'string'],
+        ]);
+
+        // Get record from password_reset_tokens table
+        $record = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('otp', $request->otp)
+            ->first();
+
+        if (!$record) {
+            return response()->json(['message' => 'Mã xác nhận không đúng hoặc không tồn tại!'], 400);
+        }
+
+        if (now()->greaterThan($record->otp_het_han)) {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            return response()->json(['message' => 'Mã xác nhận đã hết hạn!'], 400);
+        }
+
+        // Generate a temporary token for password reset
+        $resetToken = Str::random(40);
+        
+        // Update the record with the reset token
+        DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->update([
+                'token' => $resetToken,
+                'otp' => null,
+                'otp_het_han' => null,
+            ]);
+
+        return response()->json([
+            'message' => 'Xác nhận OTP thành công!',
+            'token' => $resetToken,
+            'email' => $request->email
+        ]);
     }
 
     public function resetPassword(Request $request)
@@ -178,29 +285,59 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        // Verify the reset token in password_reset_tokens table
+        $record = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('token', $request->token)
+            ->first();
 
-        if (!$user || !Password::broker()->tokenExists($user, $request->token)) {
-            throw ValidationException::withMessages([
-                'token' => ['This password reset token is invalid or has expired.'],
-            ]);
+        if (!$record) {
+            return response()->json(['message' => 'Mã xác nhận không đúng hoặc đã hết hạn!'], 400);
         }
 
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'Không tìm thấy người dùng!'], 404);
+        }
+
+        // Update password
         $user->forceFill([
             'password' => Hash::make($request->password),
             'remember_token' => Str::random(60),
         ])->save();
 
-        Password::broker()->deleteToken($user);
+        // Delete the reset token record
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
-        return response()->json(['message' => 'Password reset successfully.']);
+        return response()->json(['message' => 'Đặt lại mật khẩu thành công!']);
     }
 
     public function userProfile(Request $request)
     {
         $user = $request->user();
-        $user->load('nhanVien.nhomNguoiDung', 'benhNhan');
-        return response()->json(['user' => $user]);
+        
+        // Load relationships với cả snake_case và camelCase để đảm bảo tương thích
+        $user->load([
+            'nhanVien' => function($query) {
+                $query->with('nhomNguoiDung');
+            },
+            'benhNhan'
+        ]);
+        
+        // Đảm bảo relationship được serialize đúng
+        $userData = $user->toArray();
+        
+        // Debug: Log để kiểm tra
+        \Log::info('User Profile Response', [
+            'user_id' => $user->id,
+            'has_nhan_vien' => $user->nhanVien !== null,
+            'nhan_vien_id' => $user->nhanVien?->ID_NhanVien,
+            'has_nhom' => $user->nhanVien?->nhomNguoiDung !== null,
+            'ma_nhom' => $user->nhanVien?->nhomNguoiDung?->MaNhom,
+        ]);
+        
+        return response()->json(['user' => $userData]);
     }
 
     public function logout(Request $request)

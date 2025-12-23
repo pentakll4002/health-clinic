@@ -23,6 +23,23 @@ axiosInstance.interceptors.request.use(
   }
 );
 
+// Response interceptor để xử lý lỗi 401 (Unauthorized)
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token không hợp lệ hoặc đã hết hạn
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('token');
+      // Redirect về trang login nếu không đang ở đó
+      if (window.location.pathname !== '/sign-in' && !window.location.pathname.startsWith('/forgot-password')) {
+        window.location.href = '/sign-in';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const axiosChatbot = axios.create({
   baseURL: 'http://localhost:8001/api/chat',
   headers: {

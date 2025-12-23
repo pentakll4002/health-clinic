@@ -16,7 +16,17 @@ export function useDoctors() {
     keepPreviousData: true,
   });
 
-  const pageCount = Math.ceil(totalCount / PAGE_SIZE);
+  const allowedCodes = ['@doctors'];
+  const filtered = (doctors || []).filter((doctor) => {
+    const groupCode =
+      doctor?.nhom_nguoi_dung?.MaNhom ||
+      doctor?.nhomNguoiDung?.MaNhom ||
+      doctor?.MaNhom;
+    return allowedCodes.includes(groupCode);
+  });
+
+  const rawCount = totalCount ?? filtered.length ?? 0;
+  const pageCount = Math.max(1, Math.ceil(rawCount / PAGE_SIZE));
 
   if (page < pageCount)
     queryClient.prefetchQuery({
@@ -30,5 +40,5 @@ export function useDoctors() {
       queryFn: () => getDoctors({ page: page - 1 }),
     });
 
-  return { isLoading, doctors, totalCount };
+  return { isLoading, doctors: filtered, totalCount: filtered.length };
 }

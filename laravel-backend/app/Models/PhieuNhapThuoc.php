@@ -14,9 +14,15 @@ class PhieuNhapThuoc extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'ID_NhanVien',
         'NgayNhap',
         'TongTienNhap',
     ];
+    
+    public function nhanVien()
+    {
+        return $this->belongsTo(NhanVien::class, 'ID_NhanVien', 'ID_NhanVien');
+    }
 
     protected $casts = [
         'NgayNhap' => 'datetime',

@@ -1,66 +1,43 @@
-export async function getPhieuKhamList() {
-  const totalCount = 20;
+import axiosInstance from '../../utils/axiosInstance';
 
-  const allPhieuKham = Array.from({ length: totalCount }, (_, i) => ({
-    ID_PhieuKham: i + 1,
-    ID_TiepNhan: 100 + i,
-    ID_BenhNhan: (i % 5) + 1,
-    NgayTN: `2025-0${(i % 9) + 1}-1${(i % 9) + 1}`,
-    CaTN: ['Sáng', 'Chiều'][i % 2],
-    TienKham: 100000 + i * 5000,
-    TongTienThuoc: 200000 + i * 10000,
-    BacSi: `BS. Tran Thi ${String.fromCharCode(65 + (i % 5))}`,
-    TrangThai: i % 3 === 0 ? 'Đã khám' : 'Đang khám',
-    Is_Deleted: false,
-  }));
-
-  await new Promise((resolve) => setTimeout(resolve, 400));
-
-  return { data: allPhieuKham, totalCount };
+export async function getPhieuKhamList(params = {}) {
+  const res = await axiosInstance.get('/phieu-kham', { params });
+  return res.data;
 }
 
 export async function getPhieuKhamByBenhNhan(ID_BenhNhan) {
-  const { data } = await getPhieuKhamList();
-  const filtered = data.filter(
-    (p) => p.ID_BenhNhan === Number(ID_BenhNhan) && !p.Is_Deleted
-  );
-
-  // Giả delay
-  await new Promise((resolve) => setTimeout(resolve, 300));
-
-  return { data: filtered, totalCount: filtered.length };
+  const res = await axiosInstance.get('/phieu-kham', { params: { ID_BenhNhan } });
+  return {
+    data: res.data.data || [],
+    totalCount: res.data.totalCount || 0,
+  };
 }
 
 export async function getPhieuKhamById(ID_PhieuKham) {
-  const { data } = await getPhieuKhamList();
-  const record = data.find((p) => p.ID_PhieuKham === Number(ID_PhieuKham));
+  const res = await axiosInstance.get(`/phieu-kham/${ID_PhieuKham}`);
+  return res.data;
+}
 
-  await new Promise((resolve) => setTimeout(resolve, 300));
+// Tạo phiếu khám mới
+export async function createPhieuKham(data) {
+  const res = await axiosInstance.post('/phieu-kham', data);
+  return res.data;
+}
 
-  if (!record) return null;
+// Cập nhật phiếu khám
+export async function updatePhieuKham(id, data) {
+  const res = await axiosInstance.put(`/phieu-kham/${id}`, data);
+  return res.data;
+}
 
-  return {
-    ...record,
-    HoTenBN: `Nguyen Van ${record.ID_BenhNhan}`,
-    TrieuChung: 'Đau đầu, chóng mặt',
-    ChanDoan: 'Cảm cúm nhẹ',
-    DonThuoc: [
-      {
-        TenThuoc: 'Paracetamol 500mg',
-        DonViTinh: 'Viên',
-        CachDung: 'Sáng, sau ăn',
-        SoLuong: 10,
-        DonGia: 3000,
-        ThanhTien: 30000,
-      },
-      {
-        TenThuoc: 'Vitamin C',
-        DonViTinh: 'Viên',
-        CachDung: 'Sáng, sau ăn',
-        SoLuong: 5,
-        DonGia: 2000,
-        ThanhTien: 10000,
-      },
-    ],
-  };
+// Kiểm tra có thể tạo phiếu khám không
+export async function checkCanCreatePhieuKham(ID_TiepNhan) {
+  const res = await axiosInstance.post('/phieu-kham/check-can-create', { ID_TiepNhan });
+  return res.data;
+}
+
+// Hoàn tất khám (Bước 4)
+export async function completePhieuKham(id) {
+  const res = await axiosInstance.post(`/phieu-kham/${id}/complete`);
+  return res.data;
 }

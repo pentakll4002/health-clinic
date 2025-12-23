@@ -46,6 +46,7 @@ const Patients = () => {
     if (isSearchOpen) {
       setSearchParams({});
     }
+
   }
 
   return (
@@ -98,3 +99,4 @@ const Patients = () => {
 };
 
 export default Patients;
+

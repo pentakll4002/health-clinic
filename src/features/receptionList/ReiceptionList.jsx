@@ -1,7 +1,7 @@
 import { useReceptions } from './useReceptions';
 import { useNavigate } from 'react-router-dom';
 import ModalCenter from '../../ui/ModalCenter';
-import MedicalForm from '../medicalForm/MedicalForm';
+import CreatePhieuKhamForm from '../medicalForm/CreatePhieuKhamForm';
 
 import Spinner from '../../ui/Spinner';
 import Table from '../../ui/Table';
@@ -21,6 +21,14 @@ const ReiceptionList = () => {
 
   if (isLoading) return <Spinner />;
 
+  if (!receptions || receptions.length === 0) {
+    return (
+      <div className='text-center py-10 text-grey-500 bg-white rounded-lg border border-grey-transparent'>
+        Không có bệnh nhân nào đã được tiếp nhận
+      </div>
+    );
+  }
+
   return (
     <Table columns='2fr 2fr 2fr 1fr 1fr'>
       <Table.Header>
@@ -34,25 +42,41 @@ const ReiceptionList = () => {
       <Table.Body
         data={receptions || []}
         render={(item) => {
+          // Lấy thông tin bệnh nhân từ relationship
+          const benhNhan = item.benhNhan || item.benh_nhan;
+          const hoTenBN = benhNhan?.HoTenBN || item.HoTenBN || 'N/A';
+          
+          // Format ngày
+          const formatDate = (dateString) => {
+            if (!dateString) return '—';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('vi-VN');
+          };
+          
+          // Format trạng thái
+          const getTrangThaiText = (trangThai) => {
+            if (trangThai === false || trangThai === 0) return 'Chờ khám';
+            if (trangThai === true || trangThai === 1) return 'Đang khám';
+            return 'Hoàn thành';
+          };
+          
           return (
             <Table.Row key={item.ID_TiepNhan}>
-              <Text>{item.HoTenBN}</Text>
-              <Text>{item.NgayTN}</Text>
+              <Text>{hoTenBN}</Text>
+              <Text>{formatDate(item.NgayTN)}</Text>
               <Text>{item.CaTN}</Text>
 
               <Text>
                 <span
                   className={`px-2 py-[2px] rounded-full text-sm font-medium ${
-                    item.TrangThai === 'Chờ khám'
+                    item.TrangThai === false || item.TrangThai === 0
                       ? 'bg-warning-100 text-warning-900'
-                      : item.TrangThai === 'Đang khám'
+                      : item.TrangThai === true || item.TrangThai === 1
                       ? 'bg-info-100 text-info-900'
-                      : item.TrangThai === 'Hoàn thành'
-                      ? 'bg-success-100 text-success-900'
-                      : 'bg-error-100 text-error-900'
+                      : 'bg-success-100 text-success-900'
                   }`}
                 >
-                  {item.TrangThai}
+                  {getTrangThaiText(item.TrangThai)}
                 </span>
               </Text>
 
@@ -63,17 +87,21 @@ const ReiceptionList = () => {
                     <Menus.List id={item.ID_BenhNhan}>
                       <Menus.Button
                         onClick={() =>
-                          navigate(`/patients/${item.ID_BenhNhan}`)
+                          navigate(`/patients/${benhNhan?.ID_BenhNhan || item.ID_BenhNhan}`)
                         }
                       >
                         Xem thông tin bệnh nhân
                       </Menus.Button>
 
-                      <ModalCenter.Open opens='medical-form'>
+                      <ModalCenter.Open opens={`medical-form-${item.ID_TiepNhan}`}>
                         <Menus.Button>Tạo phiếu khám</Menus.Button>
                       </ModalCenter.Open>
-                      <ModalCenter.Window name='medical-form'>
-                        <MedicalForm />
+                      <ModalCenter.Window name={`medical-form-${item.ID_TiepNhan}`}>
+                        <CreatePhieuKhamForm 
+                          tiepNhan={item}
+                          onCloseModal={() => {}}
+                          onSuccess={() => {}}
+                        />
                       </ModalCenter.Window>
                     </Menus.List>
                   </Menus>

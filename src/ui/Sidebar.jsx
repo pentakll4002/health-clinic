@@ -1,6 +1,7 @@
 import Dropdown from './Dropdown';
 import SidebarLink from './SidebarLink';
 import ButtonToggle from './ButtonToggle';
+import { useRolePermissions } from '../hooks/useRolePermissions';
 
 import {
   ApplicationSvg,
@@ -14,12 +15,14 @@ import {
 } from '../constants/Global';
 
 import {
+  CalendarDaysIcon,
   ChatBubbleLeftRightIcon,
   Cog8ToothIcon,
   CurrencyDollarIcon,
   EnvelopeIcon,
   MapPinIcon,
   MoonIcon,
+  PresentationChartLineIcon,
   QuestionMarkCircleIcon,
   ShieldExclamationIcon,
   UserCircleIcon,
@@ -27,6 +30,12 @@ import {
 } from '@heroicons/react/24/outline';
 
 const Sidebar = () => {
+  const { roleCode, isLoading, canAccessRoute } = useRolePermissions();
+  const can = (routeKey) => !!routeKey && canAccessRoute(routeKey);
+  const isDoctor = roleCode === '@doctors' || roleCode === '@admin';
+
+  if (isLoading) return null;
+
   return (
     <aside className='w-full h-full p-4 overflow-y-auto bg-white border-r border-grey-transparent'>
       {/* Main Menu */}
@@ -35,8 +44,8 @@ const Sidebar = () => {
           Main Menu
         </p>
 
-        {/* Dashboard */}
-        <Dropdown
+        {/* Dashboard - Tạm thời ẩn vì chưa có route */}
+        {/* <Dropdown
           icon={DashboardSvg}
           label='Dashboard'
           items={[
@@ -44,10 +53,10 @@ const Sidebar = () => {
             { label: 'Doctor Dashboard', to: '/doctor-dashboard' },
             { label: 'Patient Dashboard', to: '/patient-dashboard' },
           ]}
-        />
+        /> */}
 
-        {/* Application */}
-        <Dropdown
+        {/* Application - Tạm thời ẩn vì chưa có route */}
+        {/* <Dropdown
           icon={ApplicationSvg}
           label='Application'
           items={[
@@ -55,93 +64,82 @@ const Sidebar = () => {
             { label: 'Call', to: '/doctor-dashboard' },
             { label: 'Invoices', to: '/patient-dashboard' },
           ]}
-        />
+        /> */}
       </div>
 
       {/* Clinic */}
       <div className='flex flex-col mb-6'>
         <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>Clinic</p>
 
+        {/* Employees */}
+        {can('employees') && (
+          <SidebarLink to='/employees' icon={UserGroupIcon} label='Employees' />
+        )}
+
         {/* Doctors */}
-        <Dropdown
-          icon={DoctorsSvg}
-          label='Doctors'
-          items={[
-            { label: 'Doctors', to: '/' },
-            { label: 'Doctors Details', to: '/?view=detail' },
-            { label: 'Add Doctors', to: '/?modal=add-doctor' },
-            { label: 'Doctors Schedule', to: '/appointments' },
-          ]}
-        />
+        {can('doctors') && (
+          <SidebarLink to='/doctors' icon={DoctorsSvg} label='Doctors' />
+        )}
 
         {/* Patients */}
-        <Dropdown
-          icon={PatientsSvg}
-          label='Patients'
-          items={[
-            { label: 'Patients', to: '/patients' },
-            { label: 'Patient Details', to: '/patients?view=detail' },
-            { label: 'Add Patient', to: '/patients?modal=add-patient' },
-            { label: 'My Profile', to: '/patients/profile' },
-          ]}
-        />
+        {can('patients') && (
+          <SidebarLink to='/patients' icon={PatientsSvg} label='Patients' />
+        )}
 
-        {/* Drug Management */}
-        <Dropdown
-          icon={DrugSvg}
-          label='Drug Management'
-          items={[
-            { label: 'All Drugs', to: '/drugs' },
-            { label: 'Add Drug', to: '/drugs?modal=add-drug' },
-            { label: 'Drug Usage Reports', to: '/drugs?tab=reports' },
-          ]}
-        />
+        {/* Doctor quick links - chỉ hiện cho bác sĩ/admin để gọn UI */}
+        {isDoctor && (
+          <Dropdown
+            icon={DoctorsSvg}
+            label='Doctor'
+            items={[
+              { label: 'Bệnh nhân trong ngày', to: '/patients/today' },
+              { label: 'Lịch khám đã xác nhận', to: '/lich-kham-doctor' },
+              { label: 'Phiếu khám', to: '/medical-forms' },
+            ]}
+          />
+        )}
 
-        <SidebarLink to='/regulations' icon={Cog8ToothIcon} label='Regulations' />
+        {/* Reception */}
+        {can('reception') && (
+          <SidebarLink to='/reception' icon={MapPinIcon} label='Reception' />
+        )}
 
         {/* Medical Forms */}
-        <SidebarLink to='/medical-forms' icon={MedicalFormSvg} label='Medical Forms' />
+        {can('medicalForms') && (
+          <SidebarLink to='/medical-forms' icon={MedicalFormSvg} label='Medical Forms' />
+        )}
 
         {/* Appointments */}
-        <SidebarLink to='/appointments' icon={AppointmentsSvg} label='Appointments' />
+        {can('appointments') && (
+          <SidebarLink to='/appointments' icon={AppointmentsSvg} label='Appointments' />
+        )}
+
+        {/* Drug Management */}
+        {can('drugs') && (
+          <SidebarLink to='/drugs' icon={DrugSvg} label='Drug Management' />
+        )}
 
         {/* Invoices */}
-        <SidebarLink to='/invoices' icon={CurrencyDollarIcon} label='Invoices' />
+        {can('invoices') && (
+          <SidebarLink to='/invoices' icon={CurrencyDollarIcon} label='Invoices' />
+        )}
 
-        <SidebarLink to='/' icon={MapPinIcon} label='Locations' />
-        <SidebarLink to='/' icon={ChatBubbleLeftRightIcon} label='Messages' />
+        {/* Reports */}
+        {can('reports') && (
+          <SidebarLink to='/reports' icon={PresentationChartLineIcon} label='Reports' />
+        )}
+
+        {/* Regulations */}
+        {can('regulations') && (
+          <SidebarLink to='/regulations' icon={Cog8ToothIcon} label='Regulations' />
+        )}
       </div>
 
-      {/* HRM */}
-      <div className='flex flex-col mb-6'>
-        <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>HRM</p>
-
-        <SidebarLink to='/' icon={UserGroupIcon} label='Staff' />
-        <SidebarLink to='/' icon={CurrencyDollarIcon} label='Payroll' />
-
-        <Dropdown
-          icon={LeavesSvg}
-          label='Leaves'
-          items={[
-            { label: 'Leaves', to: '/admin-dashboard' },
-            { label: 'Leave Type', to: '/doctor-dashboard' },
-          ]}
-        />
-      </div>
-
-      {/* Support */}
+      {/* Support - luôn hiển thị, RoleGuard/backend sẽ chặn nếu role không phù hợp */}
       <div className='flex flex-col mb-6'>
         <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>Support</p>
-
-        <SidebarLink to='/' icon={QuestionMarkCircleIcon} label='FAQ' />
-        <SidebarLink to='/' icon={EnvelopeIcon} label='Newsletters' />
-        <SidebarLink to='/patients/profile' icon={UserCircleIcon} label='Profile' />
-        <SidebarLink
-          to='/'
-          icon={ShieldExclamationIcon}
-          label='Privacy Policy'
-        />
-        <SidebarLink to='/' icon={Cog8ToothIcon} label='Setting' />
+        <SidebarLink to='/patients/profile' icon={UserCircleIcon} label='My Profile' />
+        <SidebarLink to='/lich-kham' icon={CalendarDaysIcon} label='Lịch khám của tôi' />
       </div>
 
       <div className='border border-grey-transparent'></div>

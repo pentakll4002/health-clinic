@@ -15,11 +15,14 @@ class PhieuKham extends Model
 
     protected $fillable = [
         'ID_TiepNhan',
+        'ID_BacSi',
         'CaKham',
         'TrieuChung',
+        'ChanDoan',
         'ID_LoaiBenh',
         'TienKham',
         'TongTienThuoc',
+        'TrangThai',
         'Is_Deleted',
     ];
 
@@ -28,6 +31,11 @@ class PhieuKham extends Model
         'TongTienThuoc' => 'decimal:2',
         'Is_Deleted' => 'boolean',
     ];
+    
+    public function bacSi()
+    {
+        return $this->belongsTo(NhanVien::class, 'ID_BacSi', 'ID_NhanVien');
+    }
 
     public function tiepNhan()
     {
@@ -49,6 +57,16 @@ class PhieuKham extends Model
         return $this->hasOne(HoaDon::class, 'ID_PhieuKham', 'ID_PhieuKham');
     }
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

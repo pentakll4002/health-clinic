@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Thuoc;
 use App\Models\DVT;
 use App\Models\CachDung;
+use App\Helpers\RoleHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -28,6 +29,15 @@ class ThuocController extends Controller
 
     public function store(Request $request)
     {
+        // Kiểm tra quyền: Chỉ quản lý kho và admin được nhập thuốc mới
+        // Bác sĩ KHÔNG được nhập thuốc
+        $user = $request->user();
+        if (!RoleHelper::canInventoryManageDrugs($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền nhập thuốc mới. Chỉ quản lý kho mới được phép thực hiện chức năng này.',
+            ], 403);
+        }
+
         $request->validate([
             'TenThuoc' => 'required|string|max:100',
             'ID_DVT' => 'required|integer|exists:dvt,ID_DVT',
@@ -60,6 +70,15 @@ class ThuocController extends Controller
 
     public function update(Request $request, $id)
     {
+        // Kiểm tra quyền: Chỉ quản lý kho và admin được cập nhật thuốc
+        // Bác sĩ KHÔNG được sửa giá thuốc
+        $user = $request->user();
+        if (!RoleHelper::canInventoryManageDrugs($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền cập nhật thông tin thuốc. Chỉ quản lý kho mới được phép thực hiện chức năng này.',
+            ], 403);
+        }
+
         $thuoc = Thuoc::find($id);
         if (!$thuoc) {
             return response()->json(['message' => 'Không tìm thấy thuốc'], 404);

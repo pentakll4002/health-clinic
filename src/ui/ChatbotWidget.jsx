@@ -16,7 +16,6 @@ const ChatbotWidget = () => {
     setMessages(newMessages);
     setLoading(true);
     try {
-      // Chuyển đổi lịch sử sang dạng python backend yêu cầu
       const conversation_history = newMessages.map((msg) => ({
         role: msg.from === 'user' ? 'user' : 'assistant',
         content: msg.text
@@ -24,7 +23,7 @@ const ChatbotWidget = () => {
       const res = await axiosChatbot.post('/', {
         message: text,
         conversation_history,
-        use_rag: false  // Use direct LLM chat (RAG requires vector store setup)
+        use_rag: false
       });
       setMessages((prev) => [
         ...prev,
