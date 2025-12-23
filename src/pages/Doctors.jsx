@@ -9,6 +9,7 @@ import { FunnelIcon } from '@heroicons/react/24/outline';
 import { useDoctors } from '../features/doctors/useDoctors';
 import Spinner from '../ui/Spinner';
 import Search from '../features/Search/Search';
+import Filter from '../ui/Filter';
 
 const LayoutDoctors = styled.div`
   width: 100%;
@@ -28,17 +29,14 @@ const Doctors = () => {
   const [searchParams] = useSearchParams();
   const { totalCount, isLoading } = useDoctors();
 
-  // Get view from URL query params
   const view = searchParams.get('view') || 'default';
 
   if (isLoading) return <Spinner />;
 
-  // Determine which container to render based on view
   const renderContent = () => {
     if (view === 'detail') {
       return <DoctorsTableContainer />;
     }
-    // Default: card view
     return <DoctorsCardContainer />;
   };
 
@@ -54,18 +52,23 @@ const Doctors = () => {
             <span>Tổng bác sĩ:</span>
             <span>{totalCount}</span>
           </div>
+
           <div className='ml-4'>
             <Search />
           </div>
         </div>
 
         <div className='flex items-center justify-center gap-x-4'>
-          <div className='flex items-center justify-center p-2 text-sm font-medium bg-white border rounded-md border-grey-transparent shadow-1 gap-x-2 text-grey-900'>
-            <FunnelIcon className='w-5 h-5' />
-            <span>Filter</span>
-          </div>
-          
-          {/* Add Doctor button */}
+          <Filter
+            filterField='status'
+            options={[
+              { value: 'Tất cả', label: 'All' },
+              { value: '', label: '' },
+              { value: '', label: '' },
+              { value: '', label: '' },
+            ]}
+          />
+
           <AddDoctor />
         </div>
       </LayoutFlex>

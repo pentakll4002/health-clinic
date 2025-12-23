@@ -33,16 +33,17 @@ const Tab = styled.button`
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 500;
-  color: ${props => props.active ? '#3b82f6' : '#6b7280'};
+  color: ${(props) => (props.active ? '#3b82f6' : '#6b7280')};
   background: none;
   border: none;
-  border-bottom: 2px solid ${props => props.active ? '#3b82f6' : 'transparent'};
+  border-bottom: 2px solid
+    ${(props) => (props.active ? '#3b82f6' : 'transparent')};
   cursor: pointer;
   margin-bottom: -2px;
   transition: all 0.2s;
 
   &:hover {
-    color: ${props => props.active ? '#3b82f6' : '#374151'};
+    color: ${(props) => (props.active ? '#3b82f6' : '#374151')};
   }
 `;
 
@@ -58,10 +59,10 @@ const Reception = () => {
     setActiveTab(tab);
   }, [searchParams]);
 
-  // Lấy số lượng lịch khám chờ duyệt
-  const { totalCount: pendingCount } = useAllLichKhams({ TrangThai: 'ChoXacNhan' });
-  
-  // Lấy tổng số tiếp nhận
+  const { totalCount: pendingCount } = useAllLichKhams({
+    TrangThai: 'ChoXacNhan',
+  });
+
   const { totalCount: totalReceptions } = useReceptions();
 
   return (
@@ -78,6 +79,7 @@ const Reception = () => {
         >
           Danh sách tiếp nhận
         </Tab>
+
         <Tab
           active={activeTab === 'lich-kham'}
           onClick={() => {
@@ -94,6 +96,7 @@ const Reception = () => {
             </span>
           )}
         </Tab>
+
         <Tab
           active={activeTab === 'lich-kham-today'}
           onClick={() => {
@@ -122,7 +125,6 @@ const Reception = () => {
             </div>
 
             <div className='flex items-center justify-center gap-x-4'>
-              {/* Filter */}
               <div className='flex items-center justify-center p-2 text-sm font-medium bg-white border rounded-md border-grey-transparent shadow-1 gap-x-2 text-grey-900'>
                 <FunnelIcon className='w-5 h-5' />
                 <span>Filter</span>
@@ -149,7 +151,6 @@ const Reception = () => {
             </div>
 
             <div className='flex items-center justify-center gap-x-4'>
-              {/* Filter by status */}
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -161,13 +162,11 @@ const Reception = () => {
                 <option value=''>Tất cả</option>
               </select>
 
-              {/* Filter by date */}
               <input
                 type='date'
                 value={filterDate}
                 onChange={(e) => setFilterDate(e.target.value)}
                 className='px-3 py-2 border border-grey-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm'
-                placeholder='Lọc theo ngày'
               />
 
               {filterDate && (
@@ -181,23 +180,20 @@ const Reception = () => {
             </div>
           </LayoutFlex>
 
-          <LichKhamTableContainer 
-            filterStatus={filterStatus || undefined} 
+          <LichKhamTableContainer
+            filterStatus={filterStatus || undefined}
             filterDate={filterDate || undefined}
           />
         </>
       ) : (
         <>
           <LayoutFlex>
-            <div className='flex items-center justify-center gap-x-3'>
-              <h2 className='text-xl font-bold leading-6 text-grey-900'>
-                Lịch khám trong ngày (đã xác nhận)
-              </h2>
-            </div>
+            <h2 className='text-xl font-bold leading-6 text-grey-900'>
+              Lịch khám trong ngày (đã xác nhận)
+            </h2>
           </LayoutFlex>
 
-          {/* Lịch khám hôm nay đã xác nhận, để lễ tân theo dõi nhanh */}
-          <LichKhamTableContainer 
+          <LichKhamTableContainer
             filterStatus='DaXacNhan'
             filterDate={new Date().toISOString().split('T')[0]}
           />

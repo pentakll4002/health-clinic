@@ -2,9 +2,9 @@ import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 import axiosInstance from '../../utils/axiosInstance';
-import { useState } from 'react';
 
 import LayoutAuth from '../../layouts/LayoutAuth';
 import FormRow from '../../ui/FormRow';
@@ -19,14 +19,16 @@ const schema = yup.object({
   email: yup
     .string()
     .email('Invalid email address')
-    .required('Vui lòng nhập tên đăng nhập'),
+    .required('Vui lòng nhập email'),
 });
 
 const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
+
   const navigate = useNavigate();
+
   const {
     handleSubmit,
     control,
@@ -35,23 +37,21 @@ const ForgotPassword = () => {
     resolver: yupResolver(schema),
   });
 
-  async function onSubmit(data) {
+  const onSubmit = async (data) => {
     setLoading(true);
     setError(null);
     setMessage(null);
+
     try {
-      const response = await axiosInstance.post(
-        '/forgot-password',
-        data
+      await axiosInstance.post('/forgot-password', data);
+
+      setMessage(
+        '✅ Nếu email này tồn tại trong hệ thống, bạn sẽ nhận được mã xác nhận trong inbox hoặc thư mục spam.'
       );
-      // Show success message to user
-      setMessage('✅ Nếu email này tồn tại trong hệ thống, bạn sẽ nhận được mã xác nhận trong inbox hoặc thư mục spam. Vui lòng kiểm tra email của bạn.');
-      // Wait a moment then navigate
+
       setTimeout(() => {
         navigate('/forgot-password/email-verification', {
-          state: {
-            email: data.email,
-          },
+          state: { email: data.email },
         });
       }, 2000);
     } catch (err) {
@@ -59,24 +59,36 @@ const ForgotPassword = () => {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <LayoutAuth
       heading='Quên mật khẩu'
-      paragraph='Nhập email của bạn để nhận mã xác nhận đặt lại mật khẩu. Nếu email tồn tại trong hệ thống, bạn sẽ nhận được mã trong email trong vòng vài phút.'
+      paragraph='Nhập email của bạn để nhận mã xác nhận đặt lại mật khẩu.'
       picture={forgotPasswordImg}
     >
       {loading && (
-        <div style={{position:'fixed',inset:0,zIndex:50,background:'rgba(255,255,255,0.6)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 50,
+            background: 'rgba(255,255,255,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           <Spinner />
         </div>
       )}
+
       <form onSubmit={handleSubmit(onSubmit)}>
         {error && <p className='mb-4 text-center text-red-500'>{error}</p>}
         {message && (
           <p className='mb-4 text-center text-green-500'>{message}</p>
         )}
+
         <FormRow
           label='Email Address'
           name='email'
@@ -86,23 +98,23 @@ const ForgotPassword = () => {
             control={control}
             name='email'
             type='email'
-            placeholder='Enter Email Address'
+            placeholder='Enter email address'
             icon={<EnvelopeIcon />}
           />
         </FormRow>
 
         <Button
           type='submit'
-          className='w-full text-white bg-primary'
+          className='w-full mt-5 text-white bg-primary'
           disabled={loading}
           isLoading={loading}
         >
           {loading ? 'Sending...' : 'Submit'}
         </Button>
 
-        <span className='flex items-center justify-center mt-5 text-sm font-normal text-center gap-x-3'>
-          Return to{' '}
-          <Link to='/sign-in' className='text-primary hover:underline '>
+        <span className='flex items-center justify-center mt-5 text-sm gap-x-2'>
+          Return to
+          <Link to='/sign-in' className='text-primary hover:underline'>
             Login
           </Link>
         </span>

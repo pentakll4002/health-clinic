@@ -643,6 +643,14 @@ class ThuocSeeder extends Seeder
             ]
         ];
 
-        DB::table('thuoc')->insert($drugs);
+        foreach ($drugs as $drug) {
+            DB::table('thuoc')->updateOrInsert(
+                ['TenThuoc' => $drug['TenThuoc']],
+                array_merge($drug, [
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ])
+            );
+        }
     }
 }

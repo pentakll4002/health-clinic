@@ -3,7 +3,6 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 import LayoutAuth from '../../layouts/LayoutAuth';
 import FormRow from '../../ui/FormRow';
@@ -23,6 +22,7 @@ import {
   LockClosedIcon,
   UserIcon,
 } from '@heroicons/react/24/outline';
+
 import logoFacebook from '../../assets/bi_facebook.png';
 import logoGoogle from '../../assets/Google_Logo.png';
 import logoApple from '../../assets/Apple_Logo.png';
@@ -58,11 +58,13 @@ const Register = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [step, setStep] = useState(1); // step 1: form, step 2: captcha, step 3: otp
-  const [registerData, setRegisterData] = useState(null); // lưu thông tin đăng ký tạm (gồm email)
+  const [step, setStep] = useState(1);
+  const [registerData, setRegisterData] = useState(null);
   const [otpError, setOtpError] = useState(null);
   const [captchaError, setCaptchaError] = useState(null);
+
   const navigate = useNavigate();
+
   const {
     handleSubmit,
     control,
@@ -72,15 +74,17 @@ const Register = () => {
     mode: 'onSubmit',
   });
 
-
   async function onSubmit(data) {
     setLoading(true);
     setError(null);
     try {
-      setRegisterData({ name: data.name, email: data.email, password: data.password });
-      setStep(2); // Move to captcha step
+      setRegisterData({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      });
+      setStep(2);
     } catch (err) {
-      console.error('Error during form submission (local):', err);
       setError(err.message || 'Có lỗi xảy ra khi xử lý đăng ký');
     } finally {
       setLoading(false);
@@ -92,43 +96,21 @@ const Register = () => {
     setCaptchaError(null);
     try {
       if (captchaValue === captchaText) {
-        // If captcha is correct, proceed to request OTP
-        console.log('Sending OTP request with data:', {
+        await axiosInstance.post('/register/request-otp', {
           name: registerData.name,
           email: registerData.email,
           password: registerData.password,
         });
-        
-        const response = await axiosInstance.post('/register/request-otp', {
-          name: registerData.name,
-          email: registerData.email,
-          password: registerData.password,
-        });
-        console.log('Response from /register/request-otp:', response.data);
-        setStep(3); // Move to OTP step
+        setStep(3);
       } else {
         throw new Error('Mã CAPTCHA không đúng');
       }
     } catch (err) {
-      console.error('Error during CAPTCHA verification or OTP request:', err);
-      console.error('Error Response Status:', err.response?.status);
-      console.error('Error Response Data:', err.response?.data);
-      
-      let errorMessage = 'Xác thực CAPTCHA thất bại';
-      if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      }
-      
-      if (err.response?.data?.errors) {
-        // Convert validation errors object to readable string
-        const errors = err.response.data.errors;
-        const errorList = Object.values(errors).flat();
-        
-        if (errorList.length > 0) {
-          errorMessage = errorList.join('\n');
-        }
-      }
-      setCaptchaError(errorMessage);
+      setCaptchaError(
+        err.response?.data?.message ||
+          err.message ||
+          'Xác thực CAPTCHA thất bại'
+      );
     } finally {
       setLoading(false);
     }
@@ -138,15 +120,13 @@ const Register = () => {
     setLoading(true);
     setOtpError(null);
     try {
-      const response = await axiosInstance.post('/register/verify-otp', {
+      await axiosInstance.post('/register/verify-otp', {
         email: registerData.email,
-        otp: otp,
+        otp,
       });
-      console.log('Response from /register/verify-otp:', response.data); // Add this log
       alert('Đăng ký xác thực thành công!');
       navigate('/sign-in');
     } catch (err) {
-      console.error('Error during OTP verification:', err); // Add this log
       setOtpError(err.response?.data?.message || 'Xác thực OTP thất bại');
     } finally {
       setLoading(false);
@@ -154,28 +134,63 @@ const Register = () => {
   }
 
   return (
-    <LayoutAuth
-      heading='Đăng ký tài khoản BỆNH NHÂN'
-      paragraph='Chỉ dành cho đối tượng BỆNH NHÂN. Nhân viên không thể đăng ký tại đây, vui lòng liên hệ admin để được cấp tài khoản.'
-      picture={SignUpImg}
-    >
+    <LayoutAuth heading='Đăng ký tài khoản BỆNH NHÂN' picture={SignUpImg}>
       {loading && (
-        <div style={{position:'fixed',inset:0,zIndex:50,background:'rgba(255,255,255,0.6)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 50,
+            background: 'rgba(255,255,255,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           <Spinner />
         </div>
       )}
+
       {step === 1 && (
         <form onSubmit={handleSubmit(onSubmit)}>
-          {error && <p className="mb-4 text-center text-red-500">{error}</p>}
-          <div className="mb-4 p-2 bg-blue-100 text-blue-800 rounded text-center text-sm font-semibold">Chỉ dành cho đăng ký tài khoản bệnh nhân. Nếu bạn là nhân viên, hãy liên hệ quản trị hệ thống để được tạo tài khoản!</div>
+          {error && <p className='mb-4 text-center text-red-500'>{error}</p>}
+
           <FormRow label='Full name' name='name' error={errors.name?.message}>
-            <Input control={control} name='name' type='name' placeholder='Enter name' icon={<UserIcon />} />
+            <Input
+              control={control}
+              name='name'
+              type='name'
+              placeholder='Enter name'
+              icon={<UserIcon />}
+            />
           </FormRow>
-          <FormRow label='Email Address' name='email' error={errors.email?.message}>
-            <Input control={control} name='email' type='email' placeholder='Enter Email Address' icon={<EnvelopeIcon />} />
+
+          <FormRow
+            label='Email Address'
+            name='email'
+            error={errors.email?.message}
+          >
+            <Input
+              control={control}
+              name='email'
+              type='email'
+              placeholder='Enter Email Address'
+              icon={<EnvelopeIcon />}
+            />
           </FormRow>
-          <FormRow label='Password' name='password' error={errors.password?.message}>
-            <Input control={control} name='password' type={!showPassword ? 'password' : 'string'} placeholder='************' icon={<LockClosedIcon />}>
+
+          <FormRow
+            label='Password'
+            name='password'
+            error={errors.password?.message}
+          >
+            <Input
+              control={control}
+              name='password'
+              type={!showPassword ? 'password' : 'string'}
+              placeholder='************'
+              icon={<LockClosedIcon />}
+            >
               {!showPassword ? (
                 <EyeSlashIcon
                   className='w-6 h-6'
@@ -186,69 +201,86 @@ const Register = () => {
               )}
             </Input>
           </FormRow>
-          <FormRow label='Confirm password' name='confirmPassword' error={errors.confirmPassword?.message}>
-            <Input control={control} name='confirmPassword' type={!showConfirmPassword ? 'password' : 'string'} placeholder='************' icon={<LockClosedIcon />}>
+
+          <FormRow
+            label='Confirm password'
+            name='confirmPassword'
+            error={errors.confirmPassword?.message}
+          >
+            <Input
+              control={control}
+              name='confirmPassword'
+              type={!showConfirmPassword ? 'password' : 'string'}
+              placeholder='************'
+              icon={<LockClosedIcon />}
+            >
               {!showConfirmPassword ? (
                 <EyeSlashIcon
                   className='w-6 h-6'
                   onClick={handleSetShowConfirmPassword}
                 />
               ) : (
-                <EyeIcon className='w-6 h-6' onClick={handleSetShowConfirmPassword} />
+                <EyeIcon
+                  className='w-6 h-6'
+                  onClick={handleSetShowConfirmPassword}
+                />
               )}
             </Input>
           </FormRow>
+
           <CheckBox name='term' onClick={handleSetChecked} checked={checked}>
             I agree to the{' '}
             <Link className='underline text-primary'>
               Terms of Service & Privacy Policy
             </Link>
           </CheckBox>
-          <Button type='submit' className='w-full text-white bg-primary' disabled={loading} isLoading={loading}>
+
+          <Button
+            type='submit'
+            className='w-full text-white bg-primary'
+            disabled={loading}
+            isLoading={loading}
+          >
             {loading ? 'Registering...' : 'Register'}
           </Button>
-
-          <div className='h-[20px] w-full flex items-center justify-between my-5'>
-            <div className='h-[1px] bg-grey-transparent w-[165px]'></div>
-            <p className='text-grey-500 text-[13px]'>OR</p>
-            <div className='h-[1px] bg-grey-transparent w-[165px]'></div>
-          </div>
-          <div className='flex flex-col gap-y-5'>
-            <div className='flex items-center justify-between'>
-              <ButtonSocial ImgSocial={logoFacebook}></ButtonSocial>
-              <ButtonSocial ImgSocial={logoGoogle}></ButtonSocial>
-              <ButtonSocial ImgSocial={logoApple}></ButtonSocial>
-            </div>
-            <p className='text-sm font-normal text-center text-grey-900'>
-              Already have an account yet?{' '}
-              <Link to='/sign-in' className=' text-primary hover:underline'>
-                Login
-              </Link>
-            </p>
-          </div>
         </form>
       )}
+
       {step === 2 && (
         <div>
           {captchaError && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700">
-              {captchaError.includes('<') ? (
-                <div dangerouslySetInnerHTML={{ __html: captchaError }} />
-              ) : (
-                <p>{captchaError}</p>
-              )}
-            </div>
+            <p className='mb-4 text-center text-red-500'>{captchaError}</p>
           )}
           <InputCaptcha onCaptchaSubmit={handleCaptchaSubmit} />
-          <Button type="button" disabled={loading} onClick={() => setStep(1)} className="mt-4 w-full">Nhập lại thông tin</Button>
+          <Button
+            type='button'
+            disabled={loading}
+            onClick={() => setStep(1)}
+            className='w-full mt-4'
+          >
+            Nhập lại thông tin
+          </Button>
         </div>
       )}
+
       {step === 3 && (
         <div>
-          <p className="mb-4 text-center text-green-500">Mã OTP đã gửi vào email {registerData.email}. Vui lòng nhập mã để xác nhận đăng ký.</p>
-          {otpError && <p className="mb-4 text-center text-red-500">{otpError}</p>}
+          <p className='mb-4 text-center text-green-500'>
+            Mã OTP đã gửi vào email {registerData.email}. Vui lòng nhập mã để xác
+            nhận đăng ký.
+          </p>
+          {otpError && (
+            <p className='mb-4 text-center text-red-500'>{otpError}</p>
+          )}
           <InputOTP length={6} onOTPSubmit={handleOTPSubmit} />
-          <Button type="button" disabled={loading} onClick={() => setStep(1)} className="mt-4 w-full">Nhập lại thông tin</Button>
+          <Button
+            type='button'
+            disabled={loading}
+            onClick={() => setStep(1)}
+            className='w-full mt-4'
+          >
+            Nhập lại thông tin
+          </Button>
         </div>
       )}
     </LayoutAuth>

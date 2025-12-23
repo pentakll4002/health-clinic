@@ -1,24 +1,22 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'react-hot-toast';
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import SignIn from './pages/SignIn';
+import SignIn from './pages/SignIn/SignIn';
 import Register from './pages/Register/Register';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import EmailVerification from './pages/ForgotPassword/EmailVerification';
 import ResetPassword from './pages/ForgotPassword/ResetPassword';
 import Success from './pages/ForgotPassword/Success';
+
 import LayoutApp from './layouts/LayoutApp';
 import Doctors from './pages/Doctors';
 import Patients from './pages/Patients';
 import PatientsToday from './pages/PatientsToday';
 import Patient from './pages/Patient';
-
 import Reception from './pages/Reception';
-
 import Drugs from './pages/Drugs';
 import DrugDetail from './pages/DrugDetail';
 import MedicalForms from './pages/MedicalForms';
@@ -34,7 +32,6 @@ import Employees from './pages/Employees';
 import LichKham from './pages/LichKham';
 import LichKhamDoctor from './pages/LichKhamDoctor';
 
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -46,12 +43,16 @@ const queryClient = new QueryClient({
 function RequireAuth({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
+  const token =
+    localStorage.getItem('token') || localStorage.getItem('auth_token');
 
   useEffect(() => {
     if (!token) {
-      // Nếu chưa đăng nhập thì chuyển về /sign-in
-      if (location.pathname !== '/sign-in' && location.pathname !== '/sign-up' && !location.pathname.startsWith('/forgot-password')) {
+      if (
+        location.pathname !== '/sign-in' &&
+        location.pathname !== '/sign-up' &&
+        !location.pathname.startsWith('/forgot-password')
+      ) {
         navigate('/sign-in');
       }
     }
@@ -64,17 +65,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster position='top-right' />
-      <ReactQueryDevtools initialIsOpen={false} />
       <BrowserRouter>
         <Routes>
-          <Route
-            element={
-              <RequireAuth>
-                <LayoutApp />
-              </RequireAuth>
-            }
-          >
+          <Route element={<LayoutApp />}>
             <Route index element={<RoleLanding />} />
+
             <Route
               path='employees'
               element={
@@ -83,6 +78,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='doctors'
               element={
@@ -91,6 +87,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='patients'
               element={
@@ -99,6 +96,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='patients/today'
               element={
@@ -107,6 +105,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='patients/profile'
               element={
@@ -115,6 +114,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='patients/:ID_BenhNhan'
               element={
@@ -123,6 +123,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='reception'
               element={
@@ -131,6 +132,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='drugs'
               element={
@@ -139,6 +141,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='drugs/:id'
               element={
@@ -147,6 +150,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='medical-forms'
               element={
@@ -155,6 +159,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='invoices'
               element={
@@ -163,6 +168,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='appointments'
               element={
@@ -171,6 +177,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='appointments/:id'
               element={
@@ -179,6 +186,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='reports'
               element={
@@ -187,6 +195,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='regulations'
               element={
@@ -195,6 +204,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='lich-kham'
               element={
@@ -203,6 +213,7 @@ function App() {
                 </RoleGuard>
               }
             />
+
             <Route
               path='lich-kham-doctor'
               element={
@@ -213,7 +224,6 @@ function App() {
             />
           </Route>
 
-          {/* Các route public */}
           <Route path='/sign-in' element={<SignIn />} />
           <Route path='/sign-up' element={<Register />} />
           <Route path='/forgot-password'>

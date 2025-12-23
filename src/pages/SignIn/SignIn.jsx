@@ -2,9 +2,7 @@ import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useState } from 'react';
-
 
 import LayoutAuth from '../../layouts/LayoutAuth';
 import SignInImg from '../../assets/sign-in.png';
@@ -38,6 +36,7 @@ const schema = yup.object({
     .min(8, 'Mật khẩu ít nhất 8 kí tự'),
 });
 
+
 const SignIn = () => {
   const { value: showPassword, handleToggleValue: handleSetShowPassword } =
     useToggleValue(false);
@@ -56,9 +55,6 @@ const SignIn = () => {
     resolver: yupResolver(schema),
     mode: 'onSubmit',
   });
-
-
-  
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -92,12 +88,22 @@ const SignIn = () => {
       picture={SignInImg}
     >
       {loading && (
-        <div style={{position:'fixed',inset:0,zIndex:50,background:'rgba(255,255,255,0.6)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 50,
+            background: 'rgba(255,255,255,0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           <Spinner />
         </div>
       )}
       <form onSubmit={handleSubmit(onSubmit)}>
-        {error && <p className="mb-4 text-center text-red-500">{error}</p>}
+        {error && <p className='mb-4 text-center text-red-500'>{error}</p>}
         <FormRow
           label='Email Address'
           name='email'
@@ -147,7 +153,12 @@ const SignIn = () => {
           </Link>
         </div>
 
-        <Button type='submit' className='w-full text-white bg-primary' disabled={loading} isLoading={loading}>
+        <Button
+          type='submit'
+          className='w-full text-white bg-primary'
+          disabled={loading}
+          isLoading={loading}
+        >
           {loading ? 'Logging in...' : 'Login'}
         </Button>
 

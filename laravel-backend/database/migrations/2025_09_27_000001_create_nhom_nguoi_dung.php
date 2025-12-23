@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('nhom_nguoi_dung', function (Blueprint $table) {
             $table->increments("ID_Nhom");
             $table->string("TenNhom", 100)->nullable(false);
+            $table->string('MaNhom')->unique();
         });
     }
 
