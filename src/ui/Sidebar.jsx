@@ -33,6 +33,14 @@ const Sidebar = () => {
   const { roleCode, isLoading, canAccessRoute } = useRolePermissions();
   const can = (routeKey) => !!routeKey && canAccessRoute(routeKey);
   const isDoctor = roleCode === '@doctors' || roleCode === '@admin';
+  const isPatient = roleCode === '@patient' || roleCode === 'patient';
+  const isReceptionist = roleCode === '@receptionists';
+  const isNurse = roleCode === '@nurses';
+  const isCashier = roleCode === '@cashiers';
+  const isAccountant = roleCode === '@accountants';
+  const isInventory = roleCode === '@inventory';
+  const isManager = roleCode === '@managers';
+
 
   if (isLoading) return null;
 
@@ -134,6 +142,95 @@ const Sidebar = () => {
           <SidebarLink to='/regulations' icon={Cog8ToothIcon} label='Regulations' />
         )}
       </div>
+
+      {/* Patient-specific menu: hiển thị khi role là BỆNH NHÂN hoặc role được phép truy cập patientProfile */}
+      {(isPatient || can('patientProfile')) && (
+        <div className='flex flex-col mb-6'>
+          <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>Bệnh nhân</p>
+          <SidebarLink to='/patients/profile' icon={UserCircleIcon} label='Trang chủ' />
+          <SidebarLink to='/appointments' icon={AppointmentsSvg} label='Đặt lịch khám' />
+          <SidebarLink to='/lich-kham' icon={CalendarDaysIcon} label='Lịch sử đặt lịch' />
+          <SidebarLink to='/medical-forms' icon={MedicalFormSvg} label='Lịch sử khám bệnh' />
+          <SidebarLink to='/invoices' icon={CurrencyDollarIcon} label='Hóa đơn' />
+          <SidebarLink to='/patients/profile' icon={UserCircleIcon} label='Thông tin cá nhân' />
+        </div>
+      )}
+
+      {/* Receptionist-specific menu: hiển thị khi role là Lễ tân */}
+      {isReceptionist && (
+        <div className='flex flex-col mb-6'>
+          <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>Lễ tân</p>
+          <SidebarLink to='/' icon={DashboardSvg} label='Trang chủ' />
+          <SidebarLink to='/patients' icon={PatientsSvg} label='Quản lý bệnh nhân' />
+          <SidebarLink to='/reception' icon={MapPinIcon} label='Tiếp nhận bệnh nhân' />
+          <SidebarLink to='/appointments' icon={AppointmentsSvg} label='Lịch hẹn online' />
+          <SidebarLink to='/reception?tab=reception' icon={CalendarDaysIcon} label='Danh sách chờ khám' />
+        </div>
+      )}
+
+      {/* Doctor-specific menu: hiển thị cho Bác sĩ và Admin */}
+      {isDoctor && (
+        <div className='flex flex-col mb-6'>
+          <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>Bác sĩ</p>
+          <SidebarLink to='/medical-forms' icon={DashboardSvg} label='Trang chủ' />
+          <SidebarLink to='/patients/today' icon={UserGroupIcon} label='Danh sách chờ khám' />
+          <SidebarLink to='/medical-forms' icon={MedicalFormSvg} label='Phiếu khám' />
+          <SidebarLink to='/medical-forms' icon={DrugSvg} label='Kê toa thuốc' />
+          <SidebarLink to='/medical-forms' icon={PresentationChartLineIcon} label='Lịch sử khám bệnh' />
+        </div>
+      )}
+
+      {/* Nurse-specific menu: hiển thị khi role là Y tá */}
+      {isNurse && (
+        <div className='flex flex-col mb-6'>
+          <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>Y tá</p>
+          <SidebarLink to='/medical-forms' icon={DashboardSvg} label='Trang chủ' />
+          <SidebarLink to='/patients/today' icon={UserGroupIcon} label='Danh sách chờ' />
+          <SidebarLink to='/medical-forms' icon={MedicalFormSvg} label='Hỗ trợ khám' />
+        </div>
+      )}
+
+      {/* Cashier-specific menu: hiển thị khi role là Thu ngân */}
+      {isCashier && (
+        <div className='flex flex-col mb-6'>
+          <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>Thu ngân</p>
+          <SidebarLink to='/' icon={DashboardSvg} label='Trang chủ' />
+          <SidebarLink to='/invoices' icon={CurrencyDollarIcon} label='Thanh toán' />
+          <SidebarLink to='/invoices' icon={UserGroupIcon} label='Danh sách hóa đơn' />
+        </div>
+      )}
+
+      {/* Accountant-specific menu: hiển thị khi role là Kế toán */}
+      {isAccountant && (
+        <div className='flex flex-col mb-6'>
+          <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>Kế toán</p>
+          <SidebarLink to='/' icon={DashboardSvg} label='Trang chủ' />
+          <SidebarLink to='/reports' icon={PresentationChartLineIcon} label='Báo cáo doanh thu' />
+          <SidebarLink to='/reports/drugs' icon={PresentationChartLineIcon} label='Báo cáo thuốc' />
+        </div>
+      )}
+
+      {/* Inventory-specific menu: hiển thị khi role là Quản lý kho */}
+      {isInventory && (
+        <div className='flex flex-col mb-6'>
+          <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>Quản lý kho</p>
+          <SidebarLink to='/' icon={DashboardSvg} label='Trang chủ' />
+          <SidebarLink to='/drugs' icon={DrugSvg} label='Danh sách thuốc' />
+          <SidebarLink to='/drugs/import' icon={DrugSvg} label='Nhập thuốc' />
+          <SidebarLink to='/drugs/inventory' icon={PresentationChartLineIcon} label='Tồn kho' />
+        </div>
+      )}
+
+      {/* Manager-specific menu: hiển thị khi role là Quản lý */}
+      {isManager && (
+        <div className='flex flex-col mb-6'>
+          <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>Quản lý</p>
+          <SidebarLink to='/' icon={DashboardSvg} label='Dashboard' />
+          <SidebarLink to='/reports' icon={PresentationChartLineIcon} label='Thống kê tổng hợp' />
+          <SidebarLink to='/reports/staff' icon={UserGroupIcon} label='Hiệu suất nhân viên' />
+          <SidebarLink to='/regulations' icon={Cog8ToothIcon} label='Tham số hệ thống' />
+        </div>
+      )}
 
       {/* Support - luôn hiển thị, RoleGuard/backend sẽ chặn nếu role không phù hợp */}
       <div className='flex flex-col mb-6'>

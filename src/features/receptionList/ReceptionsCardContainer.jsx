@@ -40,3 +40,5 @@ const ReceptionsCardContainer = ({ searchParams = {} }) => {
 export default ReceptionsCardContainer;
 
 
+
+

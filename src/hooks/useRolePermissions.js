@@ -19,8 +19,9 @@ export function useRolePermissions() {
     if (nhanVien) {
       const nhom = nhanVien.nhomNguoiDung || nhanVien.nhom_nguoi_dung || nhanVien.nhomNguoiDung;
       if (nhom?.MaNhom) {
-        console.log('✅ Role từ nhanVien hook:', nhom.MaNhom);
-        return nhom.MaNhom;
+        const code = nhom.MaNhom.startsWith('@') ? nhom.MaNhom : `@${nhom.MaNhom}`;
+        console.log('✅ Role từ nhanVien hook:', code);
+        return code;
       }
     }
     
@@ -29,8 +30,9 @@ export function useRolePermissions() {
     if (userNhanVien) {
       const nhom = userNhanVien.nhom_nguoi_dung || userNhanVien.nhomNguoiDung || userNhanVien.nhomNguoiDung;
       if (nhom?.MaNhom) {
-        console.log('✅ Role từ user.nhan_vien:', nhom.MaNhom);
-        return nhom.MaNhom;
+        const code = nhom.MaNhom.startsWith('@') ? nhom.MaNhom : `@${nhom.MaNhom}`;
+        console.log('✅ Role từ user.nhan_vien:', code);
+        return code;
       }
       // Nếu có ID_Nhom nhưng không có relationship, thử query trực tiếp
       if (userNhanVien.ID_Nhom && !nhom) {
@@ -43,8 +45,9 @@ export function useRolePermissions() {
       const benhNhan = user.benh_nhan || user.benhNhan;
       const nhom = benhNhan.nhom_nguoi_dung || benhNhan.nhomNguoiDung;
       if (nhom?.MaNhom) {
-        console.log('✅ Role từ benhNhan:', nhom.MaNhom);
-        return nhom.MaNhom;
+        const code = nhom.MaNhom.startsWith('@') ? nhom.MaNhom : `@${nhom.MaNhom}`;
+        console.log('✅ Role từ benhNhan:', code);
+        return code;
       }
       // Fallback về @patient nếu không có nhomNguoiDung
       console.log('✅ Role fallback: @patient');

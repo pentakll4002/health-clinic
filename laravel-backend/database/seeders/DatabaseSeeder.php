@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
             DVTSeeder::class,
             CachDungSeeder::class,
             LoaiBenhSeeder::class,
-            QuiDinhSeeder::class, // Thêm seeder cho quy định hệ thống
+            QuiDinhSeeder::class,
             ThuocSeeder::class,
             AdminSeeder::class,
         ]);

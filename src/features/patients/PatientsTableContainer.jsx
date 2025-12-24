@@ -91,3 +91,5 @@ const PatientsTableContainer = ({ searchParams = {}, view = 'detail' }) => {
 export default PatientsTableContainer;
 
 
+
+
