@@ -31,6 +31,17 @@ import RoleLanding from './pages/RoleLanding';
 import Employees from './pages/Employees';
 import LichKham from './pages/LichKham';
 import LichKhamDoctor from './pages/LichKhamDoctor';
+import Permissions from './pages/Permissions';
+import Catalogs from './pages/Catalogs';
+import PatientAppointments from './pages/PatientAppointments';
+import PatientInvoices from './pages/PatientInvoices';
+import PatientMedicalRecords from './pages/PatientMedicalRecords';
+import ReportsStaff from './pages/ReportsStaff';
+import DrugsImport from './pages/DrugsImport';
+import DrugsInventory from './pages/DrugsInventory';
+import Nurses from './pages/Nurses';
+import NurseQueue from './pages/NurseQueue';
+import NurseAssist from './pages/NurseAssist';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -80,6 +91,24 @@ function App() {
             />
 
             <Route
+              path='permissions'
+              element={
+                <RoleGuard route='permissions'>
+                  <Permissions />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path='catalogs'
+              element={
+                <RoleGuard route='catalogs'>
+                  <Catalogs />
+                </RoleGuard>
+              }
+            />
+
+            <Route
               path='doctors'
               element={
                 <RoleGuard route='doctors'>
@@ -107,10 +136,64 @@ function App() {
             />
 
             <Route
+              path='nurses'
+              element={
+                <RoleGuard route='nurses'>
+                  <Nurses />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path='nurses/queue'
+              element={
+                <RoleGuard route='nurses'>
+                  <NurseQueue />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path='nurses/assist'
+              element={
+                <RoleGuard route='nurses'>
+                  <NurseAssist />
+                </RoleGuard>
+              }
+            />
+
+            <Route
               path='patients/profile'
               element={
                 <RoleGuard route='patientProfile'>
                   <PatientProfilePage />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path='patients/appointments'
+              element={
+                <RoleGuard route='patientAppointments'>
+                  <PatientAppointments />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path='patients/invoices'
+              element={
+                <RoleGuard route='patientInvoices'>
+                  <PatientInvoices />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path='patients/medical-records'
+              element={
+                <RoleGuard route='patientMedicalRecords'>
+                  <PatientMedicalRecords />
                 </RoleGuard>
               }
             />
@@ -138,6 +221,24 @@ function App() {
               element={
                 <RoleGuard route='drugs'>
                   <Drugs />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path='drugs/import'
+              element={
+                <RoleGuard route='drugs'>
+                  <DrugsImport />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path='drugs/inventory'
+              element={
+                <RoleGuard route='drugs'>
+                  <DrugsInventory />
                 </RoleGuard>
               }
             />
@@ -192,6 +293,15 @@ function App() {
               element={
                 <RoleGuard route='reports'>
                   <Reports />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path='reports/staff'
+              element={
+                <RoleGuard route='reports'>
+                  <ReportsStaff />
                 </RoleGuard>
               }
             />

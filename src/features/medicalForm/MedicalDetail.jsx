@@ -30,7 +30,7 @@ const Text = styled.span`
   margin: auto;
 `;
 
-const MedicalDetail = ({ ID_PhieuKham }) => {
+const MedicalDetail = ({ ID_PhieuKham, readOnly = false }) => {
   const { phieuKham, isLoading } = useChiTietPhieuKham(ID_PhieuKham);
   const [isEditting, setIsEditting] = useState(false);
   const { register, handleSubmit, getValues, reset, formState } = useForm();
@@ -231,6 +231,8 @@ const MedicalDetail = ({ ID_PhieuKham }) => {
             onClick={() => {
               setIsEditting(true);
             }}
+            disabled={readOnly}
+            style={readOnly ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
           >
             Chỉnh sửa
           </button>

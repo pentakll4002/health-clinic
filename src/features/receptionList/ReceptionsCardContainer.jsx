@@ -12,6 +12,7 @@ const GridContainer = styled.div`
 
 const ReceptionsCardContainer = ({ searchParams = {} }) => {
   const { receptions, isLoading, totalCount } = useReceptionsToday(searchParams);
+  const isNurseView = !!searchParams?.nurse_view;
 
   if (isLoading) return <Spinner />;
 
@@ -30,7 +31,7 @@ const ReceptionsCardContainer = ({ searchParams = {} }) => {
       </div>
       <GridContainer>
         {receptions.map((tiepNhan) => (
-          <ReceptionCard key={tiepNhan.ID_TiepNhan} tiepNhan={tiepNhan} />
+          <ReceptionCard key={tiepNhan.ID_TiepNhan} tiepNhan={tiepNhan} nurseView={isNurseView} />
         ))}
       </GridContainer>
     </>
@@ -38,6 +39,7 @@ const ReceptionsCardContainer = ({ searchParams = {} }) => {
 };
 
 export default ReceptionsCardContainer;
+
 
 
 

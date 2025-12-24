@@ -5,6 +5,11 @@ export async function getReceptions(params = {}) {
   return res.data; // Trả về cả data và totalCount
 }
 
+export async function updateReception(id, data) {
+  const res = await axiosInstance.put(`/appointments/${id}`, data);
+  return res.data;
+}
+
 export async function getReceptionsToday(params = {}) {
   // Lấy ngày hiện tại theo timezone local để tránh lệch ngày (UTC)
   const now = new Date();

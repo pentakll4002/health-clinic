@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import CreatePhieuKhamForm from '../medicalForm/CreatePhieuKhamForm';
 import Button from '../../ui/Button';
 import { useState } from 'react';
+import { useUser } from '../../hooks/useUser';
 
 const Container = styled.div`
   width: 100%;
@@ -29,17 +30,52 @@ const Image = styled.img`
   object-fit: cover;
 `;
 
-const ReceptionCard = ({ tiepNhan }) => {
+const ReceptionCard = ({ tiepNhan, nurseView = false }) => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { user } = useUser();
   
   const benhNhan = tiepNhan.benhNhan || tiepNhan.benh_nhan;
   const nhanVien = tiepNhan.nhanVien || tiepNhan.nhan_vien;
+  const leTanDuyet = tiepNhan.leTanDuyet || tiepNhan.le_tan_duyet;
   
   // Kiểm tra xem có thể lập phiếu khám không
-  const canCreatePhieuKham = 
-    tiepNhan.TrangThai === false || tiepNhan.TrangThai === 0; // Chưa khám
+  const canCreatePhieuKham = (tiepNhan.TrangThaiTiepNhan || '') === 'CHO_KHAM';
   const hasPhieuKham = tiepNhan.phieuKhams && tiepNhan.phieuKhams.length > 0;
+
+  const getTrangThaiText = (tt) => {
+    switch (tt) {
+      case 'CHO_XAC_NHAN':
+        return 'Chờ xác nhận';
+      case 'CHO_KHAM':
+        return 'Chờ khám';
+      case 'DANG_KHAM':
+        return 'Đang khám';
+      case 'DA_KHAM':
+        return 'Đã khám';
+      case 'HUY':
+        return 'Đã hủy';
+      default:
+        return '—';
+    }
+  };
+
+  const getTrangThaiClass = (tt) => {
+    switch (tt) {
+      case 'CHO_XAC_NHAN':
+        return 'bg-warning-100 text-warning-900';
+      case 'CHO_KHAM':
+        return 'bg-warning-100 text-warning-900';
+      case 'DANG_KHAM':
+        return 'bg-info-100 text-info-900';
+      case 'DA_KHAM':
+        return 'bg-success-100 text-success-900';
+      case 'HUY':
+        return 'bg-error-100 text-error-900';
+      default:
+        return 'bg-grey-100 text-grey-700';
+    }
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -89,28 +125,23 @@ const ReceptionCard = ({ tiepNhan }) => {
       <div className='flex items-center justify-between w-full'>
         <div className='flex items-center gap-2'>
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
-              canCreatePhieuKham && !hasPhieuKham
-                ? 'bg-warning-100 text-warning-900'
-                : hasPhieuKham
-                ? 'bg-info-100 text-info-900'
-                : 'bg-success-100 text-success-900'
-            }`}
+            className={`px-2 py-1 rounded-full text-xs font-medium ${getTrangThaiClass(tiepNhan.TrangThaiTiepNhan)}`}
           >
-            {canCreatePhieuKham && !hasPhieuKham
-              ? 'Chờ khám'
-              : hasPhieuKham
-              ? 'Đã có phiếu khám'
-              : 'Đã khám'}
+            {hasPhieuKham ? 'Đã có phiếu khám' : getTrangThaiText(tiepNhan.TrangThaiTiepNhan)}
           </span>
           {nhanVien && (
             <span className='text-xs text-grey-500'>
-              Lễ tân: {nhanVien.HoTenNV || nhanVien.HoTen}
+              Bác sĩ: {nhanVien.HoTenNV || nhanVien.HoTen}
+            </span>
+          )}
+          {leTanDuyet && (
+            <span className='text-xs text-grey-500'>
+              Lễ tân duyệt: {leTanDuyet.HoTenNV || leTanDuyet.HoTen}
             </span>
           )}
         </div>
 
-        {canCreatePhieuKham && !hasPhieuKham && (
+        {canCreatePhieuKham && !hasPhieuKham && !nurseView && user?.role === 'bac_si' && (
           <ModalCenter>
             <ModalCenter.Open opens={`create-phieu-kham-${tiepNhan.ID_TiepNhan}`}>
               <Button className='bg-primary text-white text-sm px-3 py-1.5'>
@@ -135,6 +166,7 @@ const ReceptionCard = ({ tiepNhan }) => {
 };
 
 export default ReceptionCard;
+
 
 
 

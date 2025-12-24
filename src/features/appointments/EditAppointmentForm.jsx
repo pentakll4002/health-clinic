@@ -90,7 +90,7 @@ const EditAppointmentForm = ({ appointment, onCloseModal }) => {
         NgayTN: ngayTN,
         CaTN: appointment.CaTN || '',
         ID_NhanVien: appointment.ID_NhanVien?.toString() || '',
-        TrangThai: appointment.TrangThai?.toString() || 'false',
+        TrangThaiTiepNhan: appointment.TrangThaiTiepNhan || 'CHO_KHAM',
       });
     }
   }, [appointment, reset]);
@@ -116,7 +116,7 @@ const EditAppointmentForm = ({ appointment, onCloseModal }) => {
       NgayTN: data.NgayTN,
       CaTN: data.CaTN,
       ID_NhanVien: parseInt(data.ID_NhanVien),
-      TrangThai: data.TrangThai === 'true' || data.TrangThai === true,
+      TrangThaiTiepNhan: data.TrangThaiTiepNhan,
     };
     updateAppointmentMutation({ id: appointment.ID_TiepNhan, data: formData });
   }
@@ -191,10 +191,13 @@ const EditAppointmentForm = ({ appointment, onCloseModal }) => {
           </Select>
         </FormRow>
 
-        <FormRow label='Trạng thái' error={errors.TrangThai?.message}>
-          <Select id='TrangThai' {...register('TrangThai')}>
-            <option value='false'>Đang chờ</option>
-            <option value='true'>Đã hoàn thành</option>
+        <FormRow label='Trạng thái' error={errors.TrangThaiTiepNhan?.message}>
+          <Select id='TrangThaiTiepNhan' {...register('TrangThaiTiepNhan')}>
+            <option value='CHO_XAC_NHAN'>Chờ xác nhận</option>
+            <option value='CHO_KHAM'>Chờ khám</option>
+            <option value='DANG_KHAM'>Đang khám</option>
+            <option value='DA_KHAM'>Đã khám</option>
+            <option value='HUY'>Đã hủy</option>
           </Select>
         </FormRow>
 
@@ -224,6 +227,7 @@ const EditAppointmentForm = ({ appointment, onCloseModal }) => {
 };
 
 export default EditAppointmentForm;
+
 
 
 

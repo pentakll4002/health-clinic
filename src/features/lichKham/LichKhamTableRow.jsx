@@ -4,11 +4,12 @@ import ModalCenter from '../../ui/ModalCenter';
 import Menus from '../../ui/Menus';
 import { useConfirmLichKham } from './useConfirmLichKham';
 import { useDeleteLichKham } from './useDeleteLichKham';
+import { useUpdateLichKham } from './useUpdateLichKham';
 import { useCreateReceptionFromLichKham } from '../receptionList/useCreateReceptionFromLichKham';
 import { useUser } from '../../hooks/useUser';
 import EditLichKhamForm from './EditLichKhamForm';
 import ConfirmDelete from '../../ui/ConfirmDelete';
-import { CheckCircleIcon, PencilIcon, TrashIcon, UserPlusIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, NoSymbolIcon, PencilIcon, TrashIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 
 const Text = styled.span`
   color: #0a1b39;
@@ -29,6 +30,7 @@ const StatusBadge = styled.span`
 const LichKhamTableRow = ({ lichKham }) => {
   const { mutate: confirmLichKham, isLoading: isConfirming } = useConfirmLichKham();
   const { mutate: deleteLichKham, isLoading: isDeleting } = useDeleteLichKham();
+  const { mutate: updateLichKham, isLoading: isUpdating } = useUpdateLichKham();
   const { mutate: createReception, isLoading: isCreatingReception } = useCreateReceptionFromLichKham();
   const { nhanVien } = useUser();
 
@@ -76,6 +78,21 @@ const LichKhamTableRow = ({ lichKham }) => {
 
   const handleDelete = () => {
     deleteLichKham(lichKham.ID_LichKham);
+  };
+
+  const handleReject = () => {
+    if (
+      window.confirm(
+        `Không xác nhận (từ chối) lịch khám #${lichKham.ID_LichKham} của bệnh nhân ${lichKham.benhNhan?.HoTenBN || 'N/A'}?`
+      )
+    ) {
+      updateLichKham({
+        id: lichKham.ID_LichKham,
+        data: {
+          TrangThai: 'Huy',
+        },
+      });
+    }
   };
 
   const handleCreateReception = () => {
@@ -128,8 +145,20 @@ const LichKhamTableRow = ({ lichKham }) => {
                     <Menus.Button
                       icon={<CheckCircleIcon className='w-4 h-4' />}
                       onClick={handleConfirm}
+                      disabled={isConfirming || isUpdating || isDeleting}
                     >
                       {isConfirming ? 'Đang xử lý...' : 'Xác nhận'}
+                    </Menus.Button>
+                  )}
+
+                  {/* Reject button - chỉ hiển thị khi chờ xác nhận */}
+                  {lichKham.TrangThai === 'ChoXacNhan' && (
+                    <Menus.Button
+                      icon={<NoSymbolIcon className='w-4 h-4' />}
+                      onClick={handleReject}
+                      disabled={isConfirming || isUpdating || isDeleting}
+                    >
+                      {isUpdating ? 'Đang xử lý...' : 'Không xác nhận'}
                     </Menus.Button>
                   )}
 

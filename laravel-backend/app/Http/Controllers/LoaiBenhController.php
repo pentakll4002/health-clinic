@@ -24,3 +24,4 @@ class LoaiBenhController extends Controller
 
 
 
+

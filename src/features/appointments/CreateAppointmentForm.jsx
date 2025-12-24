@@ -117,7 +117,7 @@ const CreateAppointmentForm = ({ onCloseModal }) => {
       NgayTN: data.NgayTN,
       CaTN: data.CaTN,
       ID_NhanVien: parseInt(data.ID_NhanVien),
-      TrangThai: data.TrangThai === 'true' || data.TrangThai === true,
+      TrangThaiTiepNhan: data.TrangThaiTiepNhan || 'CHO_KHAM',
     };
     createAppointmentMutation(formData);
   }
@@ -192,10 +192,13 @@ const CreateAppointmentForm = ({ onCloseModal }) => {
           </Select>
         </FormRow>
 
-        <FormRow label='Trạng thái' error={errors.TrangThai?.message}>
-          <Select id='TrangThai' {...register('TrangThai')}>
-            <option value='false'>Đang chờ</option>
-            <option value='true'>Đã hoàn thành</option>
+        <FormRow label='Trạng thái' error={errors.TrangThaiTiepNhan?.message}>
+          <Select id='TrangThaiTiepNhan' {...register('TrangThaiTiepNhan')}>
+            <option value='CHO_XAC_NHAN'>Chờ xác nhận</option>
+            <option value='CHO_KHAM'>Chờ khám</option>
+            <option value='DANG_KHAM'>Đang khám</option>
+            <option value='DA_KHAM'>Đã khám</option>
+            <option value='HUY'>Đã hủy</option>
           </Select>
         </FormRow>
 

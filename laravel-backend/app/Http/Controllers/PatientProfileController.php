@@ -163,7 +163,7 @@ class PatientProfileController extends Controller
             return response()->json(['message' => 'Không tìm thấy hồ sơ bệnh nhân'], 404);
         }
 
-        $appointments = DanhSachTiepNhan::with(['nhanVien:ID_NhanVien,HoTenNV,ChucVu'])
+        $appointments = DanhSachTiepNhan::with(['nhanVien:ID_NhanVien,HoTenNV'])
             ->where('Is_Deleted', false)
             ->where('ID_BenhNhan', $benhNhan->ID_BenhNhan)
             ->orderByDesc('NgayTN')
@@ -183,21 +183,27 @@ class PatientProfileController extends Controller
         $validated = $request->validate([
             'NgayTN' => 'required|date|after:now',
             'CaTN' => 'required|string|max:10',
-            'ID_NhanVien' => 'nullable|integer|exists:nhan_vien,ID_NhanVien',
+            'ID_NhanVien' => 'required|integer|exists:nhan_vien,ID_NhanVien',
         ]);
 
-        $doctorId = $validated['ID_NhanVien'] ?? NhanVien::value('ID_NhanVien');
-
-        if (!$doctorId) {
-            return response()->json(['message' => 'Không tìm thấy bác sĩ để đặt lịch'], 400);
+        $doctor = NhanVien::with('nhomNguoiDung')->find($validated['ID_NhanVien']);
+        $doctorGroupCode = $doctor?->nhomNguoiDung?->MaNhom;
+        if (!$doctor || $doctorGroupCode !== '@doctors') {
+            return response()->json([
+                'message' => 'Chỉ được phép chọn bác sĩ để đặt lịch khám',
+                'errors' => [
+                    'ID_NhanVien' => ['Nhân viên được chọn không phải bác sĩ.'],
+                ],
+            ], 422);
         }
 
         $appointment = DanhSachTiepNhan::create([
             'ID_BenhNhan' => $benhNhan->ID_BenhNhan,
             'NgayTN' => Carbon::parse($validated['NgayTN']),
             'CaTN' => $validated['CaTN'],
-            'ID_NhanVien' => $doctorId,
-            'TrangThai' => false,
+            'ID_NhanVien' => $doctor->ID_NhanVien,
+            // Option B: Trạng thái nghiệp vụ bắt đầu là CHO_XAC_NHAN (lễ tân duyệt)
+            'TrangThaiTiepNhan' => 'CHO_XAC_NHAN',
             'Is_Deleted' => false,
         ]);
 
@@ -223,8 +229,9 @@ class PatientProfileController extends Controller
             return response()->json(['message' => 'Không tìm thấy lịch khám'], 404);
         }
 
-        if ($appointment->TrangThai) {
-            return response()->json(['message' => 'Lịch đã xác nhận không thể huỷ'], 400);
+        // Option B: chỉ cho phép huỷ khi lịch còn đang chờ xác nhận
+        if (($appointment->TrangThaiTiepNhan ?? null) !== 'CHO_XAC_NHAN') {
+            return response()->json(['message' => 'Lịch đã được xử lý không thể huỷ'], 400);
         }
 
         $appointment->Is_Deleted = true;
@@ -250,11 +257,17 @@ class PatientProfileController extends Controller
             ->get();
 
         foreach ($appointments as $appointment) {
-            $statusText = $appointment->TrangThai
-                ? 'Lịch khám đã được xác nhận'
-                : ($appointment->NgayTN->lessThan($now)
+            $tt = $appointment->TrangThaiTiepNhan ?? null;
+            $statusText = match ($tt) {
+                'CHO_XAC_NHAN' => 'Lịch khám đang chờ lễ tân xác nhận',
+                'CHO_KHAM' => 'Lịch khám đã được xác nhận',
+                'DANG_KHAM' => 'Bệnh nhân đang khám',
+                'DA_KHAM' => 'Bệnh nhân đã khám xong',
+                'HUY' => 'Lịch khám đã bị huỷ',
+                default => ($appointment->NgayTN->lessThan($now)
                     ? 'Lịch khám đã kết thúc - chờ kết quả'
-                    : 'Lịch khám đang chờ xác nhận');
+                    : 'Trạng thái lịch khám chưa xác định'),
+            };
 
             $notifications[] = [
                 'type' => 'appointment',

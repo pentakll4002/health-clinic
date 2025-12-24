@@ -61,7 +61,12 @@ const fetchDashboard = async () => {
 };
 
 const fetchDoctors = async () => {
-  const response = await axiosInstance.get('/nhanvien', { params: { limit: 100 } });
+  const response = await axiosInstance.get('/nhanvien', {
+    params: {
+      limit: 100,
+      ma_nhom: '@doctors',
+    },
+  });
   return response.data;
 };
 
@@ -70,7 +75,7 @@ export function usePatientSelfProfile() {
     queryKey: PROFILE_QUERY_KEY,
     queryFn: fetchPatientProfile,
     retry: false,
-    enabled: false, // Tạm thời disable vì endpoint chưa có ở backend
+    enabled: true,
   });
 }
 
@@ -118,7 +123,7 @@ export function usePatientMedicalRecords() {
     queryKey: MEDICAL_RECORDS_QUERY_KEY,
     queryFn: fetchMedicalRecords,
     retry: false,
-    enabled: false, // Tạm thời disable vì endpoint chưa có ở backend
+    enabled: true,
   });
 }
 
@@ -127,7 +132,7 @@ export function usePatientInvoices() {
     queryKey: INVOICES_QUERY_KEY,
     queryFn: fetchInvoices,
     retry: false,
-    enabled: false, // Tạm thời disable vì endpoint chưa có ở backend
+    enabled: true,
   });
 }
 
@@ -136,7 +141,7 @@ export function usePatientAppointments() {
     queryKey: APPOINTMENTS_QUERY_KEY,
     queryFn: fetchAppointments,
     retry: false,
-    enabled: false, // Tạm thời disable vì endpoint chưa có ở backend
+    enabled: true,
   });
 }
 
@@ -181,7 +186,7 @@ export function usePatientNotifications() {
     queryFn: fetchNotifications,
     refetchInterval: 60000,
     retry: false,
-    enabled: false, // Tạm thời disable vì endpoint chưa có ở backend
+    enabled: true,
   });
 }
 
@@ -190,7 +195,7 @@ export function usePatientDashboard() {
     queryKey: DASHBOARD_QUERY_KEY,
     queryFn: fetchDashboard,
     retry: false,
-    enabled: false, // Tạm thời disable vì endpoint chưa có ở backend
+    enabled: true,
   });
 }
 

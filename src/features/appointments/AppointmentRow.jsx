@@ -21,7 +21,7 @@ const AppointmentRow = ({ appointment }) => {
     ID_TiepNhan,
     NgayTN,
     CaTN,
-    TrangThai,
+    TrangThaiTiepNhan,
     benhNhan,
     nhanVien,
   } = appointment;
@@ -38,12 +38,37 @@ const AppointmentRow = ({ appointment }) => {
     return date.toLocaleString('vi-VN');
   };
 
-  const getStatusText = (status) => {
-    return status ? 'Đã hoàn thành' : 'Đang chờ';
+  const getStatusText = (tt) => {
+    switch (tt) {
+      case 'CHO_XAC_NHAN':
+        return 'Chờ xác nhận';
+      case 'CHO_KHAM':
+        return 'Chờ khám';
+      case 'DANG_KHAM':
+        return 'Đang khám';
+      case 'DA_KHAM':
+        return 'Đã khám';
+      case 'HUY':
+        return 'Đã hủy';
+      default:
+        return '—';
+    }
   };
 
-  const getStatusColor = (status) => {
-    return status ? 'text-success-900' : 'text-warning-900';
+  const getStatusColor = (tt) => {
+    switch (tt) {
+      case 'DA_KHAM':
+        return 'text-success-900';
+      case 'DANG_KHAM':
+        return 'text-info-900';
+      case 'HUY':
+        return 'text-error-900';
+      case 'CHO_XAC_NHAN':
+      case 'CHO_KHAM':
+        return 'text-warning-900';
+      default:
+        return 'text-grey-600';
+    }
   };
 
   return (
@@ -53,8 +78,8 @@ const AppointmentRow = ({ appointment }) => {
       <Text>{CaTN}</Text>
       <Text>{benhNhan?.HoTenBN || 'N/A'}</Text>
       <Text>{nhanVien?.HoTenNV || 'N/A'}</Text>
-      <Text className={getStatusColor(TrangThai)}>
-        {getStatusText(TrangThai)}
+      <Text className={getStatusColor(TrangThaiTiepNhan)}>
+        {getStatusText(TrangThaiTiepNhan)}
       </Text>
 
       <div className='flex items-center justify-center gap-x-2'>

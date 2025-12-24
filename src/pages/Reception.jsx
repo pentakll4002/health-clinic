@@ -4,9 +4,9 @@ import { FunnelIcon } from '@heroicons/react/24/outline';
 import styled from 'styled-components';
 import AddReception from '../features/receptionList/AddReception';
 import ReiceptionList from '../features/receptionList/ReiceptionList';
-import LichKhamTableContainer from '../features/lichKham/LichKhamTableContainer';
-import { useAllLichKhams } from '../features/lichKham/useAllLichKhams';
 import { useReceptions } from '../features/receptionList/useReceptions';
+import PendingOnlineAppointmentsTable from '../features/receptionList/PendingOnlineAppointmentsTable';
+import ReceptionsCardContainer from '../features/receptionList/ReceptionsCardContainer';
 
 const LayoutReception = styled.div`
   width: 100%;
@@ -51,7 +51,6 @@ const Reception = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabFromUrl = searchParams.get('tab') || 'reception';
   const [activeTab, setActiveTab] = useState(tabFromUrl);
-  const [filterStatus, setFilterStatus] = useState('ChoXacNhan');
   const [filterDate, setFilterDate] = useState('');
 
   useEffect(() => {
@@ -59,8 +58,10 @@ const Reception = () => {
     setActiveTab(tab);
   }, [searchParams]);
 
-  const { totalCount: pendingCount } = useAllLichKhams({
-    TrangThai: 'ChoXacNhan',
+  const { totalCount: pendingCount } = useReceptions({
+    page: 1,
+    limit: 1,
+    TrangThaiTiepNhan: 'CHO_XAC_NHAN',
   });
 
   const { totalCount: totalReceptions } = useReceptions();
@@ -81,15 +82,15 @@ const Reception = () => {
         </Tab>
 
         <Tab
-          active={activeTab === 'lich-kham'}
+          active={activeTab === 'online'}
           onClick={() => {
-            setActiveTab('lich-kham');
+            setActiveTab('online');
             const newSearchParams = new URLSearchParams(searchParams);
-            newSearchParams.set('tab', 'lich-kham');
+            newSearchParams.set('tab', 'online');
             setSearchParams(newSearchParams);
           }}
         >
-          Lịch khám chờ duyệt
+          Lịch hẹn online chờ duyệt
           {pendingCount > 0 && (
             <span className='ml-2 px-2 py-0.5 bg-warning-100 text-warning-900 rounded-full text-xs font-semibold'>
               {pendingCount}
@@ -98,15 +99,15 @@ const Reception = () => {
         </Tab>
 
         <Tab
-          active={activeTab === 'lich-kham-today'}
+          active={activeTab === 'waiting-today'}
           onClick={() => {
-            setActiveTab('lich-kham-today');
+            setActiveTab('waiting-today');
             const newSearchParams = new URLSearchParams(searchParams);
-            newSearchParams.set('tab', 'lich-kham-today');
+            newSearchParams.set('tab', 'waiting-today');
             setSearchParams(newSearchParams);
           }}
         >
-          Lịch khám trong ngày
+          Danh sách chờ khám (hôm nay)
         </Tab>
       </TabContainer>
 
@@ -136,32 +137,21 @@ const Reception = () => {
 
           <ReiceptionList />
         </>
-      ) : activeTab === 'lich-kham' ? (
+      ) : activeTab === 'online' ? (
         <>
           <LayoutFlex>
             <div className='flex items-center justify-center gap-x-3'>
               <h2 className='text-xl font-bold leading-6 text-grey-900'>
-                Lịch khám chờ duyệt
+                Lịch hẹn online chờ duyệt
               </h2>
 
               <div className='flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium border rounded-md text-primary border-primary bg-primary-transparent'>
-                <span>Tổng lịch khám:</span>
+                <span>Tổng lịch hẹn:</span>
                 <span>{pendingCount}</span>
               </div>
             </div>
 
             <div className='flex items-center justify-center gap-x-4'>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className='px-3 py-2 border border-grey-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm'
-              >
-                <option value='ChoXacNhan'>Chờ xác nhận</option>
-                <option value='DaXacNhan'>Đã xác nhận</option>
-                <option value='Huy'>Đã hủy</option>
-                <option value=''>Tất cả</option>
-              </select>
-
               <input
                 type='date'
                 value={filterDate}
@@ -180,23 +170,17 @@ const Reception = () => {
             </div>
           </LayoutFlex>
 
-          <LichKhamTableContainer
-            filterStatus={filterStatus || undefined}
-            filterDate={filterDate || undefined}
-          />
+          <PendingOnlineAppointmentsTable filterDate={filterDate || undefined} />
         </>
       ) : (
         <>
           <LayoutFlex>
             <h2 className='text-xl font-bold leading-6 text-grey-900'>
-              Lịch khám trong ngày (đã xác nhận)
+              Danh sách chờ khám (hôm nay)
             </h2>
           </LayoutFlex>
 
-          <LichKhamTableContainer
-            filterStatus='DaXacNhan'
-            filterDate={new Date().toISOString().split('T')[0]}
-          />
+          <ReceptionsCardContainer />
         </>
       )}
     </LayoutReception>

@@ -2,6 +2,7 @@ import { useReceptions } from './useReceptions';
 import { useNavigate } from 'react-router-dom';
 import ModalCenter from '../../ui/ModalCenter';
 import CreatePhieuKhamForm from '../medicalForm/CreatePhieuKhamForm';
+import { useUser } from '../../hooks/useUser';
 
 import Spinner from '../../ui/Spinner';
 import Table from '../../ui/Table';
@@ -18,6 +19,7 @@ const Text = styled.span`
 const ReiceptionList = () => {
   const navigate = useNavigate();
   const { data: receptions, isLoading } = useReceptions();
+  const { user } = useUser();
 
   if (isLoading) return <Spinner />;
 
@@ -45,6 +47,10 @@ const ReiceptionList = () => {
           // Lấy thông tin bệnh nhân từ relationship
           const benhNhan = item.benhNhan || item.benh_nhan;
           const hoTenBN = benhNhan?.HoTenBN || item.HoTenBN || 'N/A';
+
+          const isDoctor = user?.role === 'bac_si';
+          const canCreatePhieuKham = (item.TrangThaiTiepNhan || '') === 'CHO_KHAM';
+          const hasPhieuKham = Array.isArray(item.phieuKhams) && item.phieuKhams.length > 0;
           
           // Format ngày
           const formatDate = (dateString) => {
@@ -54,10 +60,38 @@ const ReiceptionList = () => {
           };
           
           // Format trạng thái
-          const getTrangThaiText = (trangThai) => {
-            if (trangThai === false || trangThai === 0) return 'Chờ khám';
-            if (trangThai === true || trangThai === 1) return 'Đang khám';
-            return 'Hoàn thành';
+          const getTrangThaiText = (tt) => {
+            switch (tt) {
+              case 'CHO_XAC_NHAN':
+                return 'Chờ xác nhận';
+              case 'CHO_KHAM':
+                return 'Chờ khám';
+              case 'DANG_KHAM':
+                return 'Đang khám';
+              case 'DA_KHAM':
+                return 'Đã khám';
+              case 'HUY':
+                return 'Đã hủy';
+              default:
+                return '—';
+            }
+          };
+
+          const getTrangThaiClass = (tt) => {
+            switch (tt) {
+              case 'CHO_XAC_NHAN':
+                return 'bg-warning-100 text-warning-900';
+              case 'CHO_KHAM':
+                return 'bg-warning-100 text-warning-900';
+              case 'DANG_KHAM':
+                return 'bg-info-100 text-info-900';
+              case 'DA_KHAM':
+                return 'bg-success-100 text-success-900';
+              case 'HUY':
+                return 'bg-error-100 text-error-900';
+              default:
+                return 'bg-grey-100 text-grey-700';
+            }
           };
           
           return (
@@ -68,15 +102,9 @@ const ReiceptionList = () => {
 
               <Text>
                 <span
-                  className={`px-2 py-[2px] rounded-full text-sm font-medium ${
-                    item.TrangThai === false || item.TrangThai === 0
-                      ? 'bg-warning-100 text-warning-900'
-                      : item.TrangThai === true || item.TrangThai === 1
-                      ? 'bg-info-100 text-info-900'
-                      : 'bg-success-100 text-success-900'
-                  }`}
+                  className={`px-2 py-[2px] rounded-full text-sm font-medium ${getTrangThaiClass(item.TrangThaiTiepNhan)}`}
                 >
-                  {getTrangThaiText(item.TrangThai)}
+                  {getTrangThaiText(item.TrangThaiTiepNhan)}
                 </span>
               </Text>
 
@@ -93,16 +121,20 @@ const ReiceptionList = () => {
                         Xem thông tin bệnh nhân
                       </Menus.Button>
 
-                      <ModalCenter.Open opens={`medical-form-${item.ID_TiepNhan}`}>
-                        <Menus.Button>Tạo phiếu khám</Menus.Button>
-                      </ModalCenter.Open>
-                      <ModalCenter.Window name={`medical-form-${item.ID_TiepNhan}`}>
-                        <CreatePhieuKhamForm 
-                          tiepNhan={item}
-                          onCloseModal={() => {}}
-                          onSuccess={() => {}}
-                        />
-                      </ModalCenter.Window>
+                      {isDoctor && canCreatePhieuKham && !hasPhieuKham && (
+                        <>
+                          <ModalCenter.Open opens={`medical-form-${item.ID_TiepNhan}`}>
+                            <Menus.Button>Tạo phiếu khám</Menus.Button>
+                          </ModalCenter.Open>
+                          <ModalCenter.Window name={`medical-form-${item.ID_TiepNhan}`}>
+                            <CreatePhieuKhamForm 
+                              tiepNhan={item}
+                              onCloseModal={() => {}}
+                              onSuccess={() => {}}
+                            />
+                          </ModalCenter.Window>
+                        </>
+                      )}
                     </Menus.List>
                   </Menus>
                 </ModalCenter>

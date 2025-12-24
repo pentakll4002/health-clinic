@@ -53,6 +53,39 @@ const AppointmentDetail = ({ ID_TiepNhan }) => {
     return date.toLocaleString('vi-VN');
   };
 
+  const getStatusText = (tt) => {
+    switch (tt) {
+      case 'CHO_XAC_NHAN':
+        return 'Chờ xác nhận';
+      case 'CHO_KHAM':
+        return 'Chờ khám';
+      case 'DANG_KHAM':
+        return 'Đang khám';
+      case 'DA_KHAM':
+        return 'Đã khám';
+      case 'HUY':
+        return 'Đã hủy';
+      default:
+        return '—';
+    }
+  };
+
+  const getStatusClass = (tt) => {
+    switch (tt) {
+      case 'DA_KHAM':
+        return 'text-success-900';
+      case 'DANG_KHAM':
+        return 'text-info-900';
+      case 'HUY':
+        return 'text-error-900';
+      case 'CHO_XAC_NHAN':
+      case 'CHO_KHAM':
+        return 'text-warning-900';
+      default:
+        return 'text-grey-600';
+    }
+  };
+
   return (
     <LayoutAppointmentDetail>
       <div className='flex items-center justify-between mb-5'>
@@ -95,8 +128,8 @@ const AppointmentDetail = ({ ID_TiepNhan }) => {
         </FormRow>
 
         <FormRow inline={true} label='Trạng Thái: '>
-          <Text className={appointment.TrangThai ? 'text-success-900' : 'text-warning-900'}>
-            {appointment.TrangThai ? 'Đã hoàn thành' : 'Đang chờ'}
+          <Text className={getStatusClass(appointment.TrangThaiTiepNhan)}>
+            {getStatusText(appointment.TrangThaiTiepNhan)}
           </Text>
         </FormRow>
 

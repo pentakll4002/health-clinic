@@ -18,14 +18,15 @@ class DanhSachTiepNhan extends Model
         'NgayTN',
         'CaTN',
         'ID_NhanVien',
+        'ID_LeTanDuyet',
         'Is_Deleted',
-        'TrangThai',
+        'TrangThaiTiepNhan',
     ];
 
     protected $casts = [
         'NgayTN' => 'datetime',
         'Is_Deleted' => 'boolean',
-        'TrangThai' => 'boolean',
+        'TrangThaiTiepNhan' => 'string',
     ];
 
     public function benhNhan()
@@ -36,6 +37,11 @@ class DanhSachTiepNhan extends Model
     public function nhanVien()
     {
         return $this->belongsTo(NhanVien::class, 'ID_NhanVien', 'ID_NhanVien');
+    }
+
+    public function leTanDuyet()
+    {
+        return $this->belongsTo(NhanVien::class, 'ID_LeTanDuyet', 'ID_NhanVien');
     }
 
     public function phieuKhams()

@@ -12,7 +12,7 @@ class DanhSachTiepNhanController extends Controller
     {
         $limit = $request->get('limit', 7);
         $page = $request->get('page', 1);
-        $query = DanhSachTiepNhan::with(['benhNhan', 'nhanVien', 'phieuKhams'])
+        $query = DanhSachTiepNhan::with(['benhNhan', 'nhanVien', 'leTanDuyet', 'phieuKhams'])
             ->where('Is_Deleted', false);
 
         // Filter theo ngày nếu có
@@ -20,14 +20,13 @@ class DanhSachTiepNhanController extends Controller
             $query->whereDate('NgayTN', $request->ngay);
         }
 
-        // Filter theo trạng thái nếu có (0 = Chưa khám, 1 = Đã khám)
-        if ($request->has('TrangThai')) {
-            $query->where('TrangThai', $request->TrangThai);
+        if ($request->has('TrangThaiTiepNhan')) {
+            $query->where('TrangThaiTiepNhan', $request->TrangThaiTiepNhan);
         }
 
         // Filter chỉ lấy bệnh nhân chưa khám (cho bác sĩ)
         if ($request->has('chua_kham')) {
-            $query->where('TrangThai', false)
+            $query->where('TrangThaiTiepNhan', 'CHO_KHAM')
                   ->whereDoesntHave('phieuKhams', function($q) {
                       $q->where('Is_Deleted', false);
                   });
@@ -53,20 +52,25 @@ class DanhSachTiepNhanController extends Controller
             'NgayTN' => 'required|date',
             'CaTN' => 'required|string|max:10',
             'ID_NhanVien' => 'required|integer|exists:nhan_vien,ID_NhanVien',
-            'TrangThai' => 'nullable|boolean',
+            'TrangThaiTiepNhan' => 'nullable|string|in:CHO_XAC_NHAN,CHO_KHAM,DANG_KHAM,DA_KHAM,HUY',
         ]);
 
-        $tiepNhan = DanhSachTiepNhan::create($request->all());
+        $payload = $request->all();
+        if (!array_key_exists('TrangThaiTiepNhan', $payload) || !$payload['TrangThaiTiepNhan']) {
+            $payload['TrangThaiTiepNhan'] = 'CHO_KHAM';
+        }
+
+        $tiepNhan = DanhSachTiepNhan::create($payload);
 
         return response()->json([
             'message' => 'Tiếp nhận được tạo thành công',
-            'tiepNhan' => $tiepNhan->load(['benhNhan', 'nhanVien'])
+            'tiepNhan' => $tiepNhan->load(['benhNhan', 'nhanVien', 'leTanDuyet'])
         ], 201);
     }
 
     public function show($id)
     {
-        $tiepNhan = DanhSachTiepNhan::with(['benhNhan', 'nhanVien'])->find($id);
+        $tiepNhan = DanhSachTiepNhan::with(['benhNhan', 'nhanVien', 'leTanDuyet'])->find($id);
         if (!$tiepNhan) {
             return response()->json(['message' => 'Không tìm thấy tiếp nhận'], 404);
         }
@@ -85,15 +89,22 @@ class DanhSachTiepNhanController extends Controller
             'NgayTN' => 'sometimes|required|date',
             'CaTN' => 'sometimes|required|string|max:10',
             'ID_NhanVien' => 'sometimes|required|integer|exists:nhan_vien,ID_NhanVien',
-            'TrangThai' => 'nullable|boolean',
+            'TrangThaiTiepNhan' => 'nullable|string|in:CHO_XAC_NHAN,CHO_KHAM,DANG_KHAM,DA_KHAM,HUY',
         ]);
 
-        $tiepNhan->fill($request->all());
+        $payload = $request->all();
+
+        // Nếu từ chối/huỷ theo Option B: soft delete
+        if (array_key_exists('TrangThaiTiepNhan', $payload) && $payload['TrangThaiTiepNhan'] === 'HUY') {
+            $tiepNhan->Is_Deleted = true;
+        }
+
+        $tiepNhan->fill($payload);
         $tiepNhan->save();
 
         return response()->json([
             'message' => 'Cập nhật thành công',
-            'tiepNhan' => $tiepNhan->load(['benhNhan', 'nhanVien'])
+            'tiepNhan' => $tiepNhan->load(['benhNhan', 'nhanVien', 'leTanDuyet'])
         ]);
     }
 
@@ -154,7 +165,7 @@ class DanhSachTiepNhanController extends Controller
             'NgayTN' => $lichKham->NgayKhamDuKien,
             'CaTN' => $lichKham->CaKham,
             'ID_NhanVien' => $request->ID_NhanVien,
-            'TrangThai' => false, // Chưa khám
+            'TrangThaiTiepNhan' => 'CHO_KHAM',
             'Is_Deleted' => false,
         ]);
 

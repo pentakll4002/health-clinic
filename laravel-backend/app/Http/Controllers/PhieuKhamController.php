@@ -81,10 +81,10 @@ class PhieuKhamController extends Controller
         }
 
         // Validation: Kiểm tra điều kiện nghiệp vụ
-        // 1. Trạng thái phải là "Chưa khám" (TrangThai = false)
-        if ($tiepNhan->TrangThai !== false && $tiepNhan->TrangThai !== 0) {
+        // Option B: chỉ cho phép bác sĩ tạo phiếu khám khi tiếp nhận đã được lễ tân xác nhận (CHO_KHAM)
+        if (($tiepNhan->TrangThaiTiepNhan ?? null) !== 'CHO_KHAM') {
             return response()->json([
-                'message' => 'Bệnh nhân này đã được khám hoặc không ở trạng thái chờ khám',
+                'message' => 'Tiếp nhận này chưa được lễ tân xác nhận hoặc không ở trạng thái chờ khám',
             ], 400);
         }
 
@@ -137,7 +137,7 @@ class PhieuKhamController extends Controller
         ]);
 
         // Cập nhật trạng thái tiếp nhận thành "Đang khám"
-        $tiepNhan->TrangThai = true; // true = Đang khám
+        $tiepNhan->TrangThaiTiepNhan = 'DANG_KHAM';
         $tiepNhan->save();
 
         $phieuKham->load(['tiepNhan.benhNhan', 'loaiBenh']);
@@ -215,7 +215,7 @@ class PhieuKhamController extends Controller
 
                 $tiepNhan = $phieuKham->tiepNhan;
                 if ($tiepNhan) {
-                    $tiepNhan->TrangThai = true; // Đã khám
+                    $tiepNhan->TrangThaiTiepNhan = 'DA_KHAM';
                     $tiepNhan->save();
                 }
 
@@ -273,7 +273,7 @@ class PhieuKhamController extends Controller
             // Cập nhật trạng thái tiếp nhận thành "Đã khám"
             $tiepNhan = $phieuKham->tiepNhan;
             if ($tiepNhan) {
-                $tiepNhan->TrangThai = true; // Đã khám
+                $tiepNhan->TrangThaiTiepNhan = 'DA_KHAM';
                 $tiepNhan->save();
             }
 

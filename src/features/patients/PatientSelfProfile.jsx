@@ -147,7 +147,7 @@ function MedicalRecordCard({ record }) {
   );
 }
 
-export default function PatientSelfProfile() {
+export default function PatientSelfProfile({ initialSection = 'all' }) {
   const { data, isLoading } = usePatientSelfProfile();
   const { data: medicalData, isLoading: loadingMedical } = usePatientMedicalRecords();
   const { data: invoicesData, isLoading: loadingInvoices } = usePatientInvoices();
@@ -192,7 +192,13 @@ export default function PatientSelfProfile() {
   const appointments = appointmentsData?.data || [];
   const notifications = notificationsData?.data || [];
   const dashboard = dashboardData || {};
-  const doctors = doctorOptionsData?.data || [];
+  const doctors = useMemo(() => {
+    const items = doctorOptionsData?.data || [];
+    return items.filter((nv) => {
+      const nhom = nv?.nhomNguoiDung || nv?.nhom_nguoi_dung;
+      return nhom?.MaNhom === '@doctors' || nhom?.MaNhom === 'doctors';
+    });
+  }, [doctorOptionsData]);
 
   const [avatarPreview, setAvatarPreview] = useState(defaultAvatar);
   const [avatarFile, setAvatarFile] = useState(null);
@@ -261,7 +267,7 @@ export default function PatientSelfProfile() {
       {
         NgayTN: ngayTN,
         CaTN: values.CaTN,
-        ID_NhanVien: values.ID_NhanVien || undefined,
+        ID_NhanVien: values.ID_NhanVien,
       },
       {
         onSuccess: () => {
@@ -311,156 +317,161 @@ export default function PatientSelfProfile() {
           </p>
         </header>
 
-        <div className='grid gap-6 lg:grid-cols-3'>
-          {readOnlyItems.map((item) => (
-            <ReadOnlyInfo key={item.label} label={item.label} value={item.value} />
-          ))}
-        </div>
+        {(initialSection === 'all' || initialSection === 'profile') && (
+          <>
+            <div className='grid gap-6 lg:grid-cols-3'>
+              {readOnlyItems.map((item) => (
+                <ReadOnlyInfo key={item.label} label={item.label} value={item.value} />
+              ))}
+            </div>
 
-        <div className='grid gap-6 lg:grid-cols-2'>
-          <div className='rounded-xl bg-white p-6 shadow-sm'>
-            <h2 className='text-lg font-semibold'>Thông tin có thể chỉnh sửa</h2>
-            <p className='mb-4 text-sm text-grey-500'>
-              Các thay đổi sẽ được cập nhật tức thì cho hồ sơ của bạn.
-            </p>
-            <form className='flex flex-col gap-4' onSubmit={handleProfileSubmit}>
-              <div className='flex items-center gap-4 rounded-md border border-dashed border-grey-200 p-4'>
-                <img
-                  src={avatarPreview || defaultAvatar}
-                  alt='avatar'
-                  className='h-20 w-20 rounded-full object-cover'
-                />
-                <div className='flex flex-col gap-2'>
-                  <p className='text-sm font-medium'>Hình đại diện</p>
-                  <p className='text-xs text-grey-500'>PNG hoặc JPG tối đa 2MB</p>
-                  <input
-                    type='file'
-                    accept='image/*'
-                    onChange={handleAvatarChange}
-                    className='text-xs'
-                  />
-                </div>
+            <div className='grid gap-6 lg:grid-cols-2'>
+              <div className='rounded-xl bg-white p-6 shadow-sm'>
+                <h2 className='text-lg font-semibold'>Thông tin có thể chỉnh sửa</h2>
+                <p className='mb-4 text-sm text-grey-500'>
+                  Các thay đổi sẽ được cập nhật tức thì cho hồ sơ của bạn.
+                </p>
+                <form className='flex flex-col gap-4' onSubmit={handleProfileSubmit}>
+                  <div className='flex items-center gap-4 rounded-md border border-dashed border-grey-200 p-4'>
+                    <img
+                      src={avatarPreview || defaultAvatar}
+                      alt='avatar'
+                      className='h-20 w-20 rounded-full object-cover'
+                    />
+                    <div className='flex flex-col gap-2'>
+                      <p className='text-sm font-medium'>Hình đại diện</p>
+                      <p className='text-xs text-grey-500'>PNG hoặc JPG tối đa 2MB</p>
+                      <input
+                        type='file'
+                        accept='image/*'
+                        onChange={handleAvatarChange}
+                        className='text-xs'
+                      />
+                    </div>
+                  </div>
+
+                  <Field label='Số điện thoại'>
+                    <input
+                      type='tel'
+                      className={inputBaseClass}
+                      {...profileForm.register('DienThoai', {
+                        minLength: { value: 8, message: 'Số điện thoại tối thiểu 8 ký tự' },
+                      })}
+                      placeholder='Ví dụ: 0900000000'
+                    />
+                    {profileForm.formState.errors?.DienThoai && (
+                      <span className='text-xs text-red-500'>
+                        {profileForm.formState.errors.DienThoai.message}
+                      </span>
+                    )}
+                  </Field>
+
+                  <Field label='Email'>
+                    <input
+                      type='email'
+                      className={inputBaseClass}
+                      {...profileForm.register('Email', {
+                        required: 'Email không được bỏ trống',
+                      })}
+                      placeholder='you@example.com'
+                    />
+                    {profileForm.formState.errors?.Email && (
+                      <span className='text-xs text-red-500'>
+                        {profileForm.formState.errors.Email.message}
+                      </span>
+                    )}
+                  </Field>
+
+                  <Field label='Địa chỉ'>
+                    <textarea
+                      rows={3}
+                      className={`${inputBaseClass} resize-none`}
+                      {...profileForm.register('DiaChi')}
+                      placeholder='Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành'
+                    />
+                  </Field>
+
+                  <Button
+                    type='submit'
+                    disabled={updateProfile.isPending}
+                    className='bg-primary px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-grey-300'
+                  >
+                    {updateProfile.isPending ? 'Đang lưu...' : 'Lưu thay đổi'}
+                  </Button>
+                </form>
               </div>
 
-              <Field label='Số điện thoại'>
-                <input
-                  type='tel'
-                  className={inputBaseClass}
-                  {...profileForm.register('DienThoai', {
-                    minLength: { value: 8, message: 'Số điện thoại tối thiểu 8 ký tự' },
-                  })}
-                  placeholder='Ví dụ: 0900000000'
-                />
-                {profileForm.formState.errors?.DienThoai && (
-                  <span className='text-xs text-red-500'>
-                    {profileForm.formState.errors.DienThoai.message}
-                  </span>
-                )}
-              </Field>
+              <div className='rounded-xl bg-white p-6 shadow-sm'>
+                <h2 className='text-lg font-semibold'>Đổi mật khẩu</h2>
+                <p className='mb-4 text-sm text-grey-500'>
+                  Vui lòng nhập mật khẩu hiện tại để xác nhận danh tính trước khi đổi.
+                </p>
+                <form className='flex flex-col gap-4' onSubmit={handlePasswordSubmit}>
+                  <Field label='Mật khẩu hiện tại'>
+                    <input
+                      type='password'
+                      className={inputBaseClass}
+                      {...passwordForm.register('current_password', {
+                        required: 'Không được bỏ trống',
+                      })}
+                      placeholder='********'
+                    />
+                    {passwordForm.formState.errors?.current_password && (
+                      <span className='text-xs text-red-500'>
+                        {passwordForm.formState.errors.current_password.message}
+                      </span>
+                    )}
+                  </Field>
 
-              <Field label='Email'>
-                <input
-                  type='email'
-                  className={inputBaseClass}
-                  {...profileForm.register('Email', {
-                    required: 'Email không được bỏ trống',
-                  })}
-                  placeholder='you@example.com'
-                />
-                {profileForm.formState.errors?.Email && (
-                  <span className='text-xs text-red-500'>
-                    {profileForm.formState.errors.Email.message}
-                  </span>
-                )}
-              </Field>
+                  <Field label='Mật khẩu mới'>
+                    <input
+                      type='password'
+                      className={inputBaseClass}
+                      {...passwordForm.register('password', {
+                        required: 'Không được bỏ trống',
+                        minLength: { value: 8, message: 'Tối thiểu 8 ký tự' },
+                      })}
+                      placeholder='********'
+                    />
+                    {passwordForm.formState.errors?.password && (
+                      <span className='text-xs text-red-500'>
+                        {passwordForm.formState.errors.password.message}
+                      </span>
+                    )}
+                  </Field>
 
-              <Field label='Địa chỉ'>
-                <textarea
-                  rows={3}
-                  className={`${inputBaseClass} resize-none`}
-                  {...profileForm.register('DiaChi')}
-                  placeholder='Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành'
-                />
-              </Field>
+                  <Field label='Nhập lại mật khẩu mới'>
+                    <input
+                      type='password'
+                      className={inputBaseClass}
+                      {...passwordForm.register('password_confirmation', {
+                        required: 'Không được bỏ trống',
+                        validate: (value) =>
+                          value === passwordForm.watch('password') || 'Mật khẩu không trùng khớp',
+                      })}
+                      placeholder='********'
+                    />
+                    {passwordForm.formState.errors?.password_confirmation && (
+                      <span className='text-xs text-red-500'>
+                        {passwordForm.formState.errors.password_confirmation.message}
+                      </span>
+                    )}
+                  </Field>
 
-              <Button
-                type='submit'
-                disabled={updateProfile.isPending}
-                className='bg-primary px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-grey-300'
-              >
-                {updateProfile.isPending ? 'Đang lưu...' : 'Lưu thay đổi'}
-              </Button>
-            </form>
-          </div>
+                  <Button
+                    type='submit'
+                    disabled={changePassword.isPending}
+                    className='bg-grey-900 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-grey-300'
+                  >
+                    {changePassword.isPending ? 'Đang xử lý...' : 'Đổi mật khẩu'}
+                  </Button>
+                </form>
+              </div>
+            </div>
+          </>
+        )}
 
-          <div className='rounded-xl bg-white p-6 shadow-sm'>
-            <h2 className='text-lg font-semibold'>Đổi mật khẩu</h2>
-            <p className='mb-4 text-sm text-grey-500'>
-              Vui lòng nhập mật khẩu hiện tại để xác nhận danh tính trước khi đổi.
-            </p>
-            <form className='flex flex-col gap-4' onSubmit={handlePasswordSubmit}>
-              <Field label='Mật khẩu hiện tại'>
-                <input
-                  type='password'
-                  className={inputBaseClass}
-                  {...passwordForm.register('current_password', {
-                    required: 'Không được bỏ trống',
-                  })}
-                  placeholder='********'
-                />
-                {passwordForm.formState.errors?.current_password && (
-                  <span className='text-xs text-red-500'>
-                    {passwordForm.formState.errors.current_password.message}
-                  </span>
-                )}
-              </Field>
-
-              <Field label='Mật khẩu mới'>
-                <input
-                  type='password'
-                  className={inputBaseClass}
-                  {...passwordForm.register('password', {
-                    required: 'Không được bỏ trống',
-                    minLength: { value: 8, message: 'Tối thiểu 8 ký tự' },
-                  })}
-                  placeholder='********'
-                />
-                {passwordForm.formState.errors?.password && (
-                  <span className='text-xs text-red-500'>
-                    {passwordForm.formState.errors.password.message}
-                  </span>
-                )}
-              </Field>
-
-              <Field label='Nhập lại mật khẩu mới'>
-                <input
-                  type='password'
-                  className={inputBaseClass}
-                  {...passwordForm.register('password_confirmation', {
-                    required: 'Không được bỏ trống',
-                    validate: (value) =>
-                      value === passwordForm.watch('password') || 'Mật khẩu không trùng khớp',
-                  })}
-                  placeholder='********'
-                />
-                {passwordForm.formState.errors?.password_confirmation && (
-                  <span className='text-xs text-red-500'>
-                    {passwordForm.formState.errors.password_confirmation.message}
-                  </span>
-                )}
-              </Field>
-
-              <Button
-                type='submit'
-                disabled={changePassword.isPending}
-                className='bg-grey-900 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-grey-300'
-              >
-                {changePassword.isPending ? 'Đang xử lý...' : 'Đổi mật khẩu'}
-              </Button>
-            </form>
-          </div>
-        </div>
-
+        {(initialSection === 'all' || initialSection === 'medicalRecords') && (
         <section className='rounded-xl bg-white p-6 shadow-sm'>
           <div className='flex flex-col gap-2 border-b border-grey-transparent pb-4 md:flex-row md:items-center md:justify-between'>
             <div>
@@ -482,7 +493,9 @@ export default function PatientSelfProfile() {
             )}
           </div>
         </section>
+        )}
 
+        {(initialSection === 'all' || initialSection === 'invoices') && (
         <section className='rounded-xl bg-white p-6 shadow-sm'>
           <div className='flex flex-col gap-2 border-b border-grey-transparent pb-4 md:flex-row md:items-center md:justify-between'>
             <div>
@@ -532,6 +545,9 @@ export default function PatientSelfProfile() {
           )}
         </section>
 
+        )}
+
+        {(initialSection === 'all' || initialSection === 'appointments') && (
         <section className='rounded-xl bg-white p-6 shadow-sm'>
           <div className='flex flex-col gap-2 border-b border-grey-transparent pb-4 md:flex-row md:items-center md:justify-between'>
             <div>
@@ -569,8 +585,13 @@ export default function PatientSelfProfile() {
               </Field>
 
               <Field label='Chọn bác sĩ phụ trách' tooltip='Danh sách lấy từ bảng nhân viên (NHANVIEN)'>
-                <select className={inputBaseClass} {...appointmentForm.register('ID_NhanVien')}>
-                  <option value=''>Bất kỳ bác sĩ nào</option>
+                <select
+                  className={inputBaseClass}
+                  {...appointmentForm.register('ID_NhanVien', {
+                    required: 'Vui lòng chọn bác sĩ',
+                  })}
+                >
+                  <option value=''>Chọn bác sĩ</option>
                   {loadingDoctors ? (
                     <option>Đang tải danh sách bác sĩ...</option>
                   ) : (
@@ -581,6 +602,11 @@ export default function PatientSelfProfile() {
                     ))
                   )}
                 </select>
+                {appointmentForm.formState.errors?.ID_NhanVien && (
+                  <span className='text-xs text-red-500'>
+                    {appointmentForm.formState.errors.ID_NhanVien.message}
+                  </span>
+                )}
               </Field>
 
               <Button
@@ -645,6 +671,9 @@ export default function PatientSelfProfile() {
           </div>
         </section>
 
+        )}
+
+        {(initialSection === 'all' || initialSection === 'notifications') && (
         <section className='rounded-xl bg-white p-6 shadow-sm'>
           <div className='flex flex-col gap-2 border-b border-grey-transparent pb-4 md:flex-row md:items-center md:justify-between'>
             <div>
@@ -679,6 +708,9 @@ export default function PatientSelfProfile() {
           )}
         </section>
 
+        )}
+
+        {(initialSection === 'all' || initialSection === 'dashboard') && (
         <section className='rounded-xl bg-white p-6 shadow-sm'>
           <div className='flex flex-col gap-2 border-b border-grey-transparent pb-4 md:flex-row md:items-center md:justify-between'>
             <div>
@@ -748,8 +780,8 @@ export default function PatientSelfProfile() {
             </div>
           )}
         </section>
+        )}
       </div>
     </section>
   );
 }
-

@@ -257,7 +257,7 @@ class LichKhamController extends Controller
             'NgayTN' => $lichKham->NgayKhamDuKien, // Sử dụng ngày khám dự kiến
             'CaTN' => $lichKham->CaKham,
             'ID_NhanVien' => $nhanVien->ID_NhanVien,
-            'TrangThai' => false, // 0 = Chưa khám (để bác sĩ có thể lập phiếu khám)
+            'TrangThaiTiepNhan' => 'CHO_KHAM',
             'Is_Deleted' => false,
         ]);
 
