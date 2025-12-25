@@ -19,8 +19,15 @@ const InvoiceRow = ({ invoice }) => {
     TienThuoc,
     TongTien,
     nhanVien,
+    nhan_vien,
     phieuKham,
+    phieu_kham,
   } = invoice;
+
+  const staff = nhanVien || nhan_vien;
+  const medicalForm = phieuKham || phieu_kham;
+  const tiepNhan = medicalForm?.tiepNhan || medicalForm?.tiep_nhan;
+  const benhNhan = tiepNhan?.benhNhan || tiepNhan?.benh_nhan;
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -35,9 +42,12 @@ const InvoiceRow = ({ invoice }) => {
 
   return (
     <Table.Row>
-      <Text>{ID_HoaDon}</Text>
-      <Text>{phieuKham?.ID_PhieuKham || 'N/A'}</Text>
-      <Text>{nhanVien?.HoTenNV || 'N/A'}</Text>
+      <Text>#{ID_HoaDon}</Text>
+      <Text>
+        #{medicalForm?.ID_PhieuKham || 'N/A'}
+        {benhNhan?.HoTenBN ? ` - ${benhNhan.HoTenBN}` : ''}
+      </Text>
+      <Text>{staff?.HoTenNV || 'N/A'}</Text>
       <Text>{formatDate(NgayHoaDon)}</Text>
       <Text>{formatCurrency(TienKham)}</Text>
       <Text>{formatCurrency(TienThuoc)}</Text>
@@ -45,7 +55,7 @@ const InvoiceRow = ({ invoice }) => {
 
       <ModalCenter>
         <ModalCenter.Open opens={`invoice-detail-${ID_HoaDon}`}>
-          <button className='text-white py-1 bg-primary w-[50%] flex items-center justify-center rounded-lg font-semibold mx-auto'>
+          <button className='text-primary bg-primary-transparent border border-primary/20 hover:bg-primary hover:text-white transition-colors w-[40px] h-[36px] flex items-center justify-center rounded-lg font-semibold mx-auto'>
             <EyeIcon className='w-5 h-5' />
           </button>
         </ModalCenter.Open>

@@ -643,6 +643,8 @@ class ThuocSeeder extends Seeder
             ]
         ];
 
+        $now = now();
+
         foreach ($drugs as $drug) {
             DB::table('thuoc')->updateOrInsert(
                 ['TenThuoc' => $drug['TenThuoc']],

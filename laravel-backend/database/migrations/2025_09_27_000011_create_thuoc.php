@@ -12,33 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('thuoc', function (Blueprint $table) {
-<<<<<<< HEAD
-            $table->increments('ID_Thuoc');
-        
-            $table->string('TenThuoc');
-            $table->text('ThanhPhan')->nullable();
-            $table->string('HinhAnh')->nullable();
-            $table->string('XuatXu')->nullable();
-        
-            $table->unsignedInteger('ID_DVT');
-            $table->unsignedInteger('ID_CachDung');
-        
-            $table->integer('SoLuongTon')->default(0);
-        
-            $table->decimal('DonGiaNhap', 15, 2);
-            $table->decimal('DonGiaBan', 15, 2);
-            $table->decimal('TyLeGiaBan', 5, 2)->nullable();
-        
-            $table->boolean('Is_Deleted')->default(0);
-            $table->timestamps();
-        
-            $table->foreign('ID_DVT')
-                  ->references('ID_DVT')->on('dvt');
-        
-            $table->foreign('ID_CachDung')
-                  ->references('ID_CachDung')->on('cach_dung');
-        });        
-=======
             $table->increments("ID_Thuoc");
             $table->string("TenThuoc", 100)->nullable(false);
 
@@ -58,7 +31,6 @@ return new class extends Migration
             $table->boolean("Is_Deleted")->default(false);
             $table->timestamps();
         });
->>>>>>> 02075ae0e4d568e8f8db04bc53927e1e7039bd00
     }
     
     /**

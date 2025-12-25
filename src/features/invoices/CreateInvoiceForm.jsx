@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createInvoice } from './APIInvoices';
 import toast from 'react-hot-toast';
 import axiosInstance from '../../utils/axiosInstance';
+import { useUser } from '../../hooks/useUser';
 
 const Form = styled.form`
   display: grid;
@@ -18,21 +19,15 @@ const Form = styled.form`
   min-width: 600px;
 `;
 
-async function getNhanVienList() {
-  const response = await axiosInstance.get('/nhanvien', {
-    params: { limit: 100, ma_nhom: '@doctors' },
-  });
-  return response.data;
-}
-
 async function getPhieuKhamList() {
   const response = await axiosInstance.get('/phieu-kham', {
-    params: { limit: 100, only_without_invoice: true },
+    params: { limit: 100, only_without_invoice: true, only_completed: true },
   });
   return response.data;
 }
 
 const CreateInvoiceForm = ({ onCloseModal }) => {
+  const { nhanVien } = useUser();
   const { register, handleSubmit, reset, formState, watch, setError } = useForm({
     defaultValues: {
       NgayHoaDon: new Date().toISOString().slice(0, 10),
@@ -42,17 +37,11 @@ const CreateInvoiceForm = ({ onCloseModal }) => {
   const queryClient = useQueryClient();
   const [preview, setPreview] = useState(null);
 
-  const { data: nhanVienData } = useQuery({
-    queryKey: ['nhanvien-list'],
-    queryFn: getNhanVienList,
-  });
-
   const { data: phieuKhamData } = useQuery({
     queryKey: ['phieukham-list-for-invoice'],
     queryFn: getPhieuKhamList,
   });
 
-  const nhanVienList = nhanVienData?.data || [];
   const phieuKhamList = phieuKhamData?.data || [];
   const selectedPhieuKham = watch('ID_PhieuKham');
 
@@ -101,7 +90,6 @@ const CreateInvoiceForm = ({ onCloseModal }) => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       reset({
         ID_PhieuKham: '',
-        ID_NhanVien: '',
         NgayHoaDon: new Date().toISOString().slice(0, 10),
       });
       setPreview(null);
@@ -115,7 +103,6 @@ const CreateInvoiceForm = ({ onCloseModal }) => {
   function onSubmit(data) {
     const payload = {
       ID_PhieuKham: parseInt(data.ID_PhieuKham),
-      ID_NhanVien: parseInt(data.ID_NhanVien),
       NgayHoaDon: data.NgayHoaDon,
     };
     createInvoiceMutation(payload);
@@ -137,26 +124,20 @@ const CreateInvoiceForm = ({ onCloseModal }) => {
             <option value=''>Chọn phiếu khám</option>
             {phieuKhamList.map((p) => (
               <option key={p.ID_PhieuKham} value={p.ID_PhieuKham}>
-                #{p.ID_PhieuKham}
+                {(() => {
+                  const tiepNhan = p.tiepNhan || p.tiep_nhan;
+                  const benhNhan = tiepNhan?.benhNhan || tiepNhan?.benh_nhan;
+                  const ten = benhNhan?.HoTenBN || 'N/A';
+                  const idBN = benhNhan?.ID_BenhNhan;
+                  return `#${p.ID_PhieuKham} - ${ten}${idBN ? ` (BN#${idBN})` : ''}`;
+                })()}
               </option>
             ))}
           </Select>
         </FormRow>
 
-        <FormRow label='Nhân viên lập*' error={errors.ID_NhanVien?.message}>
-          <Select
-            id='ID_NhanVien'
-            {...register('ID_NhanVien', {
-              required: 'Bắt buộc !',
-            })}
-          >
-            <option value=''>Chọn nhân viên</option>
-            {nhanVienList.map((nv) => (
-              <option key={nv.ID_NhanVien} value={nv.ID_NhanVien}>
-                {nv.HoTenNV}
-              </option>
-            ))}
-          </Select>
+        <FormRow label='Nhân viên lập'>
+          <InputNew type='text' value={nhanVien?.HoTenNV ?? ''} readOnly disabled />
         </FormRow>
 
         <FormRow label='Ngày hoá đơn*' error={errors.NgayHoaDon?.message}>
@@ -166,6 +147,16 @@ const CreateInvoiceForm = ({ onCloseModal }) => {
             {...register('NgayHoaDon', {
               required: 'Bắt buộc !',
             })}
+          />
+        </FormRow>
+
+        <FormRow label='Dịch vụ'>
+          <InputNew
+            type='text'
+            id='DichVuPreview'
+            value={preview?.DichVu?.TenDichVu ?? ''}
+            readOnly
+            disabled
           />
         </FormRow>
 
@@ -207,7 +198,6 @@ const CreateInvoiceForm = ({ onCloseModal }) => {
             onClick={() => {
               reset({
                 ID_PhieuKham: '',
-                ID_NhanVien: '',
                 NgayHoaDon: new Date().toISOString().slice(0, 10),
               });
               setPreview(null);

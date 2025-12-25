@@ -25,7 +25,13 @@ class RoleHelper
 
         // Nếu là nhân viên
         if ($user->nhanVien) {
-            return $user->nhanVien->nhomNguoiDung?->MaNhom;
+            $maNhom = $user->nhanVien->nhomNguoiDung?->MaNhom;
+            if (!$maNhom) {
+                return null;
+            }
+
+            // Chuẩn hoá: toàn hệ thống dùng dạng "@cashiers", "@receptionists"...
+            return str_starts_with($maNhom, '@') ? $maNhom : ('@' . $maNhom);
         }
 
         // Nếu là bệnh nhân
@@ -77,7 +83,8 @@ class RoleHelper
      */
     public static function canCashierCreateHoaDon($user): bool
     {
-        return self::hasRole($user, ['@cashiers', '@admin']);
+        // Mạch tư: lễ tân kiêm thu ngân
+        return self::hasRole($user, ['@receptionists', '@admin']);
     }
 
     /**
@@ -89,11 +96,28 @@ class RoleHelper
     }
 
     /**
-     * Kiểm tra quản lý kho có thể nhập thuốc không
+     * Kiểm tra quản lý có thể quản lý thuốc không
      */
-    public static function canInventoryManageDrugs($user): bool
+    public static function canManagerManageDrugs($user): bool
     {
-        return self::hasRole($user, ['@inventory', '@admin']);
+        // Mạch tư: kho thuốc thuộc quyền quản lý
+        return self::hasRole($user, ['@managers', '@admin']);
+    }
+
+    /**
+     * Kiểm tra quản lý có thể cập nhật quy định (tiền khám, giới hạn tiếp nhận...)
+     */
+    public static function canManagerUpdateRegulations($user): bool
+    {
+        return self::hasRole($user, ['@managers', '@admin']);
+    }
+
+    /**
+     * Kiểm tra quản lý có thể quản lý danh mục dịch vụ khám và đơn giá không
+     */
+    public static function canManagerManageDichVu($user): bool
+    {
+        return self::hasRole($user, ['@managers', '@admin']);
     }
 }
 

@@ -14,11 +14,11 @@ class AdminSeeder extends Seeder
     {
         // Get the admin group ID
         $adminGroup = DB::table('nhom_nguoi_dung')
-            ->where('MaNhom', '@admin')
+            ->whereIn('MaNhom', ['admin', '@admin'])
             ->first();
 
         if (!$adminGroup) {
-            $this->command->error('Admin group (@admin) does not exist. Please run NhomNguoiDungSeeder first.');
+            $this->command->error('Admin group (admin) does not exist. Please run NhomNguoiDungSeeder first.');
             return;
         }
 

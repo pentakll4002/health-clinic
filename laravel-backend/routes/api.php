@@ -13,9 +13,11 @@ use App\Http\Controllers\PhieuKhamController;
 use App\Http\Controllers\BaoCaoDoanhThuController;
 use App\Http\Controllers\BaoCaoSuDungThuocController;
 use App\Http\Controllers\QuiDinhController;
+use App\Http\Controllers\DichVuController;
 use App\Http\Controllers\PatientProfileController;
 use App\Http\Controllers\LichKhamController;
 use App\Http\Controllers\LoaiBenhController;
+use App\Http\Controllers\ApiCatalogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,6 +49,41 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/patient/lich-kham', [LichKhamController::class, 'store']); // Đặt lịch khám
     Route::get('/patient/lich-kham/{id}', [LichKhamController::class, 'show']); // Chi tiết lịch khám
     Route::post('/patient/lich-kham/{id}/cancel', [LichKhamController::class, 'cancel']); // Hủy lịch khám
+
+    // Medical records (Phiếu khám) routes (cần authentication để phân quyền)
+    Route::get('/phieu-kham', [PhieuKhamController::class, 'index']);
+    Route::get('/phieu-kham/{id}', [PhieuKhamController::class, 'show']);
+    Route::post('/phieu-kham', [PhieuKhamController::class, 'store']); // Lễ tân tạo phiếu khám rỗng
+    Route::put('/phieu-kham/{id}', [PhieuKhamController::class, 'update']); // Bác sĩ cập nhật/bắt đầu khám
+    Route::post('/phieu-kham/{id}/toa-thuoc', [PhieuKhamController::class, 'addToaThuoc']);
+    Route::put('/phieu-kham/{id}/toa-thuoc/{thuocId}', [PhieuKhamController::class, 'updateToaThuoc']);
+    Route::delete('/phieu-kham/{id}/toa-thuoc/{thuocId}', [PhieuKhamController::class, 'removeToaThuoc']);
+    Route::post('/phieu-kham/{id}/dich-vu-phu', [PhieuKhamController::class, 'addDichVuPhu']);
+    Route::put('/phieu-kham/{id}/dich-vu-phu/{dichVuId}', [PhieuKhamController::class, 'updateDichVuPhu']);
+    Route::delete('/phieu-kham/{id}/dich-vu-phu/{dichVuId}', [PhieuKhamController::class, 'removeDichVuPhu']);
+    Route::post('/phieu-kham/{id}/complete', [PhieuKhamController::class, 'complete']); // Hoàn tất khám
+    Route::post('/phieu-kham/check-can-create', [PhieuKhamController::class, 'checkCanCreate']);
+
+    // Services (Dịch vụ khám) routes
+    Route::get('/dich-vu', [DichVuController::class, 'index']);
+    Route::post('/dich-vu', [DichVuController::class, 'store']);
+    Route::put('/dich-vu/{id}', [DichVuController::class, 'update']);
+    Route::delete('/dich-vu/{id}', [DichVuController::class, 'destroy']);
+
+    // Invoices (Hoá đơn) routes
+    Route::get('/invoices', [HoaDonController::class, 'index']); // danh sách
+    Route::get('/invoices/preview/{phieuKham}', [HoaDonController::class, 'preview']); // xem trước tiền
+    Route::post('/invoices', [HoaDonController::class, 'store']); // tạo mới
+    Route::get('/invoices/{id}', [HoaDonController::class, 'show']); // chi tiết
+    Route::put('/invoices/{id}', [HoaDonController::class, 'update']); // cập nhật
+    Route::delete('/invoices/{id}', [HoaDonController::class, 'destroy']); // xoá
+
+    // Regulations (Quy định) routes
+    Route::get('/qui-dinh', [QuiDinhController::class, 'index']); // lấy các quy định
+    Route::put('/qui-dinh', [QuiDinhController::class, 'update']); // cập nhật quy định
+
+    // API catalog (for presenting endpoints by role)
+    Route::get('/api-catalog', [ApiCatalogController::class, 'index']);
 });
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -68,11 +105,13 @@ Route::delete('/nhanvien/{id}', [NhanVienController::class, 'destroy']); // xoá
 Route::get('/nhom-nguoi-dung', [NhomNguoiDungController::class, 'index']);
 
 // BenhNhan routes
-Route::get('/benh-nhan', [BenhNhanController::class, 'index']); // danh sách bệnh nhân
-Route::get('/benh-nhan/{id}', [BenhNhanController::class, 'show']); // chi tiết
-Route::post('/benh-nhan', [BenhNhanController::class, 'store']); // tạo
-Route::put('/benh-nhan/{id}', [BenhNhanController::class, 'update']); // cập nhật
-Route::delete('/benh-nhan/{id}', [BenhNhanController::class, 'destroy']); // xoá mềm
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/benh-nhan', [BenhNhanController::class, 'index']); // danh sách bệnh nhân
+    Route::get('/benh-nhan/{id}', [BenhNhanController::class, 'show']); // chi tiết
+    Route::post('/benh-nhan', [BenhNhanController::class, 'store']); // tạo
+    Route::put('/benh-nhan/{id}', [BenhNhanController::class, 'update']); // cập nhật
+    Route::delete('/benh-nhan/{id}', [BenhNhanController::class, 'destroy']); // xoá mềm
+});
 
 // Drug management routes
 Route::get('/thuoc', [ThuocController::class, 'index']); // danh sách
@@ -84,28 +123,14 @@ Route::get('/dvt', [ThuocController::class, 'getDVT']); // lấy danh sách đơ
 Route::get('/cach-dung', [ThuocController::class, 'getCachDung']); // lấy danh sách cách dùng
 
 // Appointments (Danh sách tiếp nhận) routes
-Route::get('/appointments', [DanhSachTiepNhanController::class, 'index']); // danh sách
-Route::post('/appointments', [DanhSachTiepNhanController::class, 'store']); // tạo mới
-Route::post('/appointments/from-lich-kham', [DanhSachTiepNhanController::class, 'createFromLichKham']); // tạo tiếp nhận từ lịch khám
-Route::get('/appointments/{id}', [DanhSachTiepNhanController::class, 'show']); // lấy chi tiết
-Route::put('/appointments/{id}', [DanhSachTiepNhanController::class, 'update']); // sửa
-Route::delete('/appointments/{id}', [DanhSachTiepNhanController::class, 'destroy']); // xoá
-
-// Medical records (Phiếu khám) routes
-Route::get('/phieu-kham', [PhieuKhamController::class, 'index']);
-Route::get('/phieu-kham/{id}', [PhieuKhamController::class, 'show']);
-Route::post('/phieu-kham', [PhieuKhamController::class, 'store']); // Tạo phiếu khám mới
-Route::put('/phieu-kham/{id}', [PhieuKhamController::class, 'update']); // Cập nhật phiếu khám
-Route::post('/phieu-kham/{id}/complete', [PhieuKhamController::class, 'complete']); // Hoàn tất khám
-Route::post('/phieu-kham/check-can-create', [PhieuKhamController::class, 'checkCanCreate']); // Kiểm tra có thể tạo phiếu khám
-
-// Invoices (Hoá đơn) routes
-Route::get('/invoices', [HoaDonController::class, 'index']); // danh sách
-Route::get('/invoices/preview/{phieuKham}', [HoaDonController::class, 'preview']); // xem trước tiền
-Route::post('/invoices', [HoaDonController::class, 'store']); // tạo mới
-Route::get('/invoices/{id}', [HoaDonController::class, 'show']); // chi tiết
-Route::put('/invoices/{id}', [HoaDonController::class, 'update']); // cập nhật
-Route::delete('/invoices/{id}', [HoaDonController::class, 'destroy']); // xoá
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/appointments', [DanhSachTiepNhanController::class, 'index']); // danh sách
+    Route::post('/appointments', [DanhSachTiepNhanController::class, 'store']); // tạo mới
+    Route::post('/appointments/from-lich-kham', [DanhSachTiepNhanController::class, 'createFromLichKham']); // tạo tiếp nhận từ lịch khám
+    Route::get('/appointments/{id}', [DanhSachTiepNhanController::class, 'show']); // lấy chi tiết
+    Route::put('/appointments/{id}', [DanhSachTiepNhanController::class, 'update']); // sửa
+    Route::delete('/appointments/{id}', [DanhSachTiepNhanController::class, 'destroy']); // xoá
+});
 
 // Revenue Reports (Báo cáo doanh thu) routes
 Route::get('/bao-cao-doanh-thu', [BaoCaoDoanhThuController::class, 'index']); // danh sách
@@ -119,10 +144,6 @@ Route::post('/bao-cao-su-dung-thuoc', [BaoCaoSuDungThuocController::class, 'stor
 Route::get('/bao-cao-su-dung-thuoc/{id}', [BaoCaoSuDungThuocController::class, 'show']); // chi tiết
 Route::delete('/bao-cao-su-dung-thuoc/{id}', [BaoCaoSuDungThuocController::class, 'destroy']); // xoá
 Route::delete('/bao-cao-su-dung-thuoc', [BaoCaoSuDungThuocController::class, 'destroyByMonth']); // xoá theo tháng
-
-// Regulations (Quy định) routes
-Route::get('/qui-dinh', [QuiDinhController::class, 'index']); // lấy các quy định
-Route::put('/qui-dinh', [QuiDinhController::class, 'update']); // cập nhật quy định
 
 // Loai Benh routes
 Route::get('/loai-benh', [LoaiBenhController::class, 'index']); // danh sách loại bệnh

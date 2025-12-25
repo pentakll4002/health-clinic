@@ -12,11 +12,7 @@ class NhomNguoiDungSeeder extends Seeder
         $groups = [
             ['TenNhom' => 'Quản trị hệ thống', 'MaNhom' => 'admin'],
             ['TenNhom' => 'Bác sĩ', 'MaNhom' => 'doctors'],
-            ['TenNhom' => 'Y tá', 'MaNhom' => 'nurses'],
-            ['TenNhom' => 'Lễ tân', 'MaNhom' => 'receptionists'],
-            ['TenNhom' => 'Kế toán', 'MaNhom' => 'accountants'],
-            ['TenNhom' => 'Thu ngân', 'MaNhom' => 'cashiers'],
-            ['TenNhom' => 'Quản lý kho', 'MaNhom' => 'inventory'],
+            ['TenNhom' => 'Lễ tân – Thu ngân', 'MaNhom' => 'receptionists'],
             ['TenNhom' => 'Quản lý', 'MaNhom' => 'managers'],
             ['TenNhom' => 'Bệnh nhân', 'MaNhom' => 'patient'],
         ];

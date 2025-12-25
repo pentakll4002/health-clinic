@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 import CreatePhieuKhamForm from '../medicalForm/CreatePhieuKhamForm';
 import Button from '../../ui/Button';
 import { useState } from 'react';
-import { useUser } from '../../hooks/useUser';
 
 const Container = styled.div`
   width: 100%;
@@ -33,10 +32,8 @@ const Image = styled.img`
 const ReceptionCard = ({ tiepNhan, nurseView = false }) => {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { user } = useUser();
   
   const benhNhan = tiepNhan.benhNhan || tiepNhan.benh_nhan;
-  const nhanVien = tiepNhan.nhanVien || tiepNhan.nhan_vien;
   const leTanDuyet = tiepNhan.leTanDuyet || tiepNhan.le_tan_duyet;
   
   // Kiểm tra xem có thể lập phiếu khám không
@@ -129,11 +126,6 @@ const ReceptionCard = ({ tiepNhan, nurseView = false }) => {
           >
             {hasPhieuKham ? 'Đã có phiếu khám' : getTrangThaiText(tiepNhan.TrangThaiTiepNhan)}
           </span>
-          {nhanVien && (
-            <span className='text-xs text-grey-500'>
-              Bác sĩ: {nhanVien.HoTenNV || nhanVien.HoTen}
-            </span>
-          )}
           {leTanDuyet && (
             <span className='text-xs text-grey-500'>
               Lễ tân duyệt: {leTanDuyet.HoTenNV || leTanDuyet.HoTen}
@@ -141,7 +133,7 @@ const ReceptionCard = ({ tiepNhan, nurseView = false }) => {
           )}
         </div>
 
-        {canCreatePhieuKham && !hasPhieuKham && !nurseView && user?.role === 'bac_si' && (
+        {canCreatePhieuKham && !hasPhieuKham && !nurseView && (
           <ModalCenter>
             <ModalCenter.Open opens={`create-phieu-kham-${tiepNhan.ID_TiepNhan}`}>
               <Button className='bg-primary text-white text-sm px-3 py-1.5'>

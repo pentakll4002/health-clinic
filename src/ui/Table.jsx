@@ -12,7 +12,7 @@ const StyledTable = styled.div`
 
 const CommonRow = styled.header`
   display: grid;
-  grid-template-columns: ${(props) => props.columns};
+  grid-template-columns: ${(props) => props.$columns};
   background-color: #fff;
   column-gap: 24px;
   align-items: center;
@@ -63,7 +63,7 @@ function Header({ children }) {
   const { columns } = useContext(TableContext);
 
   return (
-    <StyledHeader role='row' columns={columns} as='header'>
+    <StyledHeader role='row' $columns={columns} as='header'>
       {children}
     </StyledHeader>
   );
@@ -72,12 +72,12 @@ function Row({ children }) {
   const { columns } = useContext(TableContext);
 
   return (
-    <StyledRow role='row' columns={columns}>
+    <StyledRow role='row' $columns={columns}>
       {children}
     </StyledRow>
   );
 }
-function Body({ data, render }) {
+function Body({ data = [], render }) {
   if (!data.length) return <Empty>Không có dữ liệu</Empty>;
 
   return <StyledBody>{data.map(render)}</StyledBody>;

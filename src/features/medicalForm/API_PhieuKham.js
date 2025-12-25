@@ -30,6 +30,22 @@ export async function updatePhieuKham(id, data) {
   return res.data;
 }
 
+// Toa thuốc (kê đơn)
+export async function addToaThuoc(id, data) {
+  const res = await axiosInstance.post(`/phieu-kham/${id}/toa-thuoc`, data);
+  return res.data;
+}
+
+export async function updateToaThuoc(id, thuocId, data) {
+  const res = await axiosInstance.put(`/phieu-kham/${id}/toa-thuoc/${thuocId}`, data);
+  return res.data;
+}
+
+export async function removeToaThuoc(id, thuocId) {
+  const res = await axiosInstance.delete(`/phieu-kham/${id}/toa-thuoc/${thuocId}`);
+  return res.data;
+}
+
 // Kiểm tra có thể tạo phiếu khám không
 export async function checkCanCreatePhieuKham(ID_TiepNhan) {
   const res = await axiosInstance.post('/phieu-kham/check-can-create', { ID_TiepNhan });

@@ -15,7 +15,6 @@ const PendingOnlineAppointmentsTableRow = ({ tiepNhan }) => {
 
   const benhNhan = tiepNhan.benhNhan || tiepNhan.benh_nhan;
   const nhanVien = tiepNhan.nhanVien || tiepNhan.nhan_vien;
-  const leTanDuyet = tiepNhan.leTanDuyet || tiepNhan.le_tan_duyet;
 
   const formatDateTime = (dateString) => {
     if (!dateString) return '—';

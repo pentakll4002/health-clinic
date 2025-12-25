@@ -188,6 +188,9 @@ class PatientProfileController extends Controller
 
         $doctor = NhanVien::with('nhomNguoiDung')->find($validated['ID_NhanVien']);
         $doctorGroupCode = $doctor?->nhomNguoiDung?->MaNhom;
+        $doctorGroupCode = $doctorGroupCode
+            ? (str_starts_with($doctorGroupCode, '@') ? $doctorGroupCode : ('@' . $doctorGroupCode))
+            : null;
         if (!$doctor || $doctorGroupCode !== '@doctors') {
             return response()->json([
                 'message' => 'Chỉ được phép chọn bác sĩ để đặt lịch khám',
@@ -209,7 +212,7 @@ class PatientProfileController extends Controller
 
         return response()->json([
             'message' => 'Đặt lịch thành công',
-            'appointment' => $appointment->load('nhanVien:ID_NhanVien,HoTenNV,ChucVu'),
+            'appointment' => $appointment->load('nhanVien:ID_NhanVien,HoTenNV'),
         ], 201);
     }
 

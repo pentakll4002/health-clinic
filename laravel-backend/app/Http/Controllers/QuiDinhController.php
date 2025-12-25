@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\RoleHelper;
 use App\Models\QuiDinh;
 use Illuminate\Http\Request;
 
@@ -22,6 +23,13 @@ class QuiDinhController extends Controller
 
     public function update(Request $request)
     {
+        $user = $request->user();
+        if (!RoleHelper::canManagerUpdateRegulations($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền cập nhật quy định.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'SoBenhNhanToiDa' => 'sometimes|required|integer|min:1|max:1000',
             'TienKham' => 'sometimes|required|numeric|min:0',

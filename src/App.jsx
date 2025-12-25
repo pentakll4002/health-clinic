@@ -38,10 +38,9 @@ import PatientInvoices from './pages/PatientInvoices';
 import PatientMedicalRecords from './pages/PatientMedicalRecords';
 import ReportsStaff from './pages/ReportsStaff';
 import DrugsImport from './pages/DrugsImport';
-import DrugsInventory from './pages/DrugsInventory';
-import Nurses from './pages/Nurses';
-import NurseQueue from './pages/NurseQueue';
-import NurseAssist from './pages/NurseAssist';
+import DoctorQueue from './pages/DoctorQueue';
+import DoctorExam from './pages/DoctorExam';
+import Services from './pages/Services';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -136,33 +135,6 @@ function App() {
             />
 
             <Route
-              path='nurses'
-              element={
-                <RoleGuard route='nurses'>
-                  <Nurses />
-                </RoleGuard>
-              }
-            />
-
-            <Route
-              path='nurses/queue'
-              element={
-                <RoleGuard route='nurses'>
-                  <NurseQueue />
-                </RoleGuard>
-              }
-            />
-
-            <Route
-              path='nurses/assist'
-              element={
-                <RoleGuard route='nurses'>
-                  <NurseAssist />
-                </RoleGuard>
-              }
-            />
-
-            <Route
               path='patients/profile'
               element={
                 <RoleGuard route='patientProfile'>
@@ -230,15 +202,6 @@ function App() {
               element={
                 <RoleGuard route='drugs'>
                   <DrugsImport />
-                </RoleGuard>
-              }
-            />
-
-            <Route
-              path='drugs/inventory'
-              element={
-                <RoleGuard route='drugs'>
-                  <DrugsInventory />
                 </RoleGuard>
               }
             />
@@ -316,6 +279,15 @@ function App() {
             />
 
             <Route
+              path='services'
+              element={
+                <RoleGuard route='services'>
+                  <Services />
+                </RoleGuard>
+              }
+            />
+
+            <Route
               path='lich-kham'
               element={
                 <RoleGuard route='patientProfile'>
@@ -329,6 +301,24 @@ function App() {
               element={
                 <RoleGuard route='doctors'>
                   <LichKhamDoctor />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path='doctor/queue'
+              element={
+                <RoleGuard route='doctorQueue'>
+                  <DoctorQueue />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path='doctor/exam/:id'
+              element={
+                <RoleGuard route='doctorExam'>
+                  <DoctorExam />
                 </RoleGuard>
               }
             />

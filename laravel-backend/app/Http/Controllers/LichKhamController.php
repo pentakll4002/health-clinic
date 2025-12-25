@@ -257,6 +257,7 @@ class LichKhamController extends Controller
             'NgayTN' => $lichKham->NgayKhamDuKien, // Sử dụng ngày khám dự kiến
             'CaTN' => $lichKham->CaKham,
             'ID_NhanVien' => $nhanVien->ID_NhanVien,
+            'ID_LeTanDuyet' => $nhanVien->ID_NhanVien,
             'TrangThaiTiepNhan' => 'CHO_KHAM',
             'Is_Deleted' => false,
         ]);
@@ -269,7 +270,7 @@ class LichKhamController extends Controller
         return response()->json([
             'message' => 'Xác nhận lịch khám thành công. Bệnh nhân đã được thêm vào danh sách tiếp nhận.',
             'data' => $lichKham,
-            'tiepNhan' => $tiepNhan->load(['benhNhan', 'nhanVien']),
+            'tiepNhan' => $tiepNhan->load(['benhNhan', 'nhanVien', 'leTanDuyet']),
         ]);
     }
 

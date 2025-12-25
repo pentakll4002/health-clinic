@@ -6,6 +6,10 @@ import Table from '../../ui/Table';
 import { useEffect, useState } from 'react';
 import { useChiTietPhieuKham } from './useChiTietPhieuKham';
 import Spinner from '../../ui/Spinner';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import axiosInstance from '../../utils/axiosInstance';
+import toast from 'react-hot-toast';
+import { addToaThuoc, completePhieuKham, removeToaThuoc, updatePhieuKham } from './API_PhieuKham';
 
 const LayoutMedicalDetail = styled.div`
   padding: 20px;
@@ -30,15 +34,109 @@ const Text = styled.span`
   margin: auto;
 `;
 
-const MedicalDetail = ({ ID_PhieuKham, readOnly = false }) => {
+const MedicalDetail = ({ ID_PhieuKham, readOnly = false, onCloseModal }) => {
   const { phieuKham, isLoading } = useChiTietPhieuKham(ID_PhieuKham);
   const [isEditting, setIsEditting] = useState(false);
   const { register, handleSubmit, getValues, reset, formState } = useForm();
 
+  const queryClient = useQueryClient();
+
   const { errors } = formState;
 
+  const { data: loaiBenhData } = useQuery({
+    queryKey: ['loai-benh'],
+    queryFn: async () => {
+      const res = await axiosInstance.get('/loai-benh');
+      return res.data;
+    },
+  });
+
+  const { data: dichVuData } = useQuery({
+    queryKey: ['dich-vu'],
+    queryFn: async () => {
+      const res = await axiosInstance.get('/dich-vu');
+      return res.data;
+    },
+  });
+
+  const claimMutation = useMutation({
+    mutationFn: () => updatePhieuKham(ID_PhieuKham, { TrangThai: 'DangKham' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['phieuKham', ID_PhieuKham] });
+      queryClient.invalidateQueries({ queryKey: ['phieukham-list'] });
+    },
+  });
+
+  const completeMutation = useMutation({
+    mutationFn: () => completePhieuKham(ID_PhieuKham),
+    onSuccess: () => {
+      toast.success('Đã hoàn tất khám');
+      queryClient.invalidateQueries({ queryKey: ['phieuKham', ID_PhieuKham] });
+      queryClient.invalidateQueries({ queryKey: ['phieukham-list'] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Hoàn tất khám thất bại');
+    },
+  });
+
+  const loaiBenhList = loaiBenhData?.data || [];
+  const dichVuList = dichVuData?.data || [];
+
+  const { data: drugsData } = useQuery({
+    queryKey: ['thuoc-mini'],
+    queryFn: async () => {
+      const res = await axiosInstance.get('/thuoc', { params: { page: 1, limit: 200 } });
+      return res.data;
+    },
+  });
+
+  const drugs = drugsData?.data || [];
+
+  const updateMutation = useMutation({
+    mutationFn: (payload) => updatePhieuKham(ID_PhieuKham, payload),
+    onSuccess: () => {
+      toast.success('Cập nhật phiếu khám thành công');
+      queryClient.invalidateQueries({ queryKey: ['phieuKham', ID_PhieuKham] });
+      queryClient.invalidateQueries({ queryKey: ['phieukham-list'] });
+      setIsEditting(false);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Cập nhật phiếu khám thất bại');
+    },
+  });
+
+  const addDrugMutation = useMutation({
+    mutationFn: ({ ID_Thuoc, SoLuong, CachDung }) =>
+      addToaThuoc(ID_PhieuKham, { ID_Thuoc, SoLuong, CachDung }),
+    onSuccess: () => {
+      toast.success('Đã thêm thuốc');
+      queryClient.invalidateQueries({ queryKey: ['phieuKham', ID_PhieuKham] });
+      queryClient.invalidateQueries({ queryKey: ['phieukham-list'] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Thêm thuốc thất bại');
+    },
+  });
+
+  const removeDrugMutation = useMutation({
+    mutationFn: (thuocId) => removeToaThuoc(ID_PhieuKham, thuocId),
+    onSuccess: () => {
+      toast.success('Đã xoá thuốc');
+      queryClient.invalidateQueries({ queryKey: ['phieuKham', ID_PhieuKham] });
+      queryClient.invalidateQueries({ queryKey: ['phieukham-list'] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Xoá thuốc thất bại');
+    },
+  });
+
   function onSubmit(data) {
-    console.log(data);
+    const payload = {
+      TrieuChung: data.TrieuChung || null,
+      ID_LoaiBenh: data.ID_LoaiBenh ? parseInt(data.ID_LoaiBenh) : null,
+      ID_DichVu: data.ID_DichVu ? parseInt(data.ID_DichVu) : null,
+    };
+    updateMutation.mutate(payload);
   }
 
   useEffect(() => {
@@ -47,116 +145,118 @@ const MedicalDetail = ({ ID_PhieuKham, readOnly = false }) => {
     }
   }, [phieuKham, reset]);
 
+  useEffect(() => {
+    if (!phieuKham) return;
+    if (readOnly) return;
+    if (phieuKham.TrangThai !== 'ChoKham') return;
+    if (claimMutation.isLoading) return;
+    claimMutation.mutate();
+  }, [phieuKham, readOnly]);
+
+  const tiepNhan = phieuKham?.tiepNhan || phieuKham?.tiep_nhan;
+  const benhNhan = tiepNhan?.benhNhan || tiepNhan?.benh_nhan;
+  const toaThuocList = phieuKham?.toaThuoc || phieuKham?.toa_thuoc || [];
+  const selectedDichVu = phieuKham?.dichVu || phieuKham?.dich_vu;
+
   if (isLoading) return <Spinner />;
 
   return (
     <LayoutMedicalDetail>
-      <h2 className='mb-5 text-xl font-bold leading-6 text-grey-900'>
-        Thông Tin Phiếu khám #{phieuKham.ID_PhieuKham}
-      </h2>
+      <div className='sticky top-0 z-10 -mx-5 mb-5 flex items-start justify-between gap-4 border-b border-grey-transparent bg-[#f5f6f8] px-5 py-4'>
+        <div>
+          <h2 className='text-xl font-bold leading-6 text-grey-900'>
+            Thông Tin Phiếu khám #{phieuKham.ID_PhieuKham}
+          </h2>
+          <p className='mt-1 text-sm text-grey-600'>
+            {benhNhan?.HoTenBN || phieuKham.HoTenBN || 'Bệnh nhân'}
+          </p>
+        </div>
+
+        <div className='flex items-center gap-2'>
+          <span className='rounded-full bg-grey-100 px-3 py-1 text-xs font-semibold text-grey-700'>
+            Trạng thái: {phieuKham.TrangThai}
+          </span>
+
+          {!readOnly && phieuKham.TrangThai === 'DangKham' && (
+            <button
+              type='button'
+              className='rounded-md bg-success-900 px-3 py-2 text-sm font-semibold text-white'
+              onClick={() => {
+                if (!phieuKham?.ID_DichVu) {
+                  toast.error('Vui lòng chọn dịch vụ khám trước khi hoàn tất khám');
+                  return;
+                }
+                completeMutation.mutate();
+              }}
+              disabled={completeMutation.isLoading}
+            >
+              Hoàn tất khám
+            </button>
+          )}
+
+          <button
+            type='button'
+            className='rounded-md bg-grey-100 px-3 py-2 text-sm font-semibold text-grey-700'
+            onClick={() => onCloseModal && onCloseModal()}
+          >
+            Đóng
+          </button>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className='flex items-start '>
-          <div>
+        <div className='grid grid-cols-3 gap-4'>
+          <div className='col-span-2 rounded-xl border border-grey-transparent bg-white p-5'>
+            <div className='mb-4 flex items-center justify-between'>
+              <h3 className='text-sm font-bold uppercase tracking-wide text-grey-700'>Thông tin khám</h3>
+              {!isEditting ? (
+                <button
+                  className='rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white'
+                  onClick={() => setIsEditting(true)}
+                  disabled={readOnly}
+                  style={readOnly ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+                  type='button'
+                >
+                  Chỉnh sửa
+                </button>
+              ) : (
+                <div className='flex items-center gap-2'>
+                  <button
+                    className='rounded-md bg-success-900 px-3 py-2 text-sm font-semibold text-white'
+                    disabled={updateMutation.isLoading}
+                    type='submit'
+                  >
+                    Lưu
+                  </button>
+                  <button
+                    className='rounded-md bg-error-900 px-3 py-2 text-sm font-semibold text-white'
+                    onClick={() => setIsEditting(false)}
+                    type='button'
+                  >
+                    Huỷ
+                  </button>
+                </div>
+              )}
+            </div>
+
             <Grid2Col>
-              <FormRow
-                inline={true}
-                label='Mã Phiếu Khám: '
-                error={errors.ID_PhieuKham?.message}
-              >
-                {isEditting ? (
-                  <InputNew
-                    type='text'
-                    name='ID_PhieuKham'
-                    defauValues={getValues('ID_PhieuKham')}
-                    {...register('ID_PhieuKham', {
-                      required: 'Bắt buộc !',
-                    })}
-                  />
-                ) : (
-                  <Text>{phieuKham.ID_PhieuKham}</Text>
-                )}
+              <FormRow inline={true} label='Ngày khám:'>
+                <Text>{tiepNhan?.NgayTN || phieuKham.NgayTN}</Text>
               </FormRow>
 
-              <FormRow
-                inline={true}
-                label='Ca Khám: '
-                error={errors.CaTN?.message}
-              >
-                {isEditting ? (
-                  <InputNew
-                    type='text'
-                    name='CaTN'
-                    defauValues={getValues('CaTN')}
-                    {...register('CaTN', {
-                      required: 'Bắt buộc !',
-                    })}
-                  />
-                ) : (
-                  <Text>{phieuKham.CaTN}</Text>
-                )}
+              <FormRow inline={true} label='Ca khám:'>
+                <Text>{tiepNhan?.CaTN || phieuKham.CaTN || phieuKham.CaKham}</Text>
               </FormRow>
 
-              <FormRow
-                inline={true}
-                label='Ngày Khám: '
-                error={errors.NgayTN?.message}
-              >
-                {isEditting ? (
-                  <InputNew
-                    type='text'
-                    name='NgayTN'
-                    defauValues={getValues('NgayTN')}
-                    {...register('NgayTN', {
-                      required: 'Bắt buộc !',
-                    })}
-                  />
-                ) : (
-                  <Text>{phieuKham.NgayTN}</Text>
-                )}
+              <FormRow inline={true} label='Mã bệnh nhân:'>
+                <Text>{tiepNhan?.ID_BenhNhan || phieuKham.ID_BenhNhan}</Text>
               </FormRow>
 
-              <FormRow
-                inline={true}
-                label='Mã Bệnh Nhân: '
-                error={errors.ID_BenhNhan?.message}
-              >
-                {isEditting ? (
-                  <InputNew
-                    type='text'
-                    name='ID_BenhNhan'
-                    defauValues={getValues('ID_BenhNhan')}
-                    {...register('ID_BenhNhan', {
-                      required: 'Bắt buộc !',
-                    })}
-                  />
-                ) : (
-                  <Text>{phieuKham.ID_BenhNhan}</Text>
-                )}
+              <FormRow inline={true} label='Họ tên:'>
+                <Text>{benhNhan?.HoTenBN || phieuKham.HoTenBN}</Text>
               </FormRow>
-              <FormRow
-                inline={true}
-                label='Họ Tên: '
-                error={errors.HoTenBN?.message}
-              >
-                {isEditting ? (
-                  <InputNew
-                    type='text'
-                    name='HoTenBN'
-                    defauValues={getValues('HoTenBN')}
-                    {...register('HoTenBN', {
-                      required: 'Bắt buộc !',
-                    })}
-                  />
-                ) : (
-                  <Text>{phieuKham.HoTenBN}</Text>
-                )}
-              </FormRow>
-              <FormRow
-                inline={true}
-                label='Triệu Chứng: '
-                error={errors.TrieuChung?.message}
-              >
+
+              <FormRow inline={true} label='Triệu chứng:' error={errors.TrieuChung?.message}>
                 {isEditting ? (
                   <InputNew
                     type='text'
@@ -167,123 +267,170 @@ const MedicalDetail = ({ ID_PhieuKham, readOnly = false }) => {
                     })}
                   />
                 ) : (
-                  <Text>{phieuKham.TrieuChung}</Text>
+                  <Text>{phieuKham.TrieuChung || 'Chưa cập nhật'}</Text>
+                )}
+              </FormRow>
+
+              <FormRow inline={true} label='Dịch vụ khám:' error={errors.ID_DichVu?.message}>
+                {isEditting ? (
+                  <select
+                    className='w-full rounded-md border border-grey-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary'
+                    {...register('ID_DichVu', {
+                      required: 'Bắt buộc !',
+                    })}
+                    defaultValue={getValues('ID_DichVu') ?? phieuKham.ID_DichVu ?? ''}
+                  >
+                    <option value=''>Chọn dịch vụ</option>
+                    {dichVuList.map((dv) => (
+                      <option key={dv.ID_DichVu} value={dv.ID_DichVu}>
+                        {dv.TenDichVu}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <Text>{selectedDichVu?.TenDichVu || 'Chưa chọn'}</Text>
+                )}
+              </FormRow>
+
+              <FormRow inline={true} label='Chẩn đoán:' error={errors.ID_LoaiBenh?.message}>
+                {isEditting ? (
+                  <select
+                    className='w-full rounded-md border border-grey-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary'
+                    {...register('ID_LoaiBenh', {
+                      required: 'Bắt buộc !',
+                    })}
+                    defaultValue={getValues('ID_LoaiBenh') || phieuKham.ID_LoaiBenh || ''}
+                  >
+                    <option value=''>-- Chọn loại bệnh --</option>
+                    {loaiBenhList.map((loai) => (
+                      <option key={loai.ID_LoaiBenh} value={loai.ID_LoaiBenh}>
+                        {loai.TenLoaiBenh}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <Text>{phieuKham.loaiBenh?.TenLoaiBenh || 'Chưa chẩn đoán'}</Text>
                 )}
               </FormRow>
             </Grid2Col>
-            <FormRow
-              inline={true}
-              label='Chẩn Đoán: '
-              error={errors.ChanDoan?.message}
-            >
-              {isEditting ? (
-                <InputNew
-                  type='text'
-                  name='ChanDoan'
-                  defauValues={getValues('ChanDoan')}
-                  {...register('ChanDoan', {
-                    required: 'Bắt buộc !',
-                  })}
-                />
-              ) : (
-                <Text>{phieuKham.ChanDoan}</Text>
-              )}
-            </FormRow>
           </div>
-          <div className='flex flex-col items-center justify-center w-full gap-y-10'>
-            <div className='flex flex-col justify-between px-5 pt-2 text-center border-[3px] rounded-lg gap-y-3 pb-7 border-primary text-xl font-semibold text-grey-900'>
-              <span>Tiền Khám</span>
-              {isEditting ? (
-                <InputNew
-                  type='text'
-                  name='TienKham'
-                  defauValues={getValues('TienKham')}
-                  {...register('TienKham', {
-                    required: 'Bắt buộc !',
-                  })}
-                />
-              ) : (
-                <span>{phieuKham.TienKham} Đồng</span>
-              )}
+
+          <div className='col-span-1 space-y-4'>
+            <div className='rounded-xl border border-primary bg-white p-5'>
+              <p className='text-xs font-semibold uppercase text-grey-500'>Tiền khám</p>
+              <div className='mt-2'>
+                <p className='text-lg font-bold text-grey-900'>{phieuKham.TienKham ?? 0} Đồng</p>
+              </div>
             </div>
 
-            <div className='flex flex-col justify-between px-5 pt-2 text-center border-[3px] gap-y-3 rounded-lg pb-7 border-primary text-xl font-semibold text-grey-900'>
-              <span>Tiền Thuốc</span>
-              {isEditting ? (
-                <InputNew
-                  type='text'
-                  name='TongTienThuoc'
-                  defauValues={getValues('TongTienThuoc')}
-                  {...register('TongTienThuoc', {
-                    required: 'Bắt buộc !',
-                  })}
-                />
-              ) : (
-                <span>{phieuKham.TongTienThuoc} Đồng</span>
-              )}
+            <div className='rounded-xl border border-primary bg-white p-5'>
+              <p className='text-xs font-semibold uppercase text-grey-500'>Tiền thuốc</p>
+              <p className='mt-2 text-lg font-bold text-grey-900'>{phieuKham.TongTienThuoc ?? 0} Đồng</p>
+              <p className='mt-1 text-xs text-grey-500'>Tự động cập nhật theo toa thuốc</p>
             </div>
           </div>
         </div>
-
-        {!isEditting ? (
-          <button
-            className='px-3 py-2 mt-2 mr-auto text-sm font-semibold text-white bg-primary'
-            onClick={() => {
-              setIsEditting(true);
-            }}
-            disabled={readOnly}
-            style={readOnly ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
-          >
-            Chỉnh sửa
-          </button>
-        ) : (
-          <div>
-            <button className='px-3 py-2 mt-2 mr-5 text-sm font-semibold text-white bg-success-900'>
-              Lưu
-            </button>
-
-            <button
-              className='px-3 py-2 mt-2 text-sm font-semibold text-white bg-error-900'
-              onClick={() => {
-                setIsEditting(false);
-              }}
-            >
-              Huỷ
-            </button>
-          </div>
-        )}
       </form>
 
-      <p className='pb-3 m-6 text-sm font-semibold text-center border-b text-primary border-grey-transparent'>
-        Danh sách thuốc đã kê
-      </p>
+      {!readOnly && (
+        <div className='mt-4 rounded-xl border border-grey-transparent bg-white p-5'>
+          <h3 className='mb-4 text-sm font-bold uppercase tracking-wide text-grey-700'>Kê toa thuốc</h3>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const thuocId = parseInt(e.currentTarget.ID_Thuoc.value);
+              const soLuong = parseInt(e.currentTarget.SoLuong.value || '1');
+              const cachDung = e.currentTarget.CachDung.value || null;
+              if (!thuocId) return;
+              addDrugMutation.mutate({ ID_Thuoc: thuocId, SoLuong: soLuong, CachDung: cachDung });
+              e.currentTarget.reset();
+            }}
+            className='grid grid-cols-4 gap-3 items-end'
+          >
+            <div>
+              <label className='block text-xs font-semibold text-grey-500 mb-1'>Thuốc</label>
+              <select name='ID_Thuoc' className='w-full rounded-md border border-grey-transparent px-3 py-2 text-sm'>
+                <option value=''>-- Chọn thuốc --</option>
+                {drugs.map((d) => (
+                  <option key={d.ID_Thuoc} value={d.ID_Thuoc}>
+                    {d.TenThuoc}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className='block text-xs font-semibold text-grey-500 mb-1'>Số lượng</label>
+              <input
+                name='SoLuong'
+                type='number'
+                min='1'
+                defaultValue='1'
+                className='w-full rounded-md border border-grey-transparent px-3 py-2 text-sm'
+              />
+            </div>
+            <div>
+              <label className='block text-xs font-semibold text-grey-500 mb-1'>Cách dùng</label>
+              <input
+                name='CachDung'
+                type='text'
+                className='w-full rounded-md border border-grey-transparent px-3 py-2 text-sm'
+                placeholder='Uống sau ăn...'
+              />
+            </div>
+            <button
+              type='submit'
+              className='rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white'
+              disabled={addDrugMutation.isLoading}
+            >
+              Thêm thuốc
+            </button>
+          </form>
+        </div>
+      )}
 
-      <Table columns='2fr 2fr 2fr 2fr 2fr 2fr'>
-        <Table.Header>
-          <div className='mx-auto'>Tên Thuốc</div>
-          <div className='mx-auto'>Đơn Vị Tính</div>
-          <div className='mx-auto'>Số Lượng</div>
-          <div className='mx-auto'>Cách Dùng</div>
-          <div className='mx-auto'>Đơn Giá</div>
-          <div className='mx-auto'>Thành Tiền</div>
-        </Table.Header>
+      <div className='mt-4 rounded-xl border border-grey-transparent bg-white p-5'>
+        <h3 className='mb-4 text-sm font-bold uppercase tracking-wide text-grey-700'>Danh sách thuốc đã kê</h3>
+        <Table columns='2fr 1fr 1fr 2fr 1fr 1fr'>
+          <Table.Header>
+            <div className='mx-auto'>Tên thuốc</div>
+            <div className='mx-auto'>ĐVT</div>
+            <div className='mx-auto'>Số lượng</div>
+            <div className='mx-auto'>Cách dùng</div>
+            <div className='mx-auto'>Đơn giá</div>
+            <div className='mx-auto'>Thành tiền</div>
+          </Table.Header>
 
-        <Table.Body
-          data={phieuKham.DonThuoc}
-          render={(ToaThuoc) => {
-            return (
-              <Table.Row key={ToaThuoc.TenThuoc}>
-                <Text>{ToaThuoc.TenThuoc}</Text>
-                <Text>{ToaThuoc.DonViTinh}</Text>
-                <Text>{ToaThuoc.CachDung}</Text>
-                <Text>{ToaThuoc.SoLuong}</Text>
-                <Text>{ToaThuoc.DonGia}</Text>
-                <Text>{ToaThuoc.ThanhTien}</Text>
-              </Table.Row>
-            );
-          }}
-        />
-      </Table>
+          <Table.Body
+            data={toaThuocList}
+            render={(toa) => {
+              const thuoc = toa.thuoc;
+              const donGia = toa.DonGiaBan_LuocMua ?? thuoc?.DonGiaBan;
+              return (
+                <Table.Row key={`${toa.ID_PhieuKham}-${toa.ID_Thuoc}`}>
+                  <Text>{thuoc?.TenThuoc || '—'}</Text>
+                  <Text>{thuoc?.dvt?.TenDVT || thuoc?.dvt?.TenDvt || '—'}</Text>
+                  <Text>{toa.SoLuong}</Text>
+                  <Text>{toa.CachDung || '—'}</Text>
+                  <Text>{donGia ?? 0}</Text>
+                  <div className='flex items-center justify-end gap-2'>
+                    <Text>{toa.TienThuoc ?? 0}</Text>
+                    {!readOnly && (
+                      <button
+                        type='button'
+                        className='rounded bg-error-900 px-2 py-1 text-xs font-semibold text-white'
+                        onClick={() => removeDrugMutation.mutate(toa.ID_Thuoc)}
+                        disabled={removeDrugMutation.isLoading}
+                      >
+                        Xóa
+                      </button>
+                    )}
+                  </div>
+                </Table.Row>
+              );
+            }}
+          />
+        </Table>
+      </div>
     </LayoutMedicalDetail>
   );
 };

@@ -13,6 +13,11 @@ const StyledModal = styled.div`
   box-shadow: 0 24px 32px rgba(0, 0, 0, 0.12);
   padding: 32px 40px;
   transition: all 0.5s;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: min(1200px, 92vw);
+  border-radius: 12px;
 `;
 
 const Overlay = styled.div`

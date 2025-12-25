@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             CachDungSeeder::class,
             LoaiBenhSeeder::class,
             QuiDinhSeeder::class,
+            DichVuSeeder::class,
             ThuocSeeder::class,
             AdminSeeder::class,
         ]);

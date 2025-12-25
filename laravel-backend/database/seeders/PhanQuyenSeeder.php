@@ -10,14 +10,11 @@ class PhanQuyenSeeder extends Seeder
     public function run(): void
     {
         $roleCodes = [
-            '@admin',
-            '@doctors',
-            '@nurses',
-            '@receptionists',
-            '@cashiers',
-            '@inventory',
-            '@managers',
-            '@accountants',
+            'admin',
+            'doctors',
+            'receptionists',
+            'managers',
+            'patient',
         ];
         $groups = DB::table('nhom_nguoi_dung')
             ->whereIn('MaNhom', $roleCodes)
@@ -35,34 +32,25 @@ class PhanQuyenSeeder extends Seeder
 
         $rolePermissions = [
             // Admin: toàn quyền trên tất cả chức năng
-            '@admin' => array_keys($chucNangs),
+            'admin' => array_keys($chucNangs),
 
-            // Bác sĩ: khám bệnh, kê toa, xem lịch sử
-            '@doctors' => [
+            // Bác sĩ: khám bệnh, kê toa, xem lịch sử (gộp quyền y tá)
+            'doctors' => [
                 'examine-patients',
                 'prescribe-medicine',
                 'view-medical-history',
-            ],
-
-            // Y tá: hỗ trợ khám & tiếp nhận, KHÔNG chẩn đoán/kê toa
-            '@nurses' => [
-                'register-patient',
-                'intake-patient',
-                'schedule-appointments',
-                'search-patient',
-                'view-medical-history',
-            ],
-
-            // Lễ tân: tiếp nhận, đăng ký, lịch hẹn, tra cứu
-            '@receptionists' => [
                 'register-patient',
                 'intake-patient',
                 'schedule-appointments',
                 'search-patient',
             ],
 
-            // Thu ngân: lập & xử lý hóa đơn
-            '@cashiers' => [
+            // Lễ tân – Thu ngân: tiếp nhận + lập & xử lý hóa đơn
+            'receptionists' => [
+                'register-patient',
+                'intake-patient',
+                'schedule-appointments',
+                'search-patient',
                 'manage-invoices',
                 'process-payments',
                 'dispense-medicine',
@@ -70,26 +58,21 @@ class PhanQuyenSeeder extends Seeder
                 'invoice-list',
             ],
 
-            // Quản lý kho: nhập thuốc, quản lý tồn kho, cảnh báo
-            '@inventory' => [
+            // Quản lý: báo cáo + cấu hình (gộp accountants + inventory)
+            'managers' => [
                 'import-inventory',
                 'manage-inventory',
                 'inventory-alerts',
                 'manage-drugs',
-            ],
-
-            // Quản lý: xem báo cáo, giám sát hoạt động
-            '@managers' => [
                 'view-revenue',
                 'manage-reports',
                 'monitor-operations',
                 'monitor-staff',
             ],
 
-            // Kế toán: tài chính & báo cáo, KHÔNG lập hóa đơn
-            '@accountants' => [
-                'view-revenue',
-                'manage-reports',
+            // Bệnh nhân: portal (nếu có các chức năng tương ứng trong chuc_nang)
+            'patient' => [
+                'view-medical-history',
                 'invoice-list',
             ],
         ];

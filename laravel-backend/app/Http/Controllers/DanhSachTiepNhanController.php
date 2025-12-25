@@ -56,6 +56,15 @@ class DanhSachTiepNhanController extends Controller
         ]);
 
         $payload = $request->all();
+
+        // Khi lễ tân duyệt online appointment: chuyển sang CHO_KHAM và lưu đúng lễ tân duyệt
+        if (array_key_exists('TrangThaiTiepNhan', $payload) && $payload['TrangThaiTiepNhan'] === 'CHO_KHAM') {
+            $user = $request->user();
+            $nhanVien = $user ? ($user->nhanVien ?? $user->nhan_vien) : null;
+            if ($nhanVien && $nhanVien->ID_NhanVien) {
+                $payload['ID_LeTanDuyet'] = $nhanVien->ID_NhanVien;
+            }
+        }
         if (!array_key_exists('TrangThaiTiepNhan', $payload) || !$payload['TrangThaiTiepNhan']) {
             $payload['TrangThaiTiepNhan'] = 'CHO_KHAM';
         }
@@ -70,7 +79,7 @@ class DanhSachTiepNhanController extends Controller
 
     public function show($id)
     {
-        $tiepNhan = DanhSachTiepNhan::with(['benhNhan', 'nhanVien', 'leTanDuyet'])->find($id);
+        $tiepNhan = DanhSachTiepNhan::with(['benhNhan', 'nhanVien', 'leTanDuyet', 'phieuKhams'])->find($id);
         if (!$tiepNhan) {
             return response()->json(['message' => 'Không tìm thấy tiếp nhận'], 404);
         }
@@ -93,6 +102,15 @@ class DanhSachTiepNhanController extends Controller
         ]);
 
         $payload = $request->all();
+
+        // Khi lễ tân duyệt online appointment: chuyển sang CHO_KHAM và lưu đúng lễ tân duyệt
+        if (array_key_exists('TrangThaiTiepNhan', $payload) && $payload['TrangThaiTiepNhan'] === 'CHO_KHAM') {
+            $user = $request->user();
+            $nhanVien = $user ? ($user->nhanVien ?? $user->nhan_vien) : null;
+            if ($nhanVien && $nhanVien->ID_NhanVien) {
+                $payload['ID_LeTanDuyet'] = $nhanVien->ID_NhanVien;
+            }
+        }
 
         // Nếu từ chối/huỷ theo Option B: soft delete
         if (array_key_exists('TrangThaiTiepNhan', $payload) && $payload['TrangThaiTiepNhan'] === 'HUY') {
@@ -171,7 +189,7 @@ class DanhSachTiepNhanController extends Controller
 
         return response()->json([
             'message' => 'Tiếp nhận bệnh nhân thành công',
-            'tiepNhan' => $tiepNhan->load(['benhNhan', 'nhanVien']),
+            'tiepNhan' => $tiepNhan->load(['benhNhan', 'nhanVien', 'leTanDuyet']),
         ], 201);
     }
 }

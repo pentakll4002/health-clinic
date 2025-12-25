@@ -12,8 +12,22 @@ const Text = styled.span`
 `;
 
 const MedicalRow = ({
-  phieuKham: { ID_PhieuKham, NgayTN, CaTN, TienKham, TongTienThuoc },
+  phieuKham,
 }) => {
+  const {
+    ID_PhieuKham,
+    TienKham,
+    TongTienThuoc,
+    CaKham,
+    NgayTN,
+    CaTN,
+  } = phieuKham;
+
+  const tiepNhan = phieuKham.tiepNhan || phieuKham.tiep_nhan;
+
+  const ngayTiepNhan = tiepNhan?.NgayTN ?? NgayTN;
+  const caTiepNhan = tiepNhan?.CaTN ?? CaTN ?? CaKham;
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -24,8 +38,8 @@ const MedicalRow = ({
   return (
     <Table.Row>
       <Text>{ID_PhieuKham}</Text>
-      <Text>{NgayTN}</Text>
-      <Text>{CaTN}</Text>
+      <Text>{ngayTiepNhan}</Text>
+      <Text>{caTiepNhan}</Text>
       <Text>{formatCurrency(TienKham)}</Text>
       <Text>{formatCurrency(TongTienThuoc)}</Text>
 

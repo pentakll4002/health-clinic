@@ -29,12 +29,12 @@ class ThuocController extends Controller
 
     public function store(Request $request)
     {
-        // Kiểm tra quyền: Chỉ quản lý kho và admin được nhập thuốc mới
+        // Kiểm tra quyền: Chỉ quản lý và admin được nhập thuốc mới
         // Bác sĩ KHÔNG được nhập thuốc
         $user = $request->user();
-        if (!RoleHelper::canInventoryManageDrugs($user)) {
+        if (!RoleHelper::canManagerManageDrugs($user)) {
             return response()->json([
-                'message' => 'Bạn không có quyền nhập thuốc mới. Chỉ quản lý kho mới được phép thực hiện chức năng này.',
+                'message' => 'Bạn không có quyền nhập thuốc mới. Chỉ quản lý mới được phép thực hiện chức năng này.',
             ], 403);
         }
 
@@ -70,12 +70,12 @@ class ThuocController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Kiểm tra quyền: Chỉ quản lý kho và admin được cập nhật thuốc
+        // Kiểm tra quyền: Chỉ quản lý và admin được cập nhật thuốc
         // Bác sĩ KHÔNG được sửa giá thuốc
         $user = $request->user();
-        if (!RoleHelper::canInventoryManageDrugs($user)) {
+        if (!RoleHelper::canManagerManageDrugs($user)) {
             return response()->json([
-                'message' => 'Bạn không có quyền cập nhật thông tin thuốc. Chỉ quản lý kho mới được phép thực hiện chức năng này.',
+                'message' => 'Bạn không có quyền cập nhật thông tin thuốc. Chỉ quản lý mới được phép thực hiện chức năng này.',
             ], 403);
         }
 

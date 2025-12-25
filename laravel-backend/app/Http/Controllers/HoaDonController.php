@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\HoaDon;
-use App\Models\NhanVien;
 use App\Models\PhieuKham;
 use App\Models\QuiDinh;
 use App\Helpers\RoleHelper;
@@ -13,10 +12,18 @@ class HoaDonController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
+        if (!RoleHelper::canCashierCreateHoaDon($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền truy cập danh sách hoá đơn.',
+            ], 403);
+        }
+
         $limit = $request->get('limit', 7);
         $page = $request->get('page', 1);
 
-        $query = HoaDon::with(['nhanVien', 'phieuKham']);
+        $query = HoaDon::with(['nhanVien', 'phieuKham.tiepNhan.benhNhan'])
+            ->orderByDesc('ID_HoaDon');
 
         $totalCount = $query->count();
         $data = $query->offset(($page - 1) * $limit)->limit($limit)->get();
@@ -29,17 +36,33 @@ class HoaDonController extends Controller
 
     public function preview($phieuKhamId)
     {
-        $phieuKham = PhieuKham::with(['toaThuoc', 'hoaDon'])->find($phieuKhamId);
+        $phieuKham = PhieuKham::with(['toaThuoc', 'hoaDon', 'dichVu', 'ctDichVuPhu.dichVu'])->find($phieuKhamId);
         if (!$phieuKham || $phieuKham->Is_Deleted) {
             return response()->json(['message' => 'Phiếu khám không hợp lệ'], 404);
+        }
+
+        if (!$phieuKham->ID_DichVu) {
+            return response()->json([
+                'message' => 'Chưa chọn dịch vụ khám. Vui lòng yêu cầu bác sĩ chọn dịch vụ trước khi lập hoá đơn.',
+            ], 400);
+        }
+
+        if (($phieuKham->TrangThai ?? null) !== 'DaKham') {
+            return response()->json([
+                'message' => 'Chỉ được lập hoá đơn khi phiếu khám đã hoàn tất (Đã khám).',
+            ], 400);
         }
 
         if ($phieuKham->hoaDon) {
             return response()->json(['message' => 'Phiếu khám này đã được lập hoá đơn'], 409);
         }
 
-        $tienKhamTheoQuyDinh = QuiDinh::getValue('TienKham', 0);
-        $tienKham = $tienKhamTheoQuyDinh > 0 ? $tienKhamTheoQuyDinh : ($phieuKham->TienKham ?? 0);
+        $tienKhamSnapshot = (float) ($phieuKham->TienKham ?? 0);
+        if ($tienKhamSnapshot > 0) {
+            $tienKham = $tienKhamSnapshot;
+        } else {
+            $tienKham = (float) QuiDinh::getValue('TienKham', 0);
+        }
 
         $tienThuoc = $phieuKham->toaThuoc->sum(function ($item) {
             return (float) $item->TienThuoc;
@@ -48,16 +71,36 @@ class HoaDonController extends Controller
             $tienThuoc = (float) $phieuKham->TongTienThuoc;
         }
 
+        $tienDichVu = (float) $phieuKham->ctDichVuPhu->sum(function ($item) {
+            return (float) $item->ThanhTien;
+        });
+
         return response()->json([
+            'DichVu' => $phieuKham->dichVu,
+            'DichVuPhu' => $phieuKham->ctDichVuPhu,
             'TienKham' => $tienKham,
             'TienThuoc' => $tienThuoc,
-            'TongTien' => $tienKham + $tienThuoc,
+            'TienDichVu' => $tienDichVu,
+            'TongTien' => $tienKham + $tienThuoc + $tienDichVu,
         ]);
     }
 
     public function show($id)
     {
-        $hoaDon = HoaDon::with(['nhanVien', 'phieuKham'])->find($id);
+        $user = request()->user();
+        if (!RoleHelper::canCashierCreateHoaDon($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền xem hoá đơn.',
+            ], 403);
+        }
+
+        $hoaDon = HoaDon::with([
+            'nhanVien',
+            'phieuKham.tiepNhan.benhNhan',
+            'phieuKham.dichVu',
+            'phieuKham.toaThuoc.thuoc',
+            'phieuKham.ctDichVuPhu.dichVu',
+        ])->find($id);
         if (!$hoaDon) {
             return response()->json(['message' => 'Không tìm thấy hoá đơn'], 404);
         }
@@ -76,34 +119,44 @@ class HoaDonController extends Controller
 
         $validated = $request->validate([
             'ID_PhieuKham' => 'required|integer|exists:phieu_kham,ID_PhieuKham',
-            'ID_NhanVien' => 'required|integer|exists:nhan_vien,ID_NhanVien',
             'NgayHoaDon' => 'sometimes|date',
         ]);
 
-        $phieuKham = PhieuKham::with(['toaThuoc', 'hoaDon'])->find($validated['ID_PhieuKham']);
+        $phieuKham = PhieuKham::with(['toaThuoc', 'hoaDon', 'dichVu', 'ctDichVuPhu'])->find($validated['ID_PhieuKham']);
         if (!$phieuKham || $phieuKham->Is_Deleted) {
             return response()->json(['message' => 'Phiếu khám không hợp lệ'], 422);
+        }
+
+        if (!$phieuKham->ID_DichVu) {
+            return response()->json([
+                'message' => 'Không thể lập hoá đơn vì phiếu khám chưa chọn dịch vụ khám.',
+            ], 400);
+        }
+
+        if (($phieuKham->TrangThai ?? null) !== 'DaKham') {
+            return response()->json([
+                'message' => 'Chỉ được lập hoá đơn khi phiếu khám đã hoàn tất (Đã khám).',
+            ], 400);
         }
 
         if ($phieuKham->hoaDon) {
             return response()->json(['message' => 'Phiếu khám này đã được lập hoá đơn'], 409);
         }
 
-        $nhanVien = NhanVien::with('nhomNguoiDung')->find($validated['ID_NhanVien']);
-        if (!$nhanVien) {
-            return response()->json(['message' => 'Nhân viên không tồn tại'], 404);
+        // Nhân viên lập hoá đơn lấy từ user đăng nhập (không cho client tuỳ ý truyền)
+        $nhanVien = $user->nhanVien ?? $user->nhan_vien;
+        if (!$nhanVien || !$nhanVien->ID_NhanVien) {
+            return response()->json([
+                'message' => 'Không tìm thấy thông tin nhân viên lập hoá đơn. Vui lòng đăng nhập lại.',
+            ], 400);
         }
 
-        $allowedRoles = ['@cashiers', '@admin'];
-        if (
-            !$nhanVien->nhomNguoiDung
-            || !in_array($nhanVien->nhomNguoiDung->MaNhom, $allowedRoles, true)
-        ) {
-            return response()->json(['message' => 'Nhân viên không có quyền lập hoá đơn'], 403);
+        $tienKhamSnapshot = (float) ($phieuKham->TienKham ?? 0);
+        if ($tienKhamSnapshot > 0) {
+            $tienKham = $tienKhamSnapshot;
+        } else {
+            $tienKham = (float) QuiDinh::getValue('TienKham', 0);
         }
-
-        $tienKhamTheoQuyDinh = QuiDinh::getValue('TienKham', 0);
-        $tienKham = $tienKhamTheoQuyDinh > 0 ? $tienKhamTheoQuyDinh : ($phieuKham->TienKham ?? 0);
 
         $tienThuoc = $phieuKham->toaThuoc->sum(function ($item) {
             return (float) $item->TienThuoc;
@@ -113,13 +166,18 @@ class HoaDonController extends Controller
             $tienThuoc = (float) $phieuKham->TongTienThuoc;
         }
 
+        $tienDichVu = (float) $phieuKham->ctDichVuPhu->sum(function ($item) {
+            return (float) $item->ThanhTien;
+        });
+
         $payload = [
             'ID_PhieuKham' => $validated['ID_PhieuKham'],
-            'ID_NhanVien' => $validated['ID_NhanVien'],
+            'ID_NhanVien' => $nhanVien->ID_NhanVien,
             'NgayHoaDon' => $validated['NgayHoaDon'] ?? now()->toDateString(),
             'TienKham' => $tienKham,
             'TienThuoc' => $tienThuoc,
-            'TongTien' => $tienKham + $tienThuoc,
+            'TienDichVu' => $tienDichVu,
+            'TongTien' => $tienKham + $tienThuoc + $tienDichVu,
         ];
 
         $hoaDon = HoaDon::create($payload);
@@ -137,22 +195,26 @@ class HoaDonController extends Controller
             return response()->json(['message' => 'Không tìm thấy hoá đơn'], 404);
         }
 
+        // Kiểm tra quyền: Chỉ thu ngân/lễ tân/admin được cập nhật thông tin hoá đơn
+        $user = $request->user();
+        if (!RoleHelper::canCashierCreateHoaDon($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền cập nhật hoá đơn.',
+            ], 403);
+        }
+
         $validated = $request->validate([
             'NgayHoaDon' => 'sometimes|date',
-            'TienKham' => 'sometimes|numeric|min:0',
-            'TienThuoc' => 'sometimes|numeric|min:0',
+            // Không cho phép sửa các khoản tiền vì hệ thống tự tính
         ]);
 
         $payload = [
             'NgayHoaDon' => $validated['NgayHoaDon'] ?? $hoaDon->NgayHoaDon,
         ];
 
-        $tienKham = array_key_exists('TienKham', $validated) ? (float) $validated['TienKham'] : (float) $hoaDon->TienKham;
-        $tienThuoc = array_key_exists('TienThuoc', $validated) ? (float) $validated['TienThuoc'] : (float) $hoaDon->TienThuoc;
-
-        $payload['TienKham'] = $tienKham;
-        $payload['TienThuoc'] = $tienThuoc;
-        $payload['TongTien'] = $tienKham + $tienThuoc;
+        $payload['TongTien'] = (float) ($hoaDon->TienKham ?? 0)
+            + (float) ($hoaDon->TienThuoc ?? 0)
+            + (float) ($hoaDon->TienDichVu ?? 0);
 
         $hoaDon->fill($payload);
         $hoaDon->save();
@@ -165,6 +227,13 @@ class HoaDonController extends Controller
 
     public function destroy($id)
     {
+        $user = request()->user();
+        if (!RoleHelper::canCashierCreateHoaDon($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền xoá hoá đơn.',
+            ], 403);
+        }
+
         $hoaDon = HoaDon::find($id);
         if (!$hoaDon) {
             return response()->json(['message' => 'Không tìm thấy hoá đơn'], 404);

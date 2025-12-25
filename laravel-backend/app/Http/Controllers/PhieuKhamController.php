@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\PhieuKham;
+use App\Models\DichVu;
 use App\Models\ToaThuoc;
 use App\Models\Thuoc;
+use App\Models\CtPhieuKhamDichVu;
 use App\Helpers\RoleHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,12 +18,24 @@ class PhieuKhamController extends Controller
         $limit = (int) $request->get('limit', 15);
         $page = (int) $request->get('page', 1);
         $onlyWithoutInvoice = filter_var($request->get('only_without_invoice', false), FILTER_VALIDATE_BOOLEAN);
+        $onlyCompleted = filter_var($request->get('only_completed', false), FILTER_VALIDATE_BOOLEAN);
+        $benhNhanId = $request->get('ID_BenhNhan');
 
-        $query = PhieuKham::with(['toaThuoc', 'hoaDon'])
+        $query = PhieuKham::with(['toaThuoc', 'hoaDon', 'tiepNhan.benhNhan', 'bacSi', 'dichVu', 'ctDichVuPhu.dichVu'])
             ->where('Is_Deleted', false);
+
+        if ($benhNhanId !== null && $benhNhanId !== '') {
+            $query->whereHas('tiepNhan', function ($q) use ($benhNhanId) {
+                $q->where('ID_BenhNhan', (int) $benhNhanId);
+            });
+        }
 
         if ($onlyWithoutInvoice) {
             $query->whereDoesntHave('hoaDon');
+        }
+
+        if ($onlyCompleted) {
+            $query->where('TrangThai', 'DaKham');
         }
 
         $totalCount = $query->count();
@@ -37,9 +51,176 @@ class PhieuKhamController extends Controller
         ]);
     }
 
+    public function addToaThuoc(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!RoleHelper::canDoctorCreatePhieuKham($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền kê toa thuốc. Chỉ bác sĩ mới được phép thực hiện chức năng này.',
+            ], 403);
+        }
+
+        $phieuKham = PhieuKham::with(['toaThuoc.thuoc', 'tiepNhan'])->find($id);
+        if (!$phieuKham || $phieuKham->Is_Deleted) {
+            return response()->json(['message' => 'Không tìm thấy phiếu khám'], 404);
+        }
+
+        $nhanVien = $user->nhanVien ?? $user->nhan_vien;
+        if (!$nhanVien || !$nhanVien->ID_NhanVien) {
+            return response()->json([
+                'message' => 'Không tìm thấy thông tin bác sĩ. Vui lòng đăng nhập lại.',
+            ], 400);
+        }
+
+        // Nếu phiếu đã có bác sĩ khác claim (trừ admin) thì không cho kê toa
+        if (!RoleHelper::isRole($user, '@admin') && $phieuKham->ID_BacSi && $phieuKham->ID_BacSi !== $nhanVien->ID_NhanVien) {
+            return response()->json([
+                'message' => 'Phiếu khám này đang do bác sĩ khác phụ trách.',
+            ], 403);
+        }
+
+        // Khi bắt đầu kê toa: auto-claim + chuyển trạng thái sang Đang khám
+        if (!$phieuKham->ID_BacSi) {
+            $phieuKham->ID_BacSi = $nhanVien->ID_NhanVien;
+        }
+        if ($phieuKham->TrangThai === 'ChoKham') {
+            $phieuKham->TrangThai = 'DangKham';
+        }
+        $phieuKham->save();
+
+        $tiepNhan = $phieuKham->tiepNhan;
+        if ($tiepNhan && ($tiepNhan->TrangThaiTiepNhan ?? null) === 'CHO_KHAM') {
+            $tiepNhan->TrangThaiTiepNhan = 'DANG_KHAM';
+            $tiepNhan->save();
+        }
+
+        $request->validate([
+            'ID_Thuoc' => 'required|integer|exists:thuoc,ID_Thuoc',
+            'SoLuong' => 'required|integer|min:1',
+            'CachDung' => 'nullable|string|max:255',
+        ]);
+
+        $thuoc = Thuoc::find($request->ID_Thuoc);
+        if (!$thuoc || $thuoc->Is_Deleted) {
+            return response()->json(['message' => 'Không tìm thấy thuốc'], 404);
+        }
+
+        $donGia = (float) $thuoc->DonGiaBan;
+        $tienThuoc = (float) $request->SoLuong * $donGia;
+
+        $item = ToaThuoc::updateOrCreate(
+            ['ID_PhieuKham' => $phieuKham->ID_PhieuKham, 'ID_Thuoc' => $thuoc->ID_Thuoc],
+            [
+                'SoLuong' => (int) $request->SoLuong,
+                'CachDung' => $request->CachDung,
+                'DonGiaBan_LuocMua' => $donGia,
+                'TienThuoc' => $tienThuoc,
+            ]
+        );
+
+        $tongTien = (float) ToaThuoc::where('ID_PhieuKham', $phieuKham->ID_PhieuKham)->sum('TienThuoc');
+        $phieuKham->TongTienThuoc = $tongTien;
+        $phieuKham->save();
+
+        $phieuKham->load(['toaThuoc.thuoc.dvt', 'tiepNhan.benhNhan', 'loaiBenh', 'bacSi']);
+
+        return response()->json([
+            'message' => 'Cập nhật toa thuốc thành công',
+            'data' => $phieuKham,
+            'item' => $item->load('thuoc'),
+        ]);
+    }
+
+    public function updateToaThuoc(Request $request, $id, $thuocId)
+    {
+        $user = $request->user();
+        if (!RoleHelper::canDoctorCreatePhieuKham($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền kê toa thuốc. Chỉ bác sĩ mới được phép thực hiện chức năng này.',
+            ], 403);
+        }
+
+        $phieuKham = PhieuKham::find($id);
+        if (!$phieuKham || $phieuKham->Is_Deleted) {
+            return response()->json(['message' => 'Không tìm thấy phiếu khám'], 404);
+        }
+
+        $request->validate([
+            'SoLuong' => 'nullable|integer|min:1',
+            'CachDung' => 'nullable|string|max:255',
+        ]);
+
+        $item = ToaThuoc::where('ID_PhieuKham', $phieuKham->ID_PhieuKham)
+            ->where('ID_Thuoc', $thuocId)
+            ->first();
+
+        if (!$item) {
+            return response()->json(['message' => 'Không tìm thấy thuốc trong toa'], 404);
+        }
+
+        if ($request->has('SoLuong')) {
+            $donGia = (float) ($item->DonGiaBan_LuocMua ?? 0);
+            $item->SoLuong = (int) $request->SoLuong;
+            $item->TienThuoc = (float) $item->SoLuong * $donGia;
+        }
+        if ($request->has('CachDung')) {
+            $item->CachDung = $request->CachDung;
+        }
+        $item->save();
+
+        $tongTien = (float) ToaThuoc::where('ID_PhieuKham', $phieuKham->ID_PhieuKham)->sum('TienThuoc');
+        $phieuKham->TongTienThuoc = $tongTien;
+        $phieuKham->save();
+
+        $phieuKham->load(['toaThuoc.thuoc.dvt', 'tiepNhan.benhNhan', 'loaiBenh', 'bacSi']);
+
+        return response()->json([
+            'message' => 'Cập nhật toa thuốc thành công',
+            'data' => $phieuKham,
+        ]);
+    }
+
+    public function removeToaThuoc(Request $request, $id, $thuocId)
+    {
+        $user = $request->user();
+        if (!RoleHelper::canDoctorCreatePhieuKham($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền kê toa thuốc. Chỉ bác sĩ mới được phép thực hiện chức năng này.',
+            ], 403);
+        }
+
+        $phieuKham = PhieuKham::find($id);
+        if (!$phieuKham || $phieuKham->Is_Deleted) {
+            return response()->json(['message' => 'Không tìm thấy phiếu khám'], 404);
+        }
+
+        ToaThuoc::where('ID_PhieuKham', $phieuKham->ID_PhieuKham)
+            ->where('ID_Thuoc', $thuocId)
+            ->delete();
+
+        $tongTien = (float) ToaThuoc::where('ID_PhieuKham', $phieuKham->ID_PhieuKham)->sum('TienThuoc');
+        $phieuKham->TongTienThuoc = $tongTien;
+        $phieuKham->save();
+
+        $phieuKham->load(['toaThuoc.thuoc.dvt', 'tiepNhan.benhNhan', 'loaiBenh', 'bacSi']);
+
+        return response()->json([
+            'message' => 'Xóa thuốc khỏi toa thành công',
+            'data' => $phieuKham,
+        ]);
+    }
+
     public function show($id)
     {
-        $phieuKham = PhieuKham::with(['toaThuoc.thuoc', 'hoaDon', 'tiepNhan.benhNhan'])->find($id);
+        $phieuKham = PhieuKham::with([
+            'toaThuoc.thuoc.dvt',
+            'hoaDon',
+            'tiepNhan.benhNhan',
+            'loaiBenh',
+            'bacSi',
+            'dichVu',
+            'ctDichVuPhu.dichVu',
+        ])->find($id);
         if (!$phieuKham || $phieuKham->Is_Deleted) {
             return response()->json(['message' => 'Không tìm thấy phiếu khám'], 404);
         }
@@ -57,20 +238,17 @@ class PhieuKhamController extends Controller
      */
     public function store(Request $request)
     {
-        // Kiểm tra quyền: Chỉ bác sĩ và admin được tạo phiếu khám
+        // Kiểm tra quyền: Lễ tân hoặc admin được tạo phiếu khám rỗng (chờ khám)
         $user = $request->user();
-        if (!RoleHelper::canDoctorCreatePhieuKham($user)) {
+        if (!RoleHelper::canReceptionistCreateTiepNhan($user)) {
             return response()->json([
-                'message' => 'Bạn không có quyền tạo phiếu khám. Chỉ bác sĩ mới được phép thực hiện chức năng này.',
+                'message' => 'Bạn không có quyền tạo phiếu khám. Chỉ lễ tân mới được phép thực hiện chức năng này.',
             ], 403);
         }
 
         $request->validate([
             'ID_TiepNhan' => 'required|integer|exists:danh_sach_tiep_nhan,ID_TiepNhan',
             'CaKham' => 'required|string|max:10',
-            'ID_LoaiBenh' => 'nullable|integer|exists:loai_benh,ID_LoaiBenh',
-            'TrieuChung' => 'nullable|string|max:255',
-            'TienKham' => 'nullable|numeric|min:0',
         ]);
 
         // Lấy thông tin tiếp nhận
@@ -112,33 +290,19 @@ class PhieuKhamController extends Controller
             ], 400);
         }
 
-        // Lấy thông tin bác sĩ từ user hiện tại
-        $user = $request->user();
-        $nhanVien = $user->nhanVien ?? $user->nhan_vien;
-        
-        if (!$nhanVien || !$nhanVien->ID_NhanVien) {
-            return response()->json([
-                'message' => 'Không tìm thấy thông tin bác sĩ. Vui lòng đăng nhập lại.',
-            ], 400);
-        }
-
-        // Tạo phiếu khám mới (record rỗng - bước 1)
+        // Tạo phiếu khám rỗng (chờ khám)
         $phieuKham = PhieuKham::create([
             'ID_TiepNhan' => $request->ID_TiepNhan,
-            'ID_BacSi' => $nhanVien->ID_NhanVien,
+            'ID_BacSi' => null,
             'CaKham' => $request->CaKham,
-            'TrieuChung' => $request->TrieuChung ?? null,
-            'ChanDoan' => $request->ChanDoan ?? null,
-            'ID_LoaiBenh' => $request->ID_LoaiBenh ?? 1, // Mặc định loại bệnh 1 nếu chưa có
-            'TienKham' => $request->TienKham ?? null,
+            'TrieuChung' => null,
+            'ChanDoan' => null,
+            'ID_LoaiBenh' => 1,
+            'TienKham' => null,
             'TongTienThuoc' => 0,
-            'TrangThai' => 'DangKham', // Đang khám
+            'TrangThai' => 'ChoKham',
             'Is_Deleted' => false,
         ]);
-
-        // Cập nhật trạng thái tiếp nhận thành "Đang khám"
-        $tiepNhan->TrangThaiTiepNhan = 'DANG_KHAM';
-        $tiepNhan->save();
 
         $phieuKham->load(['tiepNhan.benhNhan', 'loaiBenh']);
 
@@ -161,14 +325,17 @@ class PhieuKhamController extends Controller
             ], 403);
         }
 
-        $phieuKham = PhieuKham::with(['tiepNhan.benhNhan', 'loaiBenh', 'bacSi'])->find($id);
+        $phieuKham = PhieuKham::with(['tiepNhan.benhNhan', 'loaiBenh', 'bacSi', 'dichVu', 'ctDichVuPhu.dichVu'])->find($id);
         
         if (!$phieuKham || $phieuKham->Is_Deleted) {
             return response()->json(['message' => 'Không tìm thấy phiếu khám'], 404);
         }
         
         // Kiểm tra bác sĩ chỉ được sửa phiếu khám của chính mình (trừ admin)
-        if (!RoleHelper::isRole($user, '@admin') && $phieuKham->ID_BacSi !== $user->nhanVien?->ID_NhanVien) {
+        // Nếu phiếu chưa có bác sĩ phụ trách (ID_BacSi null) thì cho phép cập nhật và sẽ auto-claim khi bắt đầu khám.
+        $nhanVien = $user->nhanVien ?? $user->nhan_vien;
+        $doctorId = $nhanVien?->ID_NhanVien;
+        if (!RoleHelper::isRole($user, '@admin') && $phieuKham->ID_BacSi && $phieuKham->ID_BacSi !== $doctorId) {
             return response()->json([
                 'message' => 'Bạn chỉ được phép cập nhật phiếu khám do chính mình tạo.',
             ], 403);
@@ -179,12 +346,55 @@ class PhieuKhamController extends Controller
             'ChanDoan' => 'nullable|string|max:255',
             'ID_LoaiBenh' => 'nullable|integer|exists:loai_benh,ID_LoaiBenh',
             'TienKham' => 'nullable|numeric|min:0',
-            'TrangThai' => 'nullable|string|in:DangKham,DaKham',
+            'ID_DichVu' => 'nullable|integer|exists:dich_vu,ID_DichVu',
+            'TrangThai' => 'nullable|string|in:ChoKham,DangKham,DaKham',
         ]);
 
-        $phieuKham->fill($request->only(['TrieuChung', 'ChanDoan', 'ID_LoaiBenh', 'TienKham', 'TrangThai']));
+        $payload = $request->only(['TrieuChung', 'ChanDoan', 'ID_LoaiBenh', 'TrangThai']);
+        if (RoleHelper::isRole($user, '@admin')) {
+            $payload['TienKham'] = $request->input('TienKham');
+        }
+
+        // Bác sĩ chọn dịch vụ khám (không nhập tiền). Hệ thống snapshot giá dịch vụ vào TienKham.
+        if ($request->has('ID_DichVu')) {
+            $idDichVu = $request->input('ID_DichVu');
+            if ($idDichVu === null) {
+                $payload['ID_DichVu'] = null;
+            } else {
+                $dichVu = DichVu::query()->where('Is_Deleted', false)->find($idDichVu);
+                if (!$dichVu) {
+                    return response()->json([
+                        'message' => 'Dịch vụ không hợp lệ hoặc đã bị xoá',
+                    ], 422);
+                }
+
+                $payload['ID_DichVu'] = $dichVu->ID_DichVu;
+                // Snapshot đơn giá dịch vụ vào TienKham (đây là số tiền khám sẽ dùng để lập hoá đơn)
+                $payload['TienKham'] = (float) $dichVu->DonGia;
+            }
+        }
+
+        // Khi bác sĩ bắt đầu khám: claim phiếu khám và chuyển trạng thái
+        if (($payload['TrangThai'] ?? null) === 'DangKham' && !$phieuKham->ID_BacSi) {
+            $nhanVien = $user->nhanVien ?? $user->nhan_vien;
+            if (!$nhanVien || !$nhanVien->ID_NhanVien) {
+                return response()->json([
+                    'message' => 'Không tìm thấy thông tin bác sĩ. Vui lòng đăng nhập lại.',
+                ], 400);
+            }
+
+            $phieuKham->ID_BacSi = $nhanVien->ID_NhanVien;
+
+            $tiepNhan = $phieuKham->tiepNhan;
+            if ($tiepNhan) {
+                $tiepNhan->TrangThaiTiepNhan = 'DANG_KHAM';
+                $tiepNhan->save();
+            }
+        }
+
+        $phieuKham->fill($payload);
         $phieuKham->save();
-        $phieuKham->load(['tiepNhan.benhNhan', 'loaiBenh', 'bacSi']);
+        $phieuKham->load(['tiepNhan.benhNhan', 'loaiBenh', 'bacSi', 'dichVu', 'ctDichVuPhu.dichVu']);
 
         return response()->json([
             'message' => 'Cập nhật phiếu khám thành công',
@@ -197,10 +407,16 @@ class PhieuKhamController extends Controller
      */
     public function complete(Request $request, $id)
     {
-        $phieuKham = PhieuKham::with(['tiepNhan.benhNhan', 'loaiBenh', 'bacSi', 'toaThuoc'])->find($id);
+        $phieuKham = PhieuKham::with(['tiepNhan.benhNhan', 'loaiBenh', 'bacSi', 'toaThuoc', 'ctDichVuPhu.dichVu'])->find($id);
         
         if (!$phieuKham || $phieuKham->Is_Deleted) {
             return response()->json(['message' => 'Không tìm thấy phiếu khám'], 404);
+        }
+
+        if (!$phieuKham->ID_DichVu) {
+            return response()->json([
+                'message' => 'Vui lòng chọn dịch vụ khám trước khi hoàn tất khám.',
+            ], 400);
         }
 
         // Transaction để đảm bảo kiểm tra và trừ kho an toàn
@@ -220,7 +436,7 @@ class PhieuKhamController extends Controller
                 }
 
                 DB::commit();
-                $phieuKham->load(['tiepNhan.benhNhan', 'loaiBenh', 'bacSi', 'toaThuoc']);
+                $phieuKham->load(['tiepNhan.benhNhan', 'loaiBenh', 'bacSi', 'toaThuoc', 'ctDichVuPhu.dichVu']);
 
                 return response()->json([
                     'message' => 'Hoàn tất khám thành công (không kê thuốc).',
@@ -278,7 +494,7 @@ class PhieuKhamController extends Controller
             }
 
             DB::commit();
-            $phieuKham->load(['tiepNhan.benhNhan', 'loaiBenh', 'bacSi', 'toaThuoc']);
+            $phieuKham->load(['tiepNhan.benhNhan', 'loaiBenh', 'bacSi', 'toaThuoc', 'ctDichVuPhu.dichVu']);
 
             return response()->json([
                 'message' => 'Hoàn tất khám thành công. Thuốc đã được trừ kho và dữ liệu sẵn sàng cho thu ngân.',
@@ -313,18 +529,168 @@ class PhieuKhamController extends Controller
             ? $tiepNhan->NgayTN->format('Y-m-d') 
             : date('Y-m-d', strtotime($tiepNhan->NgayTN));
 
-        $canCreate = 
-            ($tiepNhan->TrangThai === false || $tiepNhan->TrangThai === 0) && // Chưa khám
-            $ngayTN === $today && // Ngày hôm nay
-            !$tiepNhan->phieuKhams()->where('Is_Deleted', false)->exists(); // Chưa có phiếu khám
+        $canCreate =
+            (($tiepNhan->TrangThaiTiepNhan ?? null) === 'CHO_KHAM') &&
+            $ngayTN === $today &&
+            !$tiepNhan->phieuKhams()->where('Is_Deleted', false)->exists();
 
         return response()->json([
             'canCreate' => $canCreate,
             'reasons' => !$canCreate ? [
-                'TrangThai' => $tiepNhan->TrangThai !== false && $tiepNhan->TrangThai !== 0 ? 'Bệnh nhân đã được khám' : null,
+                'TrangThaiTiepNhan' => (($tiepNhan->TrangThaiTiepNhan ?? null) !== 'CHO_KHAM') ? 'Tiếp nhận không ở trạng thái chờ khám' : null,
                 'NgayTN' => $ngayTN !== $today ? 'Không phải ngày tiếp nhận hôm nay' : null,
                 'HasPhieuKham' => $tiepNhan->phieuKhams()->where('Is_Deleted', false)->exists() ? 'Đã có phiếu khám' : null,
             ] : [],
+        ]);
+    }
+
+    public function addDichVuPhu(Request $request, $id)
+    {
+        $user = $request->user();
+        if (!RoleHelper::canDoctorCreatePhieuKham($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền chọn dịch vụ phụ. Chỉ bác sĩ mới được phép thực hiện chức năng này.',
+            ], 403);
+        }
+
+        $phieuKham = PhieuKham::with(['hoaDon', 'dichVu', 'ctDichVuPhu'])->find($id);
+        if (!$phieuKham || $phieuKham->Is_Deleted) {
+            return response()->json(['message' => 'Không tìm thấy phiếu khám'], 404);
+        }
+
+        if (($phieuKham->TrangThai ?? null) === 'DaKham' || $phieuKham->hoaDon) {
+            return response()->json([
+                'message' => 'Không thể thêm dịch vụ phụ sau khi phiếu khám đã hoàn tất hoặc đã lập hoá đơn.',
+            ], 400);
+        }
+
+        $nhanVien = $user->nhanVien ?? $user->nhan_vien;
+        $doctorId = $nhanVien?->ID_NhanVien;
+        if (!RoleHelper::isRole($user, '@admin') && $phieuKham->ID_BacSi && $phieuKham->ID_BacSi !== $doctorId) {
+            return response()->json([
+                'message' => 'Phiếu khám này đang do bác sĩ khác phụ trách.',
+            ], 403);
+        }
+
+        $request->validate([
+            'ID_DichVu' => 'required|integer|exists:dich_vu,ID_DichVu',
+            'SoLuong' => 'nullable|integer|min:1',
+        ]);
+
+        $dichVu = DichVu::query()->where('Is_Deleted', false)->find($request->ID_DichVu);
+        if (!$dichVu) {
+            return response()->json([
+                'message' => 'Dịch vụ không hợp lệ hoặc đã bị xoá',
+            ], 422);
+        }
+
+        $soLuong = (int) ($request->SoLuong ?? 1);
+        $donGia = (float) $dichVu->DonGia;
+        $thanhTien = (float) $soLuong * $donGia;
+
+        $item = CtPhieuKhamDichVu::updateOrCreate(
+            ['ID_PhieuKham' => $phieuKham->ID_PhieuKham, 'ID_DichVu' => $dichVu->ID_DichVu],
+            [
+                'SoLuong' => $soLuong,
+                'DonGiaApDung' => $donGia,
+                'ThanhTien' => $thanhTien,
+                'Is_Deleted' => false,
+            ]
+        );
+
+        $phieuKham->load(['ctDichVuPhu.dichVu']);
+
+        return response()->json([
+            'message' => 'Thêm dịch vụ phụ thành công',
+            'data' => $phieuKham,
+            'item' => $item->load('dichVu'),
+        ]);
+    }
+
+    public function updateDichVuPhu(Request $request, $id, $dichVuId)
+    {
+        $user = $request->user();
+        if (!RoleHelper::canDoctorCreatePhieuKham($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền cập nhật dịch vụ phụ. Chỉ bác sĩ mới được phép thực hiện chức năng này.',
+            ], 403);
+        }
+
+        $phieuKham = PhieuKham::with(['hoaDon'])->find($id);
+        if (!$phieuKham || $phieuKham->Is_Deleted) {
+            return response()->json(['message' => 'Không tìm thấy phiếu khám'], 404);
+        }
+
+        if (($phieuKham->TrangThai ?? null) === 'DaKham' || $phieuKham->hoaDon) {
+            return response()->json([
+                'message' => 'Không thể cập nhật dịch vụ phụ sau khi phiếu khám đã hoàn tất hoặc đã lập hoá đơn.',
+            ], 400);
+        }
+
+        $request->validate([
+            'SoLuong' => 'required|integer|min:1',
+        ]);
+
+        $item = CtPhieuKhamDichVu::where('ID_PhieuKham', $phieuKham->ID_PhieuKham)
+            ->where('ID_DichVu', (int) $dichVuId)
+            ->where('Is_Deleted', false)
+            ->first();
+
+        if (!$item) {
+            return response()->json(['message' => 'Không tìm thấy dịch vụ phụ trong phiếu khám'], 404);
+        }
+
+        $item->SoLuong = (int) $request->SoLuong;
+        $donGia = (float) ($item->DonGiaApDung ?? 0);
+        $item->ThanhTien = (float) $item->SoLuong * $donGia;
+        $item->save();
+
+        $phieuKham->load(['ctDichVuPhu.dichVu']);
+
+        return response()->json([
+            'message' => 'Cập nhật dịch vụ phụ thành công',
+            'data' => $phieuKham,
+            'item' => $item->load('dichVu'),
+        ]);
+    }
+
+    public function removeDichVuPhu(Request $request, $id, $dichVuId)
+    {
+        $user = $request->user();
+        if (!RoleHelper::canDoctorCreatePhieuKham($user)) {
+            return response()->json([
+                'message' => 'Bạn không có quyền xoá dịch vụ phụ. Chỉ bác sĩ mới được phép thực hiện chức năng này.',
+            ], 403);
+        }
+
+        $phieuKham = PhieuKham::with(['hoaDon'])->find($id);
+        if (!$phieuKham || $phieuKham->Is_Deleted) {
+            return response()->json(['message' => 'Không tìm thấy phiếu khám'], 404);
+        }
+
+        if (($phieuKham->TrangThai ?? null) === 'DaKham' || $phieuKham->hoaDon) {
+            return response()->json([
+                'message' => 'Không thể xoá dịch vụ phụ sau khi phiếu khám đã hoàn tất hoặc đã lập hoá đơn.',
+            ], 400);
+        }
+
+        $item = CtPhieuKhamDichVu::where('ID_PhieuKham', $phieuKham->ID_PhieuKham)
+            ->where('ID_DichVu', (int) $dichVuId)
+            ->where('Is_Deleted', false)
+            ->first();
+
+        if (!$item) {
+            return response()->json(['message' => 'Không tìm thấy dịch vụ phụ trong phiếu khám'], 404);
+        }
+
+        $item->Is_Deleted = true;
+        $item->save();
+
+        $phieuKham->load(['ctDichVuPhu.dichVu']);
+
+        return response()->json([
+            'message' => 'Xoá dịch vụ phụ thành công',
+            'data' => $phieuKham,
         ]);
     }
 }

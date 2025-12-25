@@ -64,8 +64,10 @@ class NhanVienController extends Controller
 
         if ($request->filled('ma_nhom')) {
             $maNhom = $request->get('ma_nhom');
+            $normalized = ltrim($maNhom, '@');
             $query->whereHas('nhomNguoiDung', function ($q) use ($maNhom) {
-                $q->where('MaNhom', $maNhom);
+                $normalized = ltrim($maNhom, '@');
+                $q->whereIn('MaNhom', array_values(array_unique([$maNhom, $normalized, '@' . $normalized])));
             });
         }
 

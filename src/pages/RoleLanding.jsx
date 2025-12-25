@@ -5,10 +5,8 @@ import { useRolePermissions } from '../hooks/useRolePermissions';
 
 const ROLE_DEFAULT_ROUTES = {
   '@admin': '/employees',
-  '@doctors': '/medical-forms',
+  '@doctors': '/doctor/queue',
   '@receptionists': '/reception',
-  '@cashiers': '/invoices',
-  '@inventory': '/drugs',
   '@managers': '/reports',
   '@patient': '/patients/profile',
   patient: '/patients/profile', // Tương thích ngược

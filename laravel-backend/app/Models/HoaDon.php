@@ -19,6 +19,7 @@ class HoaDon extends Model
         'NgayHoaDon',
         'TienKham',
         'TienThuoc',
+        'TienDichVu',
         'TongTien',
     ];
 
@@ -26,6 +27,7 @@ class HoaDon extends Model
         'NgayHoaDon' => 'date',
         'TienKham' => 'decimal:2',
         'TienThuoc' => 'decimal:2',
+        'TienDichVu' => 'decimal:2',
         'TongTien' => 'decimal:2',
     ];
 

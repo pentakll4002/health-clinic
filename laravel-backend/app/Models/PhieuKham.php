@@ -20,6 +20,7 @@ class PhieuKham extends Model
         'TrieuChung',
         'ChanDoan',
         'ID_LoaiBenh',
+        'ID_DichVu',
         'TienKham',
         'TongTienThuoc',
         'TrangThai',
@@ -45,6 +46,17 @@ class PhieuKham extends Model
     public function loaiBenh()
     {
         return $this->belongsTo(LoaiBenh::class, 'ID_LoaiBenh', 'ID_LoaiBenh');
+    }
+
+    public function dichVu()
+    {
+        return $this->belongsTo(DichVu::class, 'ID_DichVu', 'ID_DichVu');
+    }
+
+    public function ctDichVuPhu()
+    {
+        return $this->hasMany(CtPhieuKhamDichVu::class, 'ID_PhieuKham', 'ID_PhieuKham')
+            ->where('Is_Deleted', false);
     }
 
     public function toaThuoc()
