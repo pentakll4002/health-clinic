@@ -16,7 +16,12 @@ const fetchPatientProfile = async () => {
 };
 
 const updatePatientProfileRequest = async (formData) => {
-  const response = await axiosInstance.patch('/patient/profile', formData);
+  // PHP/Laravel may not parse multipart/form-data payloads for PATCH/PUT.
+  // Use method spoofing with POST to ensure server receives FormData fields.
+  if (formData instanceof FormData && !formData.has('_method')) {
+    formData.append('_method', 'PATCH');
+  }
+  const response = await axiosInstance.post('/patient/profile', formData);
   return response.data;
 };
 

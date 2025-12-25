@@ -1,8 +1,8 @@
 import User from './User';
 import { Link } from 'react-router-dom';
+import NotificationBell from './NotificationBell';
 
 import {
-  BellIcon,
   CalendarIcon,
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline';
@@ -25,12 +25,7 @@ const Header = () => {
               <Cog6ToothIcon className='w-6 h-6 ' />
             </Link>
 
-            <Link
-              to='/'
-              className='p-[8px] rounded-[20px] shadow-1 bg-white border border-grey-transparent'
-            >
-              <BellIcon className='w-6 h-6 ' />
-            </Link>
+            <NotificationBell />
           </div>
 
           <User />

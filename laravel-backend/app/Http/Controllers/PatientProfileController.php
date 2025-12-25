@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 
 class PatientProfileController extends Controller
 {
@@ -66,17 +67,44 @@ class PatientProfileController extends Controller
             $validated['Avatar'] = $avatarPath;
         }
 
-        if (array_key_exists('Email', $validated) && $validated['Email']) {
+        $hasUpdatableField = false;
+        foreach (['DienThoai', 'Email', 'DiaChi', 'Avatar'] as $field) {
+            if (array_key_exists($field, $validated)) {
+                $hasUpdatableField = true;
+                break;
+            }
+        }
+
+        if (!$hasUpdatableField) {
+            Log::warning('PatientProfileController@update: No updatable fields provided', [
+                'user_id' => $user->id,
+                'benh_nhan_id' => $benhNhan->ID_BenhNhan,
+                'content_type' => $request->header('Content-Type'),
+                'keys' => array_keys($request->all()),
+                'has_file_avatar' => $request->hasFile('avatar'),
+            ]);
+
+            return response()->json([
+                'message' => 'Không có dữ liệu hợp lệ để cập nhật',
+                'errors' => [
+                    'payload' => ['Vui lòng nhập ít nhất 1 thông tin để cập nhật.'],
+                ],
+            ], 422);
+        }
+
+        if (array_key_exists('Email', $validated)) {
             $user->email = $validated['Email'];
             $user->save();
         }
 
-        $benhNhan->fill([
-            'DienThoai' => $validated['DienThoai'] ?? $benhNhan->DienThoai,
-            'DiaChi' => $validated['DiaChi'] ?? $benhNhan->DiaChi,
-            'Email' => $validated['Email'] ?? $benhNhan->Email,
-            'Avatar' => $validated['Avatar'] ?? $benhNhan->Avatar,
-        ]);
+        $payload = [];
+        foreach (['DienThoai', 'DiaChi', 'Email', 'Avatar'] as $field) {
+            if (array_key_exists($field, $validated)) {
+                $payload[$field] = $validated[$field];
+            }
+        }
+
+        $benhNhan->fill($payload);
         $benhNhan->save();
 
         $benhNhan->refresh();
