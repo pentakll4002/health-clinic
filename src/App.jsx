@@ -41,6 +41,7 @@ import DrugsImport from './pages/DrugsImport';
 import DoctorQueue from './pages/DoctorQueue';
 import DoctorExam from './pages/DoctorExam';
 import Services from './pages/Services';
+import InvoicePrintPage from './features/invoices/InvoicePrintPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -323,6 +324,15 @@ function App() {
               }
             />
           </Route>
+
+          <Route
+            path='/invoices/:id/print'
+            element={
+              <RoleGuard route='invoices'>
+                <InvoicePrintPage />
+              </RoleGuard>
+            }
+          />
 
           <Route path='/sign-in' element={<SignIn />} />
           <Route path='/sign-up' element={<Register />} />
