@@ -18,6 +18,11 @@ use App\Http\Controllers\PatientProfileController;
 use App\Http\Controllers\LichKhamController;
 use App\Http\Controllers\LoaiBenhController;
 use App\Http\Controllers\ApiCatalogController;
+use App\Http\Controllers\ChucNangController;
+use App\Http\Controllers\PhanQuyenController;
+use App\Http\Controllers\DVTController;
+use App\Http\Controllers\CachDungController;
+use App\Http\Controllers\PhieuNhapThuocController;
 
 /*
 |--------------------------------------------------------------------------
@@ -84,6 +89,42 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // API catalog (for presenting endpoints by role)
     Route::get('/api-catalog', [ApiCatalogController::class, 'index']);
+
+    Route::get('/dvt', [DVTController::class, 'index']);
+    Route::get('/cach-dung', [CachDungController::class, 'index']);
+
+    Route::middleware('role:@admin,@managers')->group(function () {
+        Route::post('/loai-benh', [LoaiBenhController::class, 'store']);
+        Route::put('/loai-benh/{id}', [LoaiBenhController::class, 'update']);
+        Route::delete('/loai-benh/{id}', [LoaiBenhController::class, 'destroy']);
+
+        Route::post('/dvt', [DVTController::class, 'store']);
+        Route::put('/dvt/{id}', [DVTController::class, 'update']);
+        Route::delete('/dvt/{id}', [DVTController::class, 'destroy']);
+
+        Route::post('/cach-dung', [CachDungController::class, 'store']);
+        Route::put('/cach-dung/{id}', [CachDungController::class, 'update']);
+        Route::delete('/cach-dung/{id}', [CachDungController::class, 'destroy']);
+    });
+
+    Route::middleware('role:@admin')->group(function () {
+        Route::get('/nhom-nguoi-dung', [NhomNguoiDungController::class, 'index']);
+        Route::post('/nhom-nguoi-dung', [NhomNguoiDungController::class, 'store']);
+        Route::put('/nhom-nguoi-dung/{id}', [NhomNguoiDungController::class, 'update']);
+        Route::delete('/nhom-nguoi-dung/{id}', [NhomNguoiDungController::class, 'destroy']);
+
+        Route::get('/chuc-nang', [ChucNangController::class, 'index']);
+        Route::post('/chuc-nang', [ChucNangController::class, 'store']);
+        Route::put('/chuc-nang/{id}', [ChucNangController::class, 'update']);
+        Route::delete('/chuc-nang/{id}', [ChucNangController::class, 'destroy']);
+
+        Route::get('/phan-quyen', [PhanQuyenController::class, 'index']);
+        Route::get('/phan-quyen/nhom/{idNhom}', [PhanQuyenController::class, 'getByNhom']);
+        Route::get('/phan-quyen/chuc-nang/{idChucNang}', [PhanQuyenController::class, 'getByChucNang']);
+        Route::post('/phan-quyen', [PhanQuyenController::class, 'store']);
+        Route::delete('/phan-quyen/{idNhom}/{idChucNang}', [PhanQuyenController::class, 'destroy']);
+        Route::post('/phan-quyen/nhom/{idNhom}/assign-multiple', [PhanQuyenController::class, 'assignMultiple']);
+    });
 });
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -102,8 +143,6 @@ Route::get('/nhanvien/{id}', [NhanVienController::class, 'show']); // lấy chi 
 Route::put('/nhanvien/{id}', [NhanVienController::class, 'update']); // sửa
 Route::delete('/nhanvien/{id}', [NhanVienController::class, 'destroy']); // xoá
 
-Route::get('/nhom-nguoi-dung', [NhomNguoiDungController::class, 'index']);
-
 // BenhNhan routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/benh-nhan', [BenhNhanController::class, 'index']); // danh sách bệnh nhân
@@ -119,8 +158,7 @@ Route::post('/thuoc', [ThuocController::class, 'store']); // tạo mới
 Route::get('/thuoc/{id}', [ThuocController::class, 'show']); // lấy chi tiết
 Route::put('/thuoc/{id}', [ThuocController::class, 'update']); // sửa
 Route::delete('/thuoc/{id}', [ThuocController::class, 'destroy']); // xoá
-Route::get('/dvt', [ThuocController::class, 'getDVT']); // lấy danh sách đơn vị tính
-Route::get('/cach-dung', [ThuocController::class, 'getCachDung']); // lấy danh sách cách dùng
+
 
 // Appointments (Danh sách tiếp nhận) routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -144,6 +182,14 @@ Route::post('/bao-cao-su-dung-thuoc', [BaoCaoSuDungThuocController::class, 'stor
 Route::get('/bao-cao-su-dung-thuoc/{id}', [BaoCaoSuDungThuocController::class, 'show']); // chi tiết
 Route::delete('/bao-cao-su-dung-thuoc/{id}', [BaoCaoSuDungThuocController::class, 'destroy']); // xoá
 Route::delete('/bao-cao-su-dung-thuoc', [BaoCaoSuDungThuocController::class, 'destroyByMonth']); // xoá theo tháng
+
+// Drug Import (Phiếu nhập thuốc) routes - Chỉ managers
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/phieu-nhap-thuoc', [PhieuNhapThuocController::class, 'index']); // danh sách
+    Route::post('/phieu-nhap-thuoc', [PhieuNhapThuocController::class, 'store']); // tạo mới
+    Route::get('/phieu-nhap-thuoc/{id}', [PhieuNhapThuocController::class, 'show']); // chi tiết
+    Route::delete('/phieu-nhap-thuoc/{id}', [PhieuNhapThuocController::class, 'destroy']); // xoá
+});
 
 // Loai Benh routes
 Route::get('/loai-benh', [LoaiBenhController::class, 'index']); // danh sách loại bệnh

@@ -13,11 +13,19 @@ export function useCreateReceptionFromLichKham() {
       toast.success('Tiếp nhận bệnh nhân thành công!');
     },
     onError: (error) => {
-      const message = error.response?.data?.message || 'Tiếp nhận thất bại';
-      toast.error(message);
+      const status = error.response?.status;
+      if (status === 409) {
+        toast.error(error.response?.data?.message || 'Tiếp nhận bị trùng (xung đột)');
+        return;
+      }
+      toast.error(error.response?.data?.message || 'Tiếp nhận thất bại');
     },
   });
 }
+
+
+
+
 
 
 

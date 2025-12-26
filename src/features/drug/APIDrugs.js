@@ -68,3 +68,28 @@ export async function deleteDrugReport(id) {
   return response.data;
 }
 
+// Drug Import (Phiếu nhập thuốc) API
+export async function getDrugImports({ page = 1, limit = 10, tu_ngay, den_ngay } = {}) {
+  const params = { page, limit };
+  if (tu_ngay) params.tu_ngay = tu_ngay;
+  if (den_ngay) params.den_ngay = den_ngay;
+  
+  const response = await axiosInstance.get('/phieu-nhap-thuoc', { params });
+  return response.data;
+}
+
+export async function getDrugImport(id) {
+  const response = await axiosInstance.get(`/phieu-nhap-thuoc/${id}`);
+  return response.data;
+}
+
+export async function createDrugImport(data) {
+  const response = await axiosInstance.post('/phieu-nhap-thuoc', data);
+  return response.data;
+}
+
+export async function deleteDrugImport(id) {
+  const response = await axiosInstance.delete(`/phieu-nhap-thuoc/${id}`);
+  return response.data;
+}
+

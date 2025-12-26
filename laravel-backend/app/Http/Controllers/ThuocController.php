@@ -15,8 +15,15 @@ class ThuocController extends Controller
     {
         $limit = $request->get('limit', 7);
         $page = $request->get('page', 1);
+        $keyword = $request->get('keyword') ?? $request->get('search') ?? $request->get('ten') ?? $request->get('name');
+        
         $query = Thuoc::with(['dvt', 'cachDung'])
             ->where('Is_Deleted', false);
+
+        // Tìm kiếm theo tên thuốc
+        if ($keyword) {
+            $query->where('TenThuoc', 'like', '%' . $keyword . '%');
+        }
 
         $totalCount = $query->count();
         $data = $query->offset(($page - 1) * $limit)->limit($limit)->get();

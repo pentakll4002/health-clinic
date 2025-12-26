@@ -13,7 +13,7 @@ if script_dir not in sys.path:
     sys.path.insert(0, script_dir)
 
 if __name__ == "__main__":
-    port = int(os.getenv("API_PORT", "8001"))
+    port = int(os.getenv("API_PORT", "8002"))
     print("=" * 60)
     print(f"Starting Chatbot API server on http://0.0.0.0:{port}")
     print(f"API endpoint: http://localhost:{port}/api/chat/")

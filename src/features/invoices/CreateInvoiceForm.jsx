@@ -192,9 +192,9 @@ const CreateInvoiceForm = ({ onCloseModal }) => {
 
         <div />
 
-        <div className='flex items-end justify-end gap-x-3'>
+        <div className='col-span-2 flex items-center justify-end gap-3 pt-4 border-t border-grey-transparent'>
           <Button
-            className='bg-light text-grey-900 px-[10px] py-[6px]'
+            className='bg-grey-100 text-grey-700 px-5 py-2.5 min-h-[44px] font-semibold hover:bg-grey-200 transition-colors duration-200'
             onClick={() => {
               reset({
                 ID_PhieuKham: '',
@@ -207,7 +207,7 @@ const CreateInvoiceForm = ({ onCloseModal }) => {
             Huỷ
           </Button>
           <Button
-            className='text-white bg-primary px-[10px] py-[6px] font-medium'
+            className='text-white bg-primary px-5 py-2.5 min-h-[44px] font-semibold hover:bg-primary/90 transition-all duration-200 shadow-md hover:shadow-lg'
             type='submit'
             isLoading={isLoading}
           >

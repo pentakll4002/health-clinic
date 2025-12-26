@@ -14,16 +14,16 @@ class QuiDinhSeeder extends Seeder
     {
         $quyDinhs = [
             [
-                'TenQuyDinh' => 'SoBenhNhanToiDaNgay',
+                'TenQuyDinh' => 'SoBenhNhanToiDa',
                 'GiaTri' => 50, // Số bệnh nhân tối đa trong ngày
             ],
             [
                 'TenQuyDinh' => 'TienKham',
-                'GiaTri' => 50000, // Tiền khám mặc định (VNĐ)
+                'GiaTri' => 50000, // Tiền khám mặc định (VNĐ) - lấy từ quy định
             ],
             [
-                'TenQuyDinh' => 'TyLeDonGiaBanThuoc',
-                'GiaTri' => 50, // Tỷ lệ đơn giá bán thuốc (%)
+                'TenQuyDinh' => 'TyLeGiaBan',
+                'GiaTri' => 0.2, // Tỷ lệ đơn giá bán thuốc (%) - dùng để tính giá bán từ giá nhập
             ],
         ];
 
@@ -35,6 +35,8 @@ class QuiDinhSeeder extends Seeder
         }
     }
 }
+
+
 
 
 

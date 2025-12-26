@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             DichVuSeeder::class,
             ThuocSeeder::class,
             AdminSeeder::class,
+            LichKhamSeeder::class,
         ]);
     }
 }

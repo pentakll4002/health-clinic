@@ -42,7 +42,7 @@ axiosInstance.interceptors.response.use(
 );
 
 export const axiosChatbot = axios.create({
-  baseURL: 'http://localhost:8001/api/chat',
+  baseURL: 'http://localhost:8002/api/chat',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'

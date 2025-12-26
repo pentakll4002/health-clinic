@@ -54,6 +54,7 @@ def get_rag_pipeline():
     return _rag_pipeline
 
 
+@router.post("", response_model=ChatResponse)
 @router.post("/", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """Chat endpoint with optional RAG"""

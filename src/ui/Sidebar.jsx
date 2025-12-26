@@ -2,6 +2,8 @@ import Dropdown from './Dropdown';
 import SidebarLink from './SidebarLink';
 import ButtonToggle from './ButtonToggle';
 import { useRolePermissions } from '../hooks/useRolePermissions';
+import LogoBenhVien from '../assets/logo-benh-vien.jpg';
+
 
 import {
   ApplicationSvg,
@@ -45,8 +47,16 @@ const Sidebar = () => {
   if (isAdmin) {
     return (
       <aside className='w-full h-full p-4 overflow-y-auto bg-white border-r border-grey-transparent'>
+        <div className="flex items-center justify-center mb-6">
+        <img
+          src={LogoBenhVien}
+          alt="Logo bệnh viện"
+          className="h-16 object-contain mx-auto mb-8"
+      />
+      </div>
+
         <div className='flex flex-col mb-6'>
-          <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>Quản trị hệ thống</p>
+          <p className='px-2 mb-2 text-sm font-semibold text-grey-400 text-center'>Quản trị hệ thống</p>
           <SidebarLink to='/' icon={DashboardSvg} label='Dashboard' />
           <SidebarLink to='/employees' icon={UserGroupIcon} label='Nhân viên' />
           <SidebarLink to='/permissions' icon={ShieldExclamationIcon} label='Phân quyền' />
@@ -73,8 +83,13 @@ const Sidebar = () => {
   if (isDoctorOnly) {
     return (
       <aside className='w-full h-full p-4 overflow-y-auto bg-white border-r border-grey-transparent'>
+                    <img
+          src={LogoBenhVien}
+          alt="Logo bệnh viện"
+          className="h-16 object-contain mx-auto mb-8"
+      />
         <div className='flex flex-col mb-6'>
-          <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>Bác sĩ</p>
+          <p className='px-2 mb-2 text-sm font-semibold text-grey-400 text-center'>Bác sĩ</p>
           <SidebarLink to='/doctor/queue' icon={DashboardSvg} label='Trang chủ' />
 
           <SidebarLink to='/doctor/queue' icon={UserGroupIcon} label='Danh sách chờ khám' />
@@ -106,8 +121,13 @@ const Sidebar = () => {
   if (isManager) {
     return (
       <aside className='w-full h-full p-4 overflow-y-auto bg-white border-r border-grey-transparent'>
+                    <img
+          src={LogoBenhVien}
+          alt="Logo bệnh viện"
+          className="h-16 object-contain mx-auto mb-8"
+      />
         <div className='flex flex-col mb-6'>
-          <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>Quản lý</p>
+          <p className='px-2 mb-2 text-sm font-semibold text-grey-400 text-center'>Quản lý</p>
           <SidebarLink to='/' icon={DashboardSvg} label='Dashboard' />
           <SidebarLink to='/reports' icon={PresentationChartLineIcon} label='Thống kê tổng hợp' />
           <SidebarLink to='/reports/staff' icon={UserGroupIcon} label='Hiệu suất nhân viên' />
@@ -134,8 +154,13 @@ const Sidebar = () => {
   if (isReceptionist) {
     return (
       <aside className='w-full h-full p-4 overflow-y-auto bg-white border-r border-grey-transparent'>
+            <img
+          src={LogoBenhVien}
+          alt="Logo bệnh viện"
+          className="h-16 object-contain mx-auto mb-8"
+      />
         <div className='flex flex-col mb-6'>
-          <p className='px-2 mb-2 text-sm font-semibold text-grey-400'>Lễ tân – Thu ngân</p>
+          <p className='px-2 mb-2 text-sm font-semibold text-grey-400 text-center'>Lễ tân – Thu ngân</p>
           <SidebarLink to='/' icon={DashboardSvg} label='Trang chủ' />
           <SidebarLink to='/patients' icon={PatientsSvg} label='Quản lý bệnh nhân' />
           <SidebarLink to='/reception?tab=reception' icon={MapPinIcon} label='Tiếp nhận bệnh nhân' />

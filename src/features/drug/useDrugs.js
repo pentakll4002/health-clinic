@@ -17,10 +17,28 @@ export function useDrugs({ keyword = '', page = 1, limit = 100 } = {}) {
     setPage(page);
   }, [page]);
 
+  // Reset về trang 1 khi keyword thay đổi
+  useEffect(() => {
+    setPage(1);
+    setDrugs([]);
+  }, [keyword]);
+
   useEffect(() => {
     if (!data?.data) return;
-    setDrugs(data.data);
-  }, [data]);
+    
+    // Nếu đang ở trang 1, thay thế danh sách
+    // Nếu load more (trang > 1), append vào danh sách
+    if (curPage === 1) {
+      setDrugs(data.data);
+    } else {
+      setDrugs((prev) => {
+        // Tránh duplicate khi append
+        const existingIds = new Set(prev.map(d => d.ID_Thuoc));
+        const newDrugs = data.data.filter(d => !existingIds.has(d.ID_Thuoc));
+        return [...prev, ...newDrugs];
+      });
+    }
+  }, [data, curPage]);
 
   function loadMore() {
     setPage((prev) => prev + 1);

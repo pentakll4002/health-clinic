@@ -1,17 +1,46 @@
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-const Search = ({ onSearch }) => {
+const Search = ({ onSearch, debounceMs = 500 }) => {
   const [value, setValue] = useState("");
+  const debounceTimerRef = useRef(null);
+
+  // Debounce search khi user gõ
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      if (onSearch) {
+        onSearch(value.trim());
+      }
+    }, debounceMs);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [value, onSearch, debounceMs]);
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && value.trim() !== "") {
-      if (onSearch) onSearch(value.trim());
+    if (e.key === 'Enter') {
+      // Clear debounce và search ngay lập tức
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      if (onSearch) {
+        onSearch(value.trim());
+      }
     }
   };
 
   const handleReset = () => {
     setValue("");
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
     if (onSearch) onSearch("");
   };
 

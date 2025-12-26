@@ -7,6 +7,7 @@ use App\Models\DichVu;
 use App\Models\ToaThuoc;
 use App\Models\Thuoc;
 use App\Models\CtPhieuKhamDichVu;
+use App\Models\QuiDinh;
 use App\Helpers\RoleHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -70,6 +71,45 @@ class PhieuKhamController extends Controller
             return response()->json([
                 'message' => 'Không tìm thấy thông tin bác sĩ. Vui lòng đăng nhập lại.',
             ], 400);
+        }
+
+        if (!RoleHelper::isRole($user, '@admin')) {
+            $doctorId = (int) $nhanVien->ID_NhanVien;
+
+            $doctorBusy = PhieuKham::where('Is_Deleted', false)
+                ->where('TrangThai', 'DangKham')
+                ->where('ID_BacSi', $doctorId)
+                ->where('ID_PhieuKham', '!=', (int) $phieuKham->ID_PhieuKham)
+                ->with(['tiepNhan.benhNhan', 'bacSi'])
+                ->first();
+
+            if ($doctorBusy) {
+                return response()->json([
+                    'message' => 'Bác sĩ đang khám cho một bệnh nhân khác. Vui lòng hoàn tất phiếu khám đang khám trước.',
+                    'conflict_type' => 'DOCTOR_BUSY',
+                    'conflict' => $doctorBusy,
+                ], 409);
+            }
+
+            $patientId = $phieuKham->tiepNhan?->ID_BenhNhan;
+            if ($patientId) {
+                $patientBusy = PhieuKham::where('Is_Deleted', false)
+                    ->where('TrangThai', 'DangKham')
+                    ->where('ID_PhieuKham', '!=', (int) $phieuKham->ID_PhieuKham)
+                    ->whereHas('tiepNhan', function ($q) use ($patientId) {
+                        $q->where('ID_BenhNhan', (int) $patientId);
+                    })
+                    ->with(['tiepNhan.benhNhan', 'bacSi'])
+                    ->first();
+
+                if ($patientBusy) {
+                    return response()->json([
+                        'message' => 'Bệnh nhân đang có một phiếu khám khác ở trạng thái đang khám.',
+                        'conflict_type' => 'PATIENT_BUSY',
+                        'conflict' => $patientBusy,
+                    ], 409);
+                }
+            }
         }
 
         // Nếu phiếu đã có bác sĩ khác claim (trừ admin) thì không cho kê toa
@@ -355,11 +395,16 @@ class PhieuKhamController extends Controller
             $payload['TienKham'] = $request->input('TienKham');
         }
 
-        // Bác sĩ chọn dịch vụ khám (không nhập tiền). Hệ thống snapshot giá dịch vụ vào TienKham.
+        // Tính tiền khám: Lấy từ quy định, nếu có dịch vụ thì cộng thêm giá dịch vụ
+        $tienKhamQuyDinh = (float) QuiDinh::getValue('TienKham', 0);
+        
+        // Bác sĩ chọn dịch vụ khám
         if ($request->has('ID_DichVu')) {
             $idDichVu = $request->input('ID_DichVu');
             if ($idDichVu === null) {
                 $payload['ID_DichVu'] = null;
+                // Nếu bỏ chọn dịch vụ, chỉ lấy tiền khám từ quy định
+                $payload['TienKham'] = $tienKhamQuyDinh;
             } else {
                 $dichVu = DichVu::query()->where('Is_Deleted', false)->find($idDichVu);
                 if (!$dichVu) {
@@ -369,13 +414,18 @@ class PhieuKhamController extends Controller
                 }
 
                 $payload['ID_DichVu'] = $dichVu->ID_DichVu;
-                // Snapshot đơn giá dịch vụ vào TienKham (đây là số tiền khám sẽ dùng để lập hoá đơn)
-                $payload['TienKham'] = (float) $dichVu->DonGia;
+                // Tính tiền khám: Tiền khám từ quy định + Đơn giá dịch vụ
+                $donGiaDichVu = (float) $dichVu->DonGia;
+                $payload['TienKham'] = $tienKhamQuyDinh + $donGiaDichVu;
+            }
+        } else {
+            // Nếu không có thay đổi dịch vụ, giữ nguyên hoặc lấy từ quy định nếu chưa có
+            if (!isset($payload['TienKham']) && !$phieuKham->TienKham) {
+                $payload['TienKham'] = $tienKhamQuyDinh;
             }
         }
 
-        // Khi bác sĩ bắt đầu khám: claim phiếu khám và chuyển trạng thái
-        if (($payload['TrangThai'] ?? null) === 'DangKham' && !$phieuKham->ID_BacSi) {
+        if (($payload['TrangThai'] ?? null) === 'DangKham') {
             $nhanVien = $user->nhanVien ?? $user->nhan_vien;
             if (!$nhanVien || !$nhanVien->ID_NhanVien) {
                 return response()->json([
@@ -383,7 +433,48 @@ class PhieuKhamController extends Controller
                 ], 400);
             }
 
-            $phieuKham->ID_BacSi = $nhanVien->ID_NhanVien;
+            if (!RoleHelper::isRole($user, '@admin')) {
+                $doctorId = (int) $nhanVien->ID_NhanVien;
+
+                $doctorBusy = PhieuKham::where('Is_Deleted', false)
+                    ->where('TrangThai', 'DangKham')
+                    ->where('ID_BacSi', $doctorId)
+                    ->where('ID_PhieuKham', '!=', (int) $phieuKham->ID_PhieuKham)
+                    ->with(['tiepNhan.benhNhan', 'bacSi'])
+                    ->first();
+
+                if ($doctorBusy) {
+                    return response()->json([
+                        'message' => 'Bác sĩ đang khám cho một bệnh nhân khác. Vui lòng hoàn tất phiếu khám đang khám trước.',
+                        'conflict_type' => 'DOCTOR_BUSY',
+                        'conflict' => $doctorBusy,
+                    ], 409);
+                }
+
+                $patientId = $phieuKham->tiepNhan?->ID_BenhNhan;
+                if ($patientId) {
+                    $patientBusy = PhieuKham::where('Is_Deleted', false)
+                        ->where('TrangThai', 'DangKham')
+                        ->where('ID_PhieuKham', '!=', (int) $phieuKham->ID_PhieuKham)
+                        ->whereHas('tiepNhan', function ($q) use ($patientId) {
+                            $q->where('ID_BenhNhan', (int) $patientId);
+                        })
+                        ->with(['tiepNhan.benhNhan', 'bacSi'])
+                        ->first();
+
+                    if ($patientBusy) {
+                        return response()->json([
+                            'message' => 'Bệnh nhân đang có một phiếu khám khác ở trạng thái đang khám.',
+                            'conflict_type' => 'PATIENT_BUSY',
+                            'conflict' => $patientBusy,
+                        ], 409);
+                    }
+                }
+            }
+
+            if (!$phieuKham->ID_BacSi) {
+                $phieuKham->ID_BacSi = $nhanVien->ID_NhanVien;
+            }
 
             $tiepNhan = $phieuKham->tiepNhan;
             if ($tiepNhan) {

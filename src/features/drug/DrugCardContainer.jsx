@@ -10,15 +10,15 @@ const ContainerGrid = styled.div`
   gap: 24px;
 `;
 
-const DrugCardContainer = () => {
-  const { isLoading, drugs, hasMore, loadMore } = useDrugs();
+const DrugCardContainer = ({ searchKeyword = '' }) => {
+  const { isLoading, drugs, hasMore, loadMore } = useDrugs({ keyword: searchKeyword });
 
   if (isLoading) return <Spinner />;
   
   if (drugs.length === 0) {
     return (
       <div className='text-center py-10 text-grey-500'>
-        Không có thuốc nào
+        {searchKeyword ? `Không tìm thấy thuốc nào với từ khóa "${searchKeyword}"` : 'Không có thuốc nào'}
       </div>
     );
   }

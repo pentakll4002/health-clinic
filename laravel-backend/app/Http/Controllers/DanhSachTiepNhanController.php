@@ -4,10 +4,38 @@ namespace App\Http\Controllers;
 
 use App\Models\DanhSachTiepNhan;
 use App\Models\LichKham;
+use App\Models\QuiDinh;
 use Illuminate\Http\Request;
 
 class DanhSachTiepNhanController extends Controller
 {
+    /**
+     * Kiểm tra số bệnh nhân tối đa trong ngày
+     * 
+     * Logic: Nếu số bệnh nhân hiện tại < số bệnh nhân tối đa thì cho phép thêm
+     * Nếu số bệnh nhân hiện tại >= số bệnh nhân tối đa thì KHÔNG cho phép thêm
+     * 
+     * @param string $ngayTN Ngày tiếp nhận (format: Y-m-d)
+     * @return array ['allowed' => bool, 'current' => int, 'max' => int]
+     */
+    private function checkSoBenhNhanToiDa($ngayTN)
+    {
+        // Lấy số bệnh nhân tối đa từ quy định (mặc định 50 nếu chưa có)
+        $soBenhNhanToiDa = (int) QuiDinh::getValue('SoBenhNhanToiDa', 50);
+        
+        // Đếm số tiếp nhận trong ngày (chỉ đếm các bản ghi chưa bị xóa)
+        $soBenhNhanHienTai = DanhSachTiepNhan::whereDate('NgayTN', $ngayTN)
+            ->where('Is_Deleted', false)
+            ->count();
+        
+        // Cho phép nếu số hiện tại < số tối đa (ví dụ: 1 < 2, 2 < 2 = false)
+        return [
+            'allowed' => $soBenhNhanHienTai < $soBenhNhanToiDa,
+            'current' => $soBenhNhanHienTai,
+            'max' => $soBenhNhanToiDa,
+        ];
+    }
+
     public function index(Request $request)
     {
         $limit = $request->get('limit', 7);
@@ -57,6 +85,20 @@ class DanhSachTiepNhanController extends Controller
 
         $payload = $request->all();
 
+        $existing = DanhSachTiepNhan::where('ID_BenhNhan', (int) $payload['ID_BenhNhan'])
+            ->whereDate('NgayTN', $payload['NgayTN'])
+            ->where('CaTN', $payload['CaTN'])
+            ->where('Is_Deleted', false)
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'message' => 'Bệnh nhân này đã được tiếp nhận trong ngày và ca này.',
+                'conflict_type' => 'TIEP_NHAN_DUPLICATE',
+                'conflict' => $existing->load(['benhNhan', 'nhanVien', 'leTanDuyet', 'phieuKhams']),
+            ], 409);
+        }
+
         // Khi lễ tân duyệt online appointment: chuyển sang CHO_KHAM và lưu đúng lễ tân duyệt
         if (array_key_exists('TrangThaiTiepNhan', $payload) && $payload['TrangThaiTiepNhan'] === 'CHO_KHAM') {
             $user = $request->user();
@@ -67,6 +109,14 @@ class DanhSachTiepNhanController extends Controller
         }
         if (!array_key_exists('TrangThaiTiepNhan', $payload) || !$payload['TrangThaiTiepNhan']) {
             $payload['TrangThaiTiepNhan'] = 'CHO_KHAM';
+        }
+
+        // Kiểm tra số bệnh nhân tối đa trong ngày
+        $checkResult = $this->checkSoBenhNhanToiDa($payload['NgayTN']);
+        if (!$checkResult['allowed']) {
+            return response()->json([
+                'message' => "Đã đạt số bệnh nhân tối đa trong ngày ({$checkResult['current']}/{$checkResult['max']}). Không thể thêm bệnh nhân mới.",
+            ], 400);
         }
 
         $tiepNhan = DanhSachTiepNhan::create($payload);
@@ -172,8 +222,17 @@ class DanhSachTiepNhanController extends Controller
 
         if ($existingTiepNhan) {
             return response()->json([
-                'message' => 'Bệnh nhân này đã được tiếp nhận trong ngày này',
-                'tiepNhan' => $existingTiepNhan->load(['benhNhan', 'nhanVien']),
+                'message' => 'Bệnh nhân này đã được tiếp nhận trong ngày và ca này.',
+                'conflict_type' => 'TIEP_NHAN_DUPLICATE',
+                'conflict' => $existingTiepNhan->load(['benhNhan', 'nhanVien', 'leTanDuyet', 'phieuKhams']),
+            ], 409);
+        }
+
+        // Kiểm tra số bệnh nhân tối đa trong ngày
+        $checkResult = $this->checkSoBenhNhanToiDa($lichKham->NgayKhamDuKien);
+        if (!$checkResult['allowed']) {
+            return response()->json([
+                'message' => "Đã đạt số bệnh nhân tối đa trong ngày ({$checkResult['current']}/{$checkResult['max']}). Không thể tiếp nhận thêm bệnh nhân.",
             ], 400);
         }
 

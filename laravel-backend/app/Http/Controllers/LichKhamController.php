@@ -5,11 +5,39 @@ namespace App\Http\Controllers;
 use App\Models\LichKham;
 use App\Models\BenhNhan;
 use App\Models\DanhSachTiepNhan;
+use App\Models\QuiDinh;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class LichKhamController extends Controller
 {
+    /**
+     * Kiểm tra số bệnh nhân tối đa trong ngày
+     * 
+     * Logic: Nếu số bệnh nhân hiện tại < số bệnh nhân tối đa thì cho phép đặt lịch/xác nhận
+     * Nếu số bệnh nhân hiện tại >= số bệnh nhân tối đa thì KHÔNG cho phép
+     * 
+     * @param string $ngay Ngày khám dự kiến (format: Y-m-d)
+     * @return array ['allowed' => bool, 'current' => int, 'max' => int]
+     */
+    private function checkSoBenhNhanToiDa($ngay)
+    {
+        // Lấy số bệnh nhân tối đa từ quy định (mặc định 50 nếu chưa có)
+        $soBenhNhanToiDa = (int) QuiDinh::getValue('SoBenhNhanToiDa', 50);
+        
+        // Đếm số tiếp nhận trong ngày (chỉ đếm các bản ghi chưa bị xóa)
+        $soBenhNhanHienTai = DanhSachTiepNhan::whereDate('NgayTN', $ngay)
+            ->where('Is_Deleted', false)
+            ->count();
+        
+        // Cho phép nếu số hiện tại < số tối đa (ví dụ: 1 < 2, 2 < 2 = false)
+        return [
+            'allowed' => $soBenhNhanHienTai < $soBenhNhanToiDa,
+            'current' => $soBenhNhanHienTai,
+            'max' => $soBenhNhanToiDa,
+        ];
+    }
+
     /**
      * Lấy danh sách lịch khám của bệnh nhân hiện tại (cho bệnh nhân)
      */
@@ -94,6 +122,33 @@ class LichKhamController extends Controller
                 'message' => 'Dữ liệu không hợp lệ',
                 'errors' => $validator->errors(),
             ], 422);
+        }
+
+        $existingLich = LichKham::where('ID_BenhNhan', $benhNhan->ID_BenhNhan)
+            ->whereDate('NgayKhamDuKien', $request->NgayKhamDuKien)
+            ->where('CaKham', $request->CaKham)
+            ->where('Is_Deleted', false)
+            ->whereIn('TrangThai', ['ChoXacNhan', 'DaXacNhan'])
+            ->first();
+
+        if ($existingLich) {
+            return response()->json([
+                'message' => 'Bệnh nhân đã có lịch khám trùng ngày và ca.',
+                'conflict_type' => 'LICH_KHAM_DUPLICATE',
+                'conflict' => [
+                    'ID_LichKham' => $existingLich->ID_LichKham,
+                    'NgayKhamDuKien' => $existingLich->NgayKhamDuKien,
+                    'CaKham' => $existingLich->CaKham,
+                    'TrangThai' => $existingLich->TrangThai,
+                ],
+            ], 409);
+        }
+
+        $checkResult = $this->checkSoBenhNhanToiDa($request->NgayKhamDuKien);
+        if (!$checkResult['allowed']) {
+            return response()->json([
+                'message' => "Đã đạt số bệnh nhân tối đa trong ngày ({$checkResult['current']}/{$checkResult['max']}). Vui lòng chọn ngày khác.",
+            ], 400);
         }
 
         $lichKham = LichKham::create([
@@ -195,6 +250,30 @@ class LichKhamController extends Controller
             ], 422);
         }
 
+        $newNgay = $request->has('NgayKhamDuKien') ? $request->NgayKhamDuKien : $lichKham->NgayKhamDuKien;
+        $newCa = $request->has('CaKham') ? $request->CaKham : $lichKham->CaKham;
+
+        $duplicate = LichKham::where('ID_BenhNhan', $lichKham->ID_BenhNhan)
+            ->whereDate('NgayKhamDuKien', $newNgay)
+            ->where('CaKham', $newCa)
+            ->where('Is_Deleted', false)
+            ->whereIn('TrangThai', ['ChoXacNhan', 'DaXacNhan'])
+            ->where('ID_LichKham', '!=', $lichKham->ID_LichKham)
+            ->first();
+
+        if ($duplicate) {
+            return response()->json([
+                'message' => 'Không thể cập nhật vì sẽ trùng lịch khám (ngày/ca) của bệnh nhân.',
+                'conflict_type' => 'LICH_KHAM_DUPLICATE',
+                'conflict' => [
+                    'ID_LichKham' => $duplicate->ID_LichKham,
+                    'NgayKhamDuKien' => $duplicate->NgayKhamDuKien,
+                    'CaKham' => $duplicate->CaKham,
+                    'TrangThai' => $duplicate->TrangThai,
+                ],
+            ], 409);
+        }
+
         $lichKham->fill($request->only(['NgayKhamDuKien', 'CaKham', 'TrangThai', 'GhiChu']));
         $lichKham->save();
         $lichKham->load('benhNhan');
@@ -250,11 +329,18 @@ class LichKhamController extends Controller
             ]);
         }
 
-        // Tự động tạo record trong DANHSACHTIEPNHAN
-        // TrangThai = 0 (Chưa khám) để bác sĩ có thể lập phiếu khám
+        // Kiểm tra số bệnh nhân tối đa trong ngày
+        $checkResult = $this->checkSoBenhNhanToiDa($lichKham->NgayKhamDuKien);
+        if (!$checkResult['allowed']) {
+            return response()->json([
+                'message' => "Đã đạt số bệnh nhân tối đa trong ngày ({$checkResult['current']}/{$checkResult['max']}). Không thể xác nhận lịch khám này.",
+            ], 400);
+        }
+
+    
         $tiepNhan = DanhSachTiepNhan::create([
             'ID_BenhNhan' => $lichKham->ID_BenhNhan,
-            'NgayTN' => $lichKham->NgayKhamDuKien, // Sử dụng ngày khám dự kiến
+            'NgayTN' => $lichKham->NgayKhamDuKien,
             'CaTN' => $lichKham->CaKham,
             'ID_NhanVien' => $nhanVien->ID_NhanVien,
             'ID_LeTanDuyet' => $nhanVien->ID_NhanVien,
@@ -262,7 +348,6 @@ class LichKhamController extends Controller
             'Is_Deleted' => false,
         ]);
 
-        // Cập nhật trạng thái lịch khám thành Đã xác nhận
         $lichKham->TrangThai = 'DaXacNhan';
         $lichKham->save();
         $lichKham->load('benhNhan');

@@ -34,6 +34,29 @@ class DichVuController extends Controller
             'DonGia' => 'required|numeric|min:0',
         ]);
 
+        // Kiểm tra xem dịch vụ đã tồn tại chưa (kể cả đã bị xóa)
+        $existingDichVu = DichVu::where('TenDichVu', $validated['TenDichVu'])->first();
+        
+        if ($existingDichVu) {
+            if ($existingDichVu->Is_Deleted) {
+                // Nếu dịch vụ đã bị xóa, khôi phục lại và cập nhật giá
+                $existingDichVu->Is_Deleted = false;
+                $existingDichVu->DonGia = $validated['DonGia'];
+                $existingDichVu->save();
+                
+                return response()->json([
+                    'message' => 'Khôi phục dịch vụ thành công',
+                    'data' => $existingDichVu,
+                ], 200);
+            } else {
+                // Nếu dịch vụ đã tồn tại và chưa bị xóa, báo lỗi
+                return response()->json([
+                    'message' => 'Dịch vụ này đã tồn tại trong hệ thống',
+                ], 422);
+            }
+        }
+
+        // Tạo dịch vụ mới
         $dichVu = DichVu::create([
             'TenDichVu' => $validated['TenDichVu'],
             'DonGia' => $validated['DonGia'],

@@ -456,7 +456,7 @@ const InvoicePrintPage = () => {
 
               <MetaItem>
                 <MetaLabel>Điện thoại:</MetaLabel>
-                <MetaValue>{benhNhan?.SoDienThoai || 'N/A'}</MetaValue>
+                <MetaValue>{benhNhan?.DienThoai || 'N/A'}</MetaValue>
               </MetaItem>
               <MetaItem>
                 <MetaLabel>Địa chỉ:</MetaLabel>

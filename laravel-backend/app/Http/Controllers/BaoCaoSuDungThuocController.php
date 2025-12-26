@@ -52,6 +52,29 @@ class BaoCaoSuDungThuocController extends Controller
         if (!$baoCao) {
             return response()->json(['message' => 'Không tìm thấy báo cáo'], 404);
         }
+
+        // Lấy thông tin các phiếu nhập thuốc trong tháng cho thuốc này
+        $startDate = "{$baoCao->Nam}-{$baoCao->Thang}-01";
+        $endDate = date('Y-m-t 23:59:59', strtotime($startDate));
+
+        $phieuNhaps = PhieuNhapThuoc::whereBetween('NgayNhap', [$startDate, $endDate])
+            ->whereHas('chiTiet', function ($query) use ($baoCao) {
+                $query->where('ID_Thuoc', $baoCao->ID_Thuoc);
+            })
+            ->with(['nhanVien', 'chiTiet' => function ($query) use ($baoCao) {
+                $query->where('ID_Thuoc', $baoCao->ID_Thuoc);
+            }])
+            ->get();
+
+        // Tính tổng số lượng nhập từ các phiếu nhập
+        $tongSoLuongNhap = $phieuNhaps->sum(function ($phieuNhap) {
+            return $phieuNhap->chiTiet->sum('SoLuongNhap');
+        });
+
+        // Thêm thông tin phiếu nhập vào response
+        $baoCao->phieu_nhaps = $phieuNhaps;
+        $baoCao->tong_so_luong_nhap_tu_phieu = $tongSoLuongNhap;
+
         return response()->json($baoCao);
     }
 

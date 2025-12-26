@@ -10,11 +10,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../../utils/axiosInstance';
 import toast from 'react-hot-toast';
 import { addToaThuoc, completePhieuKham, removeToaThuoc, updatePhieuKham } from './API_PhieuKham';
+import { getCachDung } from '../drug/APIDrugs';
 
 const LayoutMedicalDetail = styled.div`
   padding: 20px;
   background-color: #f5f6f8;
-  width: 1200px;
+  width: 1400px;
+  max-width: 100%;
   height: 100%;
 `;
 
@@ -33,6 +35,10 @@ const Text = styled.span`
   color: #091833;
   margin: auto;
 `;
+
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('vi-VN').format(amount || 0);
+};
 
 const MedicalDetail = ({ ID_PhieuKham, readOnly = false, onCloseModal }) => {
   const { phieuKham, isLoading } = useChiTietPhieuKham(ID_PhieuKham);
@@ -65,6 +71,14 @@ const MedicalDetail = ({ ID_PhieuKham, readOnly = false, onCloseModal }) => {
       queryClient.invalidateQueries({ queryKey: ['phieuKham', ID_PhieuKham] });
       queryClient.invalidateQueries({ queryKey: ['phieukham-list'] });
     },
+    onError: (error) => {
+      const status = error.response?.status;
+      if (status === 409) {
+        toast.error(error.response?.data?.message || 'Không thể bắt đầu khám do xung đột');
+        return;
+      }
+      toast.error(error.response?.data?.message || 'Không thể bắt đầu khám');
+    },
   });
 
   const completeMutation = useMutation({
@@ -90,7 +104,13 @@ const MedicalDetail = ({ ID_PhieuKham, readOnly = false, onCloseModal }) => {
     },
   });
 
+  const { data: cachDungData } = useQuery({
+    queryKey: ['cach-dung'],
+    queryFn: getCachDung,
+  });
+
   const drugs = drugsData?.data || [];
+  const cachDungList = cachDungData || [];
 
   const updateMutation = useMutation({
     mutationFn: (payload) => updatePhieuKham(ID_PhieuKham, payload),
@@ -114,6 +134,11 @@ const MedicalDetail = ({ ID_PhieuKham, readOnly = false, onCloseModal }) => {
       queryClient.invalidateQueries({ queryKey: ['phieukham-list'] });
     },
     onError: (error) => {
+      const status = error.response?.status;
+      if (status === 409) {
+        toast.error(error.response?.data?.message || 'Không thể kê toa do xung đột');
+        return;
+      }
       toast.error(error.response?.data?.message || 'Thêm thuốc thất bại');
     },
   });
@@ -205,8 +230,8 @@ const MedicalDetail = ({ ID_PhieuKham, readOnly = false, onCloseModal }) => {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className='grid grid-cols-3 gap-4'>
-          <div className='col-span-2 rounded-xl border border-grey-transparent bg-white p-5'>
+        <div className='grid grid-cols-12 gap-4'>
+          <div className='col-span-8 rounded-xl border border-grey-transparent bg-white p-5'>
             <div className='mb-4 flex items-center justify-between'>
               <h3 className='text-sm font-bold uppercase tracking-wide text-grey-700'>Thông tin khám</h3>
               {!isEditting ? (
@@ -315,17 +340,26 @@ const MedicalDetail = ({ ID_PhieuKham, readOnly = false, onCloseModal }) => {
             </Grid2Col>
           </div>
 
-          <div className='col-span-1 space-y-4'>
+          <div className='col-span-4 space-y-4'>
             <div className='rounded-xl border border-primary bg-white p-5'>
               <p className='text-xs font-semibold uppercase text-grey-500'>Tiền khám</p>
               <div className='mt-2'>
-                <p className='text-lg font-bold text-grey-900'>{phieuKham.TienKham ?? 0} Đồng</p>
+                <p className='text-lg font-bold text-grey-900'>
+                  {formatCurrency(phieuKham.TienKham)} Đồng
+                </p>
+                <p className='mt-1 text-xs text-grey-500'>
+                  {selectedDichVu 
+                    ? `(Quy định + ${selectedDichVu.TenDichVu})`
+                    : '(Từ quy định)'}
+                </p>
               </div>
             </div>
 
             <div className='rounded-xl border border-primary bg-white p-5'>
               <p className='text-xs font-semibold uppercase text-grey-500'>Tiền thuốc</p>
-              <p className='mt-2 text-lg font-bold text-grey-900'>{phieuKham.TongTienThuoc ?? 0} Đồng</p>
+              <p className='mt-2 text-lg font-bold text-grey-900'>
+                {formatCurrency(phieuKham.TongTienThuoc)} Đồng
+              </p>
               <p className='mt-1 text-xs text-grey-500'>Tự động cập nhật theo toa thuốc</p>
             </div>
           </div>
@@ -370,12 +404,17 @@ const MedicalDetail = ({ ID_PhieuKham, readOnly = false, onCloseModal }) => {
             </div>
             <div>
               <label className='block text-xs font-semibold text-grey-500 mb-1'>Cách dùng</label>
-              <input
+              <select
                 name='CachDung'
-                type='text'
-                className='w-full rounded-md border border-grey-transparent px-3 py-2 text-sm'
-                placeholder='Uống sau ăn...'
-              />
+                className='w-full rounded-md border border-grey-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary'
+              >
+                <option value=''>-- Chọn cách dùng --</option>
+                {cachDungList.map((cachDung) => (
+                  <option key={cachDung.ID_CachDung} value={cachDung.MoTaCachDung}>
+                    {cachDung.MoTaCachDung}
+                  </option>
+                ))}
+              </select>
             </div>
             <button
               type='submit'

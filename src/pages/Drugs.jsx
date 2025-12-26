@@ -3,9 +3,11 @@ import { useSearchParams } from 'react-router-dom';
 import styled from 'styled-components';
 import DrugCardContainer from '../features/drug/DrugCardContainer';
 import DrugReportsContainer from '../features/drug/DrugReportsContainer';
+import DrugImportContainer from '../features/drug/DrugImportContainer';
 import { FunnelIcon } from '@heroicons/react/24/outline';
 import AddDrug from '../features/drug/AddDrug';
 import AddDrugReport from '../features/drug/AddDrugReport';
+import AddDrugImport from '../features/drug/AddDrugImport';
 import { useDrugs } from '../features/drug/useDrugs';
 import { useDrugReports } from '../features/drug/useDrugReports';
 import Select from '../ui/Select';
@@ -13,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getDrugs } from '../features/drug/APIDrugs';
 import Spinner from '../ui/Spinner';
 import Search from '../features/Search/Search';
+import { useRolePermissions } from '../hooks/useRolePermissions';
 
 const LayoutDrugs = styled.div`
   width: 100%;
@@ -55,11 +58,15 @@ const Tab = styled.button`
 const Drugs = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabFromUrl = searchParams.get('tab') || 'drugs';
-  const [activeTab, setActiveTab] = useState(tabFromUrl); // 'drugs' or 'reports'
+  const [activeTab, setActiveTab] = useState(tabFromUrl); // 'drugs', 'reports', or 'imports'
   const [thang, setThang] = useState('');
   const [nam, setNam] = useState('');
   const [idThuoc, setIdThuoc] = useState('');
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [tuNgay, setTuNgay] = useState('');
+  const [denNgay, setDenNgay] = useState('');
+  const { isRole } = useRolePermissions();
+  const isManager = isRole('@managers');
 
   useEffect(() => {
     const tab = searchParams.get('tab') || 'drugs';
@@ -124,6 +131,19 @@ const Drugs = () => {
         >
           Báo Cáo Sử Dụng Thuốc
         </Tab>
+        {isManager && (
+          <Tab
+            active={activeTab === 'imports'}
+            onClick={() => {
+              setActiveTab('imports');
+              const newSearchParams = new URLSearchParams(searchParams);
+              newSearchParams.set('tab', 'imports');
+              setSearchParams(newSearchParams);
+            }}
+          >
+            Nhập Kho
+          </Tab>
+        )}
       </TabContainer>
 
       {activeTab === 'drugs' ? (
@@ -153,7 +173,7 @@ const Drugs = () => {
           </LayoutFlex>
           <DrugCardContainer {...drugsHook} searchKeyword={searchKeyword} />
         </>
-      ) : (
+      ) : activeTab === 'reports' ? (
         <>
           <LayoutFlex>
             <div className='flex items-center justify-center gap-x-3'>
@@ -227,7 +247,57 @@ const Drugs = () => {
             id_thuoc={idThuoc || undefined}
           />
         </>
-      )}
+      ) : activeTab === 'imports' && isManager ? (
+        <>
+          <LayoutFlex>
+            <div className='flex items-center justify-center gap-x-3'>
+              <h2 className='text-xl font-bold leading-6 text-grey-900'>
+                Quản Lý Nhập Kho
+              </h2>
+            </div>
+            <div className='flex items-center justify-center gap-x-4'>
+              {/* Filter */}
+              <div className='flex items-center justify-center gap-x-2'>
+                <div style={{ minWidth: '150px' }}>
+                  <input
+                    type='date'
+                    value={tuNgay}
+                    onChange={(e) => setTuNgay(e.target.value)}
+                    className='px-3 py-2 text-sm border rounded-md border-grey-transparent'
+                    placeholder='Từ ngày'
+                  />
+                </div>
+                <div style={{ minWidth: '150px' }}>
+                  <input
+                    type='date'
+                    value={denNgay}
+                    onChange={(e) => setDenNgay(e.target.value)}
+                    className='px-3 py-2 text-sm border rounded-md border-grey-transparent'
+                    placeholder='Đến ngày'
+                  />
+                </div>
+                {(tuNgay || denNgay) && (
+                  <button
+                    onClick={() => {
+                      setTuNgay('');
+                      setDenNgay('');
+                    }}
+                    className='px-3 py-2 text-sm font-medium text-grey-700 bg-grey-100 border rounded-md border-grey-transparent hover:bg-grey-200'
+                  >
+                    Xóa bộ lọc
+                  </button>
+                )}
+              </div>
+              {/* New Import */}
+              <AddDrugImport />
+            </div>
+          </LayoutFlex>
+          <DrugImportContainer
+            tu_ngay={tuNgay || undefined}
+            den_ngay={denNgay || undefined}
+          />
+        </>
+      ) : null}
     </LayoutDrugs>
   );
 };

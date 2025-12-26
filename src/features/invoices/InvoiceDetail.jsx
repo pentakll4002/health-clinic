@@ -2,11 +2,13 @@ import styled from 'styled-components';
 import { useQuery } from '@tanstack/react-query';
 import { getInvoice } from './APIInvoices';
 import Spinner from '../../ui/Spinner';
+import { DocumentArrowDownIcon } from '@heroicons/react/24/outline';
 
 const LayoutInvoiceDetail = styled.div`
-  padding: 20px;
+  padding: 24px;
   background-color: #f5f6f8;
-  width: 900px;
+  width: 1000px;
+  max-width: 100%;
   height: 100%;
 `;
 
@@ -20,15 +22,15 @@ const Text = styled.span`
 const Grid2Col = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  column-gap: 24px;
-  row-gap: 12px;
-  margin: 20px auto;
+  column-gap: 32px;
+  row-gap: 16px;
+  margin: 24px 0;
 `;
 
 const Row = ({ label, value }) => (
-  <div className='flex items-center gap-3'>
-    <span className='text-sm font-medium text-grey-900 min-w-[160px]'>{label}</span>
-    <Text>{value}</Text>
+  <div className='flex items-center gap-4'>
+    <span className='text-sm font-semibold text-grey-700 min-w-[180px]'>{label}</span>
+    <Text className='text-grey-900 font-medium'>{value}</Text>
   </div>
 );
 
@@ -63,15 +65,21 @@ const InvoiceDetail = ({ ID_HoaDon }) => {
 
   return (
     <LayoutInvoiceDetail>
-      <div className='flex items-center justify-between mb-5'>
-        <h2 className='text-xl font-bold leading-6 text-grey-900'>
-          Hoá Đơn #{invoice.ID_HoaDon}
-        </h2>
+      <div className='flex items-center justify-between mb-6 pb-4 border-b border-grey-transparent'>
+        <div>
+          <h2 className='text-2xl font-bold leading-7 text-grey-900'>
+            Hoá Đơn #{invoice.ID_HoaDon}
+          </h2>
+          <p className='mt-1 text-sm text-grey-600'>
+            {benhNhan?.HoTenBN || 'Bệnh nhân'}
+          </p>
+        </div>
         <button
           type='button'
           onClick={openPrintWindow}
-          className='px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:opacity-90 transition'
+          className='flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-all duration-200 shadow-md hover:shadow-lg'
         >
+          <DocumentArrowDownIcon className='w-5 h-5' />
           Xuất PDF
         </button>
       </div>
