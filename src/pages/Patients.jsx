@@ -40,16 +40,18 @@ const Patients = () => {
   }
 
   function handleReset() {
+    setSearchKeyword('');
     setSearchParams({});
     setIsSearchOpen(false);
   }
 
   function toggleSearch() {
-    setIsSearchOpen(!isSearchOpen);
-    if (isSearchOpen) {
-      setSearchParams({});
-    }
+    setIsSearchOpen(prev => !prev);
   }
+  
+
+  
+  
 
   return (
     <LayoutPatients>
@@ -65,7 +67,16 @@ const Patients = () => {
           </div>
 
           <div className='ml-4'>
-            <Search onSearch={setSearchKeyword} />
+          <Search
+  onSearch={(value) => {
+    const keyword = value.trim();
+
+    if (!keyword) return;
+
+    setSearchKeyword(keyword);
+    setSearchParams({ exact: true });
+  }}
+/>
           </div>
         </div>
 

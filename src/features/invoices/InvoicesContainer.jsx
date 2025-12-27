@@ -1,17 +1,11 @@
 import Table from '../../ui/Table';
-import { useInvoices } from './useInvoices';
-import Spinner from '../../ui/Spinner';
 import LoadMore from '../../ui/LoadMore';
 import InvoiceRow from './InvoiceRow';
 
-const InvoicesContainer = () => {
-  const { isLoading, invoices, hasMore, loadMore } = useInvoices();
-
-  if (isLoading) return <Spinner />;
-
+const InvoicesContainer = ({ invoices, hasMore, loadMore }) => {
   if (invoices.length === 0) {
     return (
-      <div className='text-center py-10 text-grey-500'>
+      <div className="text-center py-10 text-grey-500">
         Không có hoá đơn nào
       </div>
     );
@@ -19,37 +13,36 @@ const InvoicesContainer = () => {
 
   return (
     <>
-      <div className='bg-white rounded-lg border border-grey-transparent overflow-hidden'>
-        <Table columns='1fr 2fr 2fr 1fr 1fr 1fr 1fr 72px'>
+      <div className="bg-white rounded-lg border border-grey-transparent overflow-hidden">
+        <Table columns="1fr 2fr 2fr 1fr 1fr 1fr 1fr 72px">
           <Table.Header>
-            <div className='mx-auto'>ID Hoá Đơn</div>
-            <div className='mx-auto'>ID Phiếu Khám</div>
-            <div className='mx-auto'>Nhân Viên</div>
-            <div className='mx-auto'>Ngày</div>
-            <div className='mx-auto'>Tiền Khám</div>
-            <div className='mx-auto'>Tiền Thuốc</div>
-            <div className='mx-auto'>Tổng Tiền</div>
-            <div className='mx-auto'>Xem</div>
+            <div className="mx-auto">ID Hoá Đơn</div>
+            <div className="mx-auto">ID Phiếu Khám</div>
+            <div className="mx-auto">Nhân Viên</div>
+            <div className="mx-auto">Ngày</div>
+            <div className="mx-auto">Tiền Khám</div>
+            <div className="mx-auto">Tiền Thuốc</div>
+            <div className="mx-auto">Tổng Tiền</div>
+            <div className="mx-auto">Xem</div>
           </Table.Header>
 
-        <Table.Body
-          data={invoices}
-          render={(invoice) => (
-            <InvoiceRow key={invoice.ID_HoaDon} invoice={invoice} />
-          )}
-        />
+          <Table.Body
+            data={invoices}
+            render={(invoice) => (
+              <InvoiceRow
+                key={invoice.ID_HoaDon}
+                invoice={invoice}
+              />
+            )}
+          />
         </Table>
       </div>
 
-      {!hasMore ? (
-        <span />
-      ) : (
-        <LoadMore onClick={loadMore} disabled={!hasMore} />
+      {hasMore && (
+        <LoadMore onClick={loadMore} />
       )}
     </>
   );
 };
 
 export default InvoicesContainer;
-
-

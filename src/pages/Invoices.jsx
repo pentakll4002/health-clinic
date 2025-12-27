@@ -3,9 +3,7 @@ import InvoicesContainer from '../features/invoices/InvoicesContainer';
 import { useInvoices } from '../features/invoices/useInvoices';
 import AddInvoice from '../features/invoices/AddInvoice';
 import Spinner from '../ui/Spinner';
-import Search from '../features/Search/Search';
 import { useState } from 'react';
-import Filter from '../ui/Filter';
 
 const LayoutInvoices = styled.div`
   width: 100%;
@@ -22,51 +20,71 @@ const LayoutFlex = styled.div`
 `;
 
 const Invoices = () => {
-  const [searchKeyword, setSearchKeyword] = useState("");
-  const { totalCount, isLoading } = useInvoices({ keyword: searchKeyword });
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
-  if (isLoading) return <Spinner />;
+  const {
+    invoices,
+    totalCount,
+    isLoading,
+  } = useInvoices({
+    date_from: dateFrom,
+    date_to: dateTo,
+  });
 
   return (
     <LayoutInvoices>
       <LayoutFlex>
-        <div className='flex items-center justify-center gap-x-3'>
-          <h2 className='text-xl font-bold leading-6 text-grey-900'>
-            Hoá Đơn
-          </h2>
+        <div className="flex items-center gap-x-3">
+          <h2 className="text-xl font-bold text-grey-900">Hoá Đơn</h2>
 
-          <div className='flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium border rounded-md text-primary border-primary bg-primary-transparent'>
+          <div className="flex items-center gap-1 px-2 py-1 text-xs font-medium border rounded-md text-primary border-primary bg-primary-transparent">
             <span>Tổng hoá đơn:</span>
             <span>{totalCount}</span>
           </div>
 
-          <div className='ml-4'>
-            <Search onSearch={setSearchKeyword} />
+          {/* FILTER NGÀY */}
+          <div className="flex items-center gap-2 ml-4">
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="border px-2 py-1 rounded"
+            />
+
+            <span>→</span>
+
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="border px-2 py-1 rounded"
+            />
+
+            {(dateFrom || dateTo) && (
+              <button
+                onClick={() => {
+                  setDateFrom('');
+                  setDateTo('');
+                }}
+                className="text-sm text-red-500 ml-2"
+              >
+                Reset
+              </button>
+            )}
           </div>
         </div>
 
-        <div className='flex items-center justify-center gap-x-4'>
-          {/* Filter */}
-          <Filter
-            filterField='status'
-            options={[
-              { value: 'Tất cả', label: 'All' },
-              { value: '', label: '' },
-              { value: '', label: '' },
-              { value: '', label: '' },
-            ]}
-          />
-
-          {/* New Invoice */}
-          <AddInvoice />
-        </div>
+        <AddInvoice />
       </LayoutFlex>
 
-      <InvoicesContainer searchKeyword={searchKeyword} />
+      {isLoading ? (
+        <Spinner />
+      ) : (
+        <InvoicesContainer invoices={invoices} />
+      )}
     </LayoutInvoices>
   );
 };
 
 export default Invoices;
-
-

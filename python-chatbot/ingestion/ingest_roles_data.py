@@ -1,10 +1,9 @@
 """
-Script to fetch roles and permissions data from Laravel backend API
-and ingest into the vector store
+Script to format and ingest roles and permissions data from local markdown file
+into the vector store
 """
 import os
 import sys
-import requests
 import json
 from typing import Dict, List, Optional
 
@@ -15,100 +14,6 @@ if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
 from ingestion.ingest import DocumentIngester
-from langchain_core.documents import Document
-
-
-class LaravelAPIClient:
-    """Client to fetch data from Laravel backend API"""
-    
-    def __init__(self, base_url: str, token: Optional[str] = None):
-        self.base_url = base_url.rstrip('/')
-        self.token = token
-        self.session = requests.Session()
-        if token:
-            self.session.headers.update({
-                'Authorization': f'Bearer {token}',
-                'Accept': 'application/json'
-            })
-        else:
-            self.session.headers.update({
-                'Accept': 'application/json'
-            })
-    
-    def get(self, endpoint: str) -> Dict:
-        """Make GET request to API"""
-        # Remove leading slash from endpoint
-        endpoint = endpoint.lstrip('/')
-        # Remove 'api/' prefix if present in endpoint
-        if endpoint.startswith('api/'):
-            endpoint = endpoint[4:]
-        
-        # Build URL: if base_url ends with /api, use it directly, otherwise add /api
-        base = self.base_url.rstrip('/')
-        if base.endswith('/api'):
-            url = f"{base}/{endpoint}"
-        else:
-            url = f"{base}/api/{endpoint}"
-        
-        try:
-            response = self.session.get(url, timeout=10)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            print(f"Error fetching {endpoint}: {e}")
-            if hasattr(e, 'response') and e.response is not None:
-                print(f"Response: {e.response.text}")
-            raise
-    
-    def fetch_roles_data(self) -> Dict:
-        """Fetch all roles data from dedicated endpoint"""
-        try:
-            data = self.get('roles-data')
-            return data if isinstance(data, dict) else {}
-        except Exception as e:
-            print(f"Warning: Could not fetch roles data from roles-data endpoint: {e}")
-            # Fallback to individual endpoints
-            return self._fetch_individual_endpoints()
-    
-    def _fetch_individual_endpoints(self) -> Dict:
-        """Fallback: fetch from individual endpoints"""
-        result = {
-            'roles': [],
-            'functions': [],
-            'permissions': [],
-        }
-        
-        try:
-            result['roles'] = self.get('nhom-nguoi-dung')
-            if not isinstance(result['roles'], list):
-                result['roles'] = []
-        except Exception as e:
-            print(f"Warning: Could not fetch roles: {e}")
-        
-        try:
-            result['functions'] = self.get('chuc-nang')
-            if not isinstance(result['functions'], list):
-                result['functions'] = []
-        except Exception as e:
-            print(f"Warning: Could not fetch functions: {e}")
-        
-        try:
-            result['permissions'] = self.get('phan-quyen')
-            if not isinstance(result['permissions'], list):
-                result['permissions'] = []
-        except Exception as e:
-            print(f"Warning: Could not fetch permissions: {e}")
-        
-        return result
-    
-    def fetch_api_catalog(self) -> Dict:
-        """Fetch API catalog with role-based endpoints"""
-        try:
-            data = self.get('api-catalog')
-            return data if isinstance(data, dict) else {}
-        except Exception as e:
-            print(f"Warning: Could not fetch API catalog (may need authentication): {e}")
-            return {}
 
 
 def format_roles_data(roles: List[Dict], functions: List[Dict], 
@@ -235,70 +140,33 @@ def format_roles_data(roles: List[Dict], functions: List[Dict],
     return "".join(content)
 
 
-def fetch_and_ingest_roles(api_base_url: str, token: Optional[str] = None):
-    """Fetch roles data from API and ingest into vector store"""
+def ingest_static_roles_data(roles_file_path: str):
+    """Ingest static roles data from a markdown file into the vector store"""
     print("=" * 60)
-    print("Fetching Roles and Permissions from Laravel API")
+    print("Ingesting Roles and Permissions Data from static file")
     print("=" * 60)
     
-    # Initialize API client
-    client = LaravelAPIClient(api_base_url, token)
-    
-    print("Fetching data from API...")
-    
-    # Try to fetch from dedicated endpoint first
-    roles_data = client.fetch_roles_data()
-    
-    if roles_data and 'roles' in roles_data:
-        roles = roles_data.get('roles', [])
-        functions = roles_data.get('functions', [])
-        permissions = roles_data.get('permissions', [])
-    else:
-        # Fallback to individual endpoints
-        roles = []
-        functions = []
-        permissions = []
-    
-    # Fetch API catalog separately
-    api_catalog = client.fetch_api_catalog()
-    
-    print(f"[OK] Fetched data:")
-    print(f"   - Roles: {len(roles)}")
-    print(f"   - Functions: {len(functions)}")
-    print(f"   - Permissions: {len(permissions)}")
-    print(f"   - API Catalog: {'Yes' if api_catalog else 'No'}")
-    
-    if not roles and not functions:
-        print("[WARNING] No data fetched. Check API URL and authentication.")
+    if not os.path.exists(roles_file_path):
+        print(f"[ERROR] File not found: {roles_file_path}")
         return
     
-    # Format data
-    print("\nFormatting data...")
-    markdown_content = format_roles_data(roles, functions, permissions, api_catalog)
+    print(f"Loading roles data from: {roles_file_path}")
     
-    # Save to file (optional)
-    output_file = os.path.join(script_dir, "..", "data", "raw", "roles_from_api.md")
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
-    with open(output_file, 'w', encoding='utf-8') as f:
-        f.write(markdown_content)
-    print(f"[OK] Saved formatted data to: {output_file}")
-    
-    # Ingest into vector store
-    print("\nIngesting into vector store...")
+    # Ingest the file
     ingester = DocumentIngester()
-    
     try:
-        result = ingester.ingest_text(
-            markdown_content,
+        result = ingester.ingest_file(
+            roles_file_path,
             metadata={
                 "type": "roles_permissions",
-                "source": "laravel_backend_api",
+                "source": "static_markdown",
                 "category": "system_documentation"
             }
         )
         
         print(f"[OK] Successfully ingested roles data!")
         print(f"   - Number of chunks: {result['num_chunks']}")
+        print(f"   - Source: {roles_file_path}")
         print("=" * 60)
         
     except Exception as e:
@@ -308,13 +176,6 @@ def fetch_and_ingest_roles(api_base_url: str, token: Optional[str] = None):
 
 
 if __name__ == "__main__":
-    import os
-    from dotenv import load_dotenv
-    
-    load_dotenv()
-    
-    # Get API configuration from environment or use defaults
-    api_base_url = os.getenv("LARAVEL_API_URL", "http://localhost:8000")
-    api_token = os.getenv("LARAVEL_API_TOKEN", None)
-    
-    fetch_and_ingest_roles(api_base_url, api_token)
+    static_roles_file = os.path.join(script_dir, "..", "data", "raw", "roles_and_permissions.md")
+    ingest_static_roles_data(static_roles_file)
+

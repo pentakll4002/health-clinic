@@ -8,3 +8,4 @@ export async function getPatients({ page = 1, limit = 27, searchParams = {} } = 
     totalCount: res.data.totalCount,
   };
 }
+

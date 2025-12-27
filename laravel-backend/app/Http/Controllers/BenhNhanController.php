@@ -11,18 +11,69 @@ class BenhNhanController extends Controller
     public function index(Request $request)
     {
         $limit = $request->get('limit', 100);
-        $page = $request->get('page', 1);
+        $page  = $request->get('page', 1);
+    
         $query = BenhNhan::where('Is_Deleted', false);
-
+    
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH THEO TÊN BỆNH NHÂN
+        |--------------------------------------------------------------------------
+        | keyword + exact=true  -> tìm ĐÚNG tên
+        | keyword (mặc định)    -> tìm GẦN ĐÚNG
+        */
+        if ($request->filled('keyword')) {
+            $keyword = trim($request->keyword);
+    
+            if ($request->boolean('exact')) {
+                // 🎯 TÌM ĐÚNG TÊN
+                $query->where('HoTenBN', $keyword);
+            } else {
+                // 🔎 TÌM GẦN ĐÚNG
+                $query->where('HoTenBN', 'LIKE', "%{$keyword}%");
+            }
+        }
+    
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH NÂNG CAO (form)
+        |--------------------------------------------------------------------------
+        */
+        if ($request->filled('GioiTinh')) {
+            $query->where('GioiTinh', $request->GioiTinh);
+        }
+    
+        if ($request->filled('DienThoai')) {
+            $query->where('DienThoai', 'LIKE', "%{$request->DienThoai}%");
+        }
+    
+        if ($request->filled('CCCD')) {
+            $query->where('CCCD', 'LIKE', "%{$request->CCCD}%");
+        }
+    
+        if ($request->filled('NgaySinh')) {
+            $query->whereDate('NgaySinh', $request->NgaySinh);
+        }
+    
+        /*
+        |--------------------------------------------------------------------------
+        | PAGINATION
+        |--------------------------------------------------------------------------
+        */
         $totalCount = $query->count();
-        $data = $query->offset(($page - 1) * $limit)->limit($limit)->get();
-
+    
+        $data = $query
+            ->orderBy('NgayDK', 'desc')
+            ->offset(($page - 1) * $limit)
+            ->limit($limit)
+            ->get();
+    
         return response()->json([
             'data' => $data,
             'totalCount' => $totalCount,
         ]);
     }
-
+    
     public function show($id)
     {
         $benhNhan = BenhNhan::find($id);
