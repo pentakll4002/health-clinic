@@ -49,7 +49,8 @@ class VectorStoreManager:
             persist_directory=config.CHROMA_PERSIST_DIR
         )
         
-        vector_store.persist()
+        # Chroma 0.4.x+ automatically persists, no need to call persist()
+        # vector_store.persist()  # Deprecated in Chroma 0.4.x+
         return vector_store
     
     def _create_faiss(self, documents: List[Document]):

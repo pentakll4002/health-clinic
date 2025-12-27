@@ -69,8 +69,25 @@ async def chat(request: ChatRequest):
                     "content": msg.content
                 })
         
-        # Always use direct LLM chat for now (RAG requires vector store setup)
-        # This allows backend to work even without documents uploaded
+        # Use RAG if requested and available, otherwise use direct LLM
+        if request.use_rag:
+            try:
+                rag_pipeline = get_rag_pipeline()
+                result = rag_pipeline.query(
+                    query=request.message,
+                    conversation_history=history,
+                    top_k=request.top_k
+                )
+                return ChatResponse(
+                    answer=result["answer"],
+                    sources=result.get("sources"),
+                    num_sources=result.get("num_sources", 0)
+                )
+            except Exception as e:
+                # If RAG fails, fallback to direct LLM
+                print(f"RAG failed, falling back to direct LLM: {e}")
+        
+        # Direct LLM chat (fallback or when use_rag=False)
         from llm.client import get_llm_client
         try:
             llm_client = get_llm_client(config.MODEL_TYPE)

@@ -20,6 +20,7 @@ use App\Http\Controllers\LoaiBenhController;
 use App\Http\Controllers\ApiCatalogController;
 use App\Http\Controllers\ChucNangController;
 use App\Http\Controllers\PhanQuyenController;
+use App\Http\Controllers\RolesDataController;
 use App\Http\Controllers\DVTController;
 use App\Http\Controllers\CachDungController;
 use App\Http\Controllers\PhieuNhapThuocController;
@@ -126,6 +127,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/phan-quyen/nhom/{idNhom}/assign-multiple', [PhanQuyenController::class, 'assignMultiple']);
     });
 });
+
+// Public endpoint for chatbot to fetch roles data
+Route::get('/roles-data', [RolesDataController::class, 'getRolesData']);
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);

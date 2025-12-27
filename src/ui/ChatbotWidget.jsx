@@ -25,7 +25,7 @@ const ChatbotWidget = () => {
       const res = await axiosChatbot.post('/', {
         message: text,
         conversation_history,
-        use_rag: false,
+        use_rag: true, // Enable RAG to use roles data
       });
 
       setMessages((prev) => [
@@ -36,9 +36,12 @@ const ChatbotWidget = () => {
       console.error('Chatbot error:', e);
       let errorMsg = 'Chatbot không phản hồi. Vui lòng thử lại sau.';
 
-      if (e.code === 'ERR_NETWORK' || e.message?.includes('ECONNREFUSED')) {
+      if (e.code === 'ERR_NETWORK' || e.message?.includes('ECONNREFUSED') || e.message?.includes('Network Error')) {
         errorMsg =
-          'Không thể kết nối đến chatbot server. Vui lòng kiểm tra backend Python (port 8001).';
+          'Không thể kết nối đến chatbot server. Vui lòng kiểm tra:\n' +
+          '1. Chatbot server đang chạy trên port 8002\n' +
+          '2. Khởi động server: cd python-chatbot && python start_chatbot.py\n' +
+          '3. Kiểm tra: http://localhost:8002/health';
       } else if (e.response?.data?.detail) {
         errorMsg = `Lỗi: ${e.response.data.detail}`;
       } else if (e.response?.status === 500) {

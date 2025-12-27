@@ -2,7 +2,7 @@
 Text chunking utilities
 """
 from typing import List
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 import config.setting as config
 
 
@@ -31,6 +31,7 @@ class TextChunker:
     def chunk_documents(self, documents: List) -> List:
         """Split documents into chunks"""
         return self.splitter.split_documents(documents)
+
 
 
 
