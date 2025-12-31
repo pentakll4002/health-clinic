@@ -12,6 +12,8 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 use App\Models\BenhNhan;
 use Illuminate\Support\Facades\Mail;
+use App\Helpers\RoleHelper;
+use App\Models\ChucNang;
 
 class AuthController extends Controller
 {
@@ -338,6 +340,39 @@ class AuthController extends Controller
         ]);
         
         return response()->json(['user' => $userData]);
+    }
+
+    public function myPermissions(Request $request)
+    {
+        $user = $request->user();
+
+        $roleCode = RoleHelper::getRoleCode($user);
+        if (!$roleCode) {
+            return response()->json([
+                'roleCode' => null,
+                'permissions' => [],
+            ]);
+        }
+
+        if ($roleCode === '@admin') {
+            $all = ChucNang::query()->pluck('TenManHinhTuongUong')->toArray();
+            return response()->json([
+                'roleCode' => $roleCode,
+                'permissions' => $all,
+            ]);
+        }
+
+        $user->load('nhanVien.nhomNguoiDung.chucNangs');
+        $group = $user->nhanVien?->nhomNguoiDung;
+
+        $permissions = $group
+            ? $group->chucNangs()->pluck('TenManHinhTuongUong')->toArray()
+            : [];
+
+        return response()->json([
+            'roleCode' => $roleCode,
+            'permissions' => $permissions,
+        ]);
     }
 
     public function logout(Request $request)

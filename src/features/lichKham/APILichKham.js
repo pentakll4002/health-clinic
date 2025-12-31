@@ -49,8 +49,10 @@ export async function updateLichKham(id, data) {
 }
 
 // Xác nhận lịch khám (cho admin/lễ tân)
-export async function confirmLichKham(id) {
-  const res = await axiosInstance.post(`/lich-kham/${id}/confirm`);
+export async function confirmLichKham({ id, ID_BacSi }) {
+  const res = await axiosInstance.post(`/lich-kham/${id}/confirm`, {
+    ID_BacSi,
+  });
   return res.data;
 }
 

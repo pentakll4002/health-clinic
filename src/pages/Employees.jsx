@@ -5,6 +5,7 @@ import { FunnelIcon } from '@heroicons/react/24/outline';
 import Spinner from '../ui/Spinner';
 import { useEmployees } from '../features/employee/useEmployees';
 import AddEmployee from '../features/employee/AddEmployee';
+import { useSearchParams } from 'react-router-dom';
 
 const Layout = styled.div`
   width: 100%;
@@ -45,6 +46,7 @@ const Stat = styled.div`
 `;
 
 function Employees() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { totalCount, isLoading } = useEmployees();
 
   if (isLoading) {
@@ -66,7 +68,20 @@ function Employees() {
               <strong>{totalCount ?? 0}</strong>
             </span>
           </Stat>
-          <Search />
+          <Search
+            onSearch={(value) => {
+              const next = new URLSearchParams(searchParams);
+              const keyword = value.trim();
+
+              next.delete('page');
+              if (!keyword) {
+                next.delete('search');
+              } else {
+                next.set('search', keyword);
+              }
+              setSearchParams(next);
+            }}
+          />
         </div>
         <div className='flex items-center gap-3'>
           <div className='flex items-center justify-center p-2 text-sm font-medium bg-white border rounded-md border-grey-transparent shadow-1 gap-x-2 text-grey-900'>

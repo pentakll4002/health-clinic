@@ -25,6 +25,30 @@ class QuiDinhSeeder extends Seeder
                 'TenQuyDinh' => 'TyLeGiaBan',
                 'GiaTri' => 0.2, // Tỷ lệ đơn giá bán thuốc (%) - dùng để tính giá bán từ giá nhập
             ],
+            [
+                'TenQuyDinh' => 'GioLamViec_Sang_BatDau',
+                'GiaTri' => 420, // 07:00
+            ],
+            [
+                'TenQuyDinh' => 'GioLamViec_Sang_KetThuc',
+                'GiaTri' => 690, // 11:30
+            ],
+            [
+                'TenQuyDinh' => 'GioLamViec_Chieu_BatDau',
+                'GiaTri' => 810, // 13:30
+            ],
+            [
+                'TenQuyDinh' => 'GioLamViec_Chieu_KetThuc',
+                'GiaTri' => 1020, // 17:00
+            ],
+            [
+                'TenQuyDinh' => 'GioLamViec_Toi_BatDau',
+                'GiaTri' => 1080, // 18:00
+            ],
+            [
+                'TenQuyDinh' => 'GioLamViec_Toi_KetThuc',
+                'GiaTri' => 1260, // 21:00
+            ],
         ];
 
         foreach ($quyDinhs as $quyDinh) {

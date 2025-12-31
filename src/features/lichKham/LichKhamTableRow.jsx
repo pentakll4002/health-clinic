@@ -10,6 +10,11 @@ import { useUser } from '../../hooks/useUser';
 import EditLichKhamForm from './EditLichKhamForm';
 import ConfirmDelete from '../../ui/ConfirmDelete';
 import { CheckCircleIcon, NoSymbolIcon, PencilIcon, TrashIcon, UserPlusIcon } from '@heroicons/react/24/outline';
+import Modal from '../../ui/Modal';
+import Select from '../../ui/Select';
+import { useQuery } from '@tanstack/react-query';
+import axiosInstance from '../../utils/axiosInstance';
+import { useState } from 'react';
 
 const Text = styled.span`
   color: #0a1b39;
@@ -27,12 +32,81 @@ const StatusBadge = styled.span`
   text-transform: uppercase;
 `;
 
+function ConfirmLichKhamModal({
+  lichKhamId,
+  patientName,
+  doctors,
+  selectedDoctorId,
+  setSelectedDoctorId,
+  isConfirming,
+  onCloseModal,
+  onConfirm,
+}) {
+  return (
+    <div>
+      <h2 className='text-xl font-bold text-grey-900 mb-4'>Xác nhận lịch khám</h2>
+      <p className='text-sm text-grey-600'>
+        Lịch khám #{lichKhamId} - Bệnh nhân {patientName}
+      </p>
+
+      <div className='mt-4'>
+        <label className='text-sm font-semibold text-grey-900'>Chọn bác sĩ</label>
+        <div className='mt-2'>
+          <Select value={selectedDoctorId} onChange={(e) => setSelectedDoctorId(e.target.value)}>
+            <option value=''>-- Chọn bác sĩ --</option>
+            {doctors.map((d) => (
+              <option key={d.ID_NhanVien} value={d.ID_NhanVien}>
+                {d.HoTenNV}
+              </option>
+            ))}
+          </Select>
+        </div>
+      </div>
+
+      <div className='flex justify-end gap-2 mt-6'>
+        <button
+          type='button'
+          className='px-3 py-2 text-sm font-semibold border rounded-md border-grey-transparent'
+          onClick={onCloseModal}
+        >
+          Huỷ
+        </button>
+        <button
+          type='button'
+          disabled={!selectedDoctorId || isConfirming}
+          className='px-3 py-2 text-sm font-semibold text-white rounded-md bg-primary disabled:opacity-60'
+          onClick={() => onConfirm(onCloseModal)}
+        >
+          Xác nhận
+        </button>
+      </div>
+    </div>
+  );
+}
+
 const LichKhamTableRow = ({ lichKham }) => {
   const { mutate: confirmLichKham, isLoading: isConfirming } = useConfirmLichKham();
   const { mutate: deleteLichKham, isLoading: isDeleting } = useDeleteLichKham();
   const { mutate: updateLichKham, isLoading: isUpdating } = useUpdateLichKham();
   const { mutate: createReception, isLoading: isCreatingReception } = useCreateReceptionFromLichKham();
   const { nhanVien } = useUser();
+  const [selectedDoctorId, setSelectedDoctorId] = useState(lichKham.ID_BacSi || '');
+
+  const { data: doctorsRes } = useQuery({
+    queryKey: ['doctors-for-confirm'],
+    queryFn: async () => {
+      const res = await axiosInstance.get('/nhanvien', {
+        params: {
+          page: 1,
+          limit: 200,
+          ma_nhom: '@doctors',
+        },
+      });
+      return res.data;
+    },
+  });
+
+  const doctors = doctorsRes?.data || [];
 
   const getStatusBadge = (trangThai) => {
     switch (trangThai) {
@@ -70,10 +144,15 @@ const LichKhamTableRow = ({ lichKham }) => {
     });
   };
 
-  const handleConfirm = () => {
-    if (window.confirm(`Xác nhận lịch khám #${lichKham.ID_LichKham} của bệnh nhân ${lichKham.benhNhan?.HoTenBN || 'N/A'}?`)) {
-      confirmLichKham(lichKham.ID_LichKham);
-    }
+  const handleConfirm = (onCloseModal) => {
+    confirmLichKham(
+      { id: lichKham.ID_LichKham, ID_BacSi: selectedDoctorId ? Number(selectedDoctorId) : null },
+      {
+        onSuccess: () => {
+          if (onCloseModal) onCloseModal();
+        },
+      }
+    );
   };
 
   const handleDelete = () => {
@@ -142,13 +221,28 @@ const LichKhamTableRow = ({ lichKham }) => {
 
                   {/* Confirm button - chỉ hiển thị khi chờ xác nhận */}
                   {lichKham.TrangThai === 'ChoXacNhan' && (
-                    <Menus.Button
-                      icon={<CheckCircleIcon className='w-4 h-4' />}
-                      onClick={handleConfirm}
-                      disabled={isConfirming || isUpdating || isDeleting}
-                    >
-                      {isConfirming ? 'Đang xử lý...' : 'Xác nhận'}
-                    </Menus.Button>
+                    <Modal>
+                      <Modal.Open opens={`confirm-${lichKham.ID_LichKham}`}>
+                        <Menus.Button
+                          icon={<CheckCircleIcon className='w-4 h-4' />}
+                          disabled={isConfirming || isUpdating || isDeleting}
+                        >
+                          {isConfirming ? 'Đang xử lý...' : 'Xác nhận'}
+                        </Menus.Button>
+                      </Modal.Open>
+
+                      <Modal.Window name={`confirm-${lichKham.ID_LichKham}`}>
+                        <ConfirmLichKhamModal
+                          lichKhamId={lichKham.ID_LichKham}
+                          patientName={patientName}
+                          doctors={doctors}
+                          selectedDoctorId={selectedDoctorId}
+                          setSelectedDoctorId={setSelectedDoctorId}
+                          isConfirming={isConfirming}
+                          onConfirm={handleConfirm}
+                        />
+                      </Modal.Window>
+                    </Modal>
                   )}
 
                   {/* Reject button - chỉ hiển thị khi chờ xác nhận */}

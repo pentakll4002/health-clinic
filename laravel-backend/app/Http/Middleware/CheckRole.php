@@ -30,6 +30,9 @@ class CheckRole
         // Nếu là nhân viên
         if ($user->nhanVien) {
             $roleCode = $user->nhanVien->nhomNguoiDung?->MaNhom;
+            if ($roleCode && !str_starts_with($roleCode, '@')) {
+                $roleCode = '@' . $roleCode;
+            }
         }
         // Nếu là bệnh nhân
         elseif ($user->benhNhan || $user->role === 'patient') {
@@ -53,6 +56,7 @@ class CheckRole
         return $next($request);
     }
 }
+
 
 
 

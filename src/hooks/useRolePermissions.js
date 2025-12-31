@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
-import { ROUTE_ROLES } from '../constants/permissions';
+import { ROUTE_PERMISSIONS, ROUTE_ROLES } from '../constants/permissions';
 import { useUser } from './useUser';
+import { useMyPermissions } from './useMyPermissions';
 
 export function useRolePermissions() {
   const { user, nhanVien, isLoading } = useUser();
+  const { data: myPermData, isLoading: isPermLoading } = useMyPermissions();
 
   const roleCode = useMemo(() => {
     console.log('🔍 useRolePermissions - Debug:', {
@@ -66,6 +68,12 @@ export function useRolePermissions() {
     if (!roleCode || !route) return false;
     
     if (roleCode === '@admin') return true;
+
+    const perms = myPermData?.permissions;
+    const requiredPermission = ROUTE_PERMISSIONS[route];
+    if (Array.isArray(perms) && requiredPermission) {
+      return perms.includes(requiredPermission);
+    }
     
     const allowedRoles = ROUTE_ROLES[route] || [];
     const hasAccess = allowedRoles.includes(roleCode);
@@ -94,7 +102,7 @@ export function useRolePermissions() {
 
   return {
     roleCode,
-    isLoading,
+    isLoading: isLoading || isPermLoading,
     canAccessRoute,
     canAccessAnyRoute,
     isRole,

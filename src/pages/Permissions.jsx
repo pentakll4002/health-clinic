@@ -110,6 +110,7 @@ function Permissions() {
     onSuccess: () => {
       toast.success('Cập nhật phân quyền thành công');
       permissionsQuery.refetch();
+      queryClient.invalidateQueries({ queryKey: ['my-permissions'] });
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Cập nhật phân quyền thất bại');

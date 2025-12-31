@@ -12,6 +12,12 @@ class QuiDinhController extends Controller
         'SoBenhNhanToiDa',
         'TienKham',
         'TyLeGiaBan',
+        'GioLamViec_Sang_BatDau',
+        'GioLamViec_Sang_KetThuc',
+        'GioLamViec_Chieu_BatDau',
+        'GioLamViec_Chieu_KetThuc',
+        'GioLamViec_Toi_BatDau',
+        'GioLamViec_Toi_KetThuc',
     ];
 
     public function index()
@@ -34,6 +40,12 @@ class QuiDinhController extends Controller
             'SoBenhNhanToiDa' => 'sometimes|required|integer|min:1|max:1000',
             'TienKham' => 'sometimes|required|numeric|min:0',
             'TyLeGiaBan' => 'sometimes|required|numeric|min:0|max:1000',
+            'GioLamViec_Sang_BatDau' => 'sometimes|required|integer|min:0|max:1439',
+            'GioLamViec_Sang_KetThuc' => 'sometimes|required|integer|min:0|max:1439',
+            'GioLamViec_Chieu_BatDau' => 'sometimes|required|integer|min:0|max:1439',
+            'GioLamViec_Chieu_KetThuc' => 'sometimes|required|integer|min:0|max:1439',
+            'GioLamViec_Toi_BatDau' => 'sometimes|required|integer|min:0|max:1439',
+            'GioLamViec_Toi_KetThuc' => 'sometimes|required|integer|min:0|max:1439',
         ]);
 
         if (empty($validated)) {

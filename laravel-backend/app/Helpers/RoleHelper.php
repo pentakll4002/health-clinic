@@ -105,6 +105,15 @@ class RoleHelper
     }
 
     /**
+     * Kiểm tra ai được phép nhập kho (phiếu nhập thuốc / tăng giảm tồn kho).
+     * Theo nghiệp vụ phòng khám tư: chỉ QUẢN LÝ được nhập kho, ADMIN không được nhập.
+     */
+    public static function canManagerImportInventory($user): bool
+    {
+        return self::isRole($user, '@managers');
+    }
+
+    /**
      * Kiểm tra quản lý có thể cập nhật quy định (tiền khám, giới hạn tiếp nhận...)
      */
     public static function canManagerUpdateRegulations($user): bool
@@ -120,6 +129,7 @@ class RoleHelper
         return self::hasRole($user, ['@managers', '@admin']);
     }
 }
+
 
 
 

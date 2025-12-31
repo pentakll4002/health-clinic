@@ -62,3 +62,4 @@ class LoaiBenhSeeder extends Seeder
 
 
 
+

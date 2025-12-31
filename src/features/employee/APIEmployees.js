@@ -1,8 +1,8 @@
 import axiosInstance from '../../utils/axiosInstance';
 
-export async function getEmployees({ page = 1, limit = 7 }) {
+export async function getEmployees({ page = 1, limit = 7, search = '' }) {
   const response = await axiosInstance.get('/nhanvien', {
-    params: { page, limit },
+    params: { page, limit, search: search || undefined },
   });
 
   return {
@@ -15,6 +15,7 @@ export async function getEmployee(id) {
   const response = await axiosInstance.get(`/nhanvien/${id}`);
   return response.data;
 }
+
 
 
 

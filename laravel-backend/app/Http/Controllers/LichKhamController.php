@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\LichKham;
 use App\Models\BenhNhan;
 use App\Models\DanhSachTiepNhan;
+use App\Models\NhanVien;
 use App\Models\QuiDinh;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -52,7 +53,7 @@ class LichKhamController extends Controller
 
         $query = LichKham::where('ID_BenhNhan', $benhNhan->ID_BenhNhan)
             ->where('Is_Deleted', false)
-            ->with('benhNhan')
+            ->with(['benhNhan', 'bacSi'])
             ->orderBy('NgayKhamDuKien', 'desc')
             ->orderBy('created_at', 'desc');
 
@@ -74,7 +75,7 @@ class LichKhamController extends Controller
     public function getAll(Request $request)
     {
         $query = LichKham::where('Is_Deleted', false)
-            ->with('benhNhan')
+            ->with(['benhNhan', 'bacSi'])
             ->orderBy('NgayKhamDuKien', 'desc')
             ->orderBy('created_at', 'desc');
 
@@ -153,6 +154,7 @@ class LichKhamController extends Controller
 
         $lichKham = LichKham::create([
             'ID_BenhNhan' => $benhNhan->ID_BenhNhan,
+            'ID_BacSi' => null,
             'NgayKhamDuKien' => $request->NgayKhamDuKien,
             'CaKham' => $request->CaKham,
             'TrangThai' => 'ChoXacNhan',
@@ -160,7 +162,7 @@ class LichKhamController extends Controller
             'Is_Deleted' => false,
         ]);
 
-        $lichKham->load('benhNhan');
+        $lichKham->load(['benhNhan', 'bacSi']);
 
         return response()->json([
             'message' => 'Đặt lịch khám thành công',
@@ -230,7 +232,7 @@ class LichKhamController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $lichKham = LichKham::with('benhNhan')->find($id);
+        $lichKham = LichKham::with(['benhNhan', 'bacSi'])->find($id);
 
         if (!$lichKham) {
             return response()->json(['message' => 'Không tìm thấy lịch khám'], 404);
@@ -240,6 +242,7 @@ class LichKhamController extends Controller
             'NgayKhamDuKien' => 'sometimes|required|date|after_or_equal:today',
             'CaKham' => 'sometimes|required|string|in:Sáng,Chiều,Tối',
             'TrangThai' => 'sometimes|required|string|in:ChoXacNhan,DaXacNhan,Huy',
+            'ID_BacSi' => 'sometimes|nullable|integer|exists:nhan_vien,ID_NhanVien',
             'GhiChu' => 'nullable|string|max:1000',
         ]);
 
@@ -274,9 +277,9 @@ class LichKhamController extends Controller
             ], 409);
         }
 
-        $lichKham->fill($request->only(['NgayKhamDuKien', 'CaKham', 'TrangThai', 'GhiChu']));
+        $lichKham->fill($request->only(['NgayKhamDuKien', 'CaKham', 'TrangThai', 'GhiChu', 'ID_BacSi']));
         $lichKham->save();
-        $lichKham->load('benhNhan');
+        $lichKham->load(['benhNhan', 'bacSi']);
 
         return response()->json([
             'message' => 'Cập nhật lịch khám thành công',
@@ -290,7 +293,7 @@ class LichKhamController extends Controller
      */
     public function confirm(Request $request, $id)
     {
-        $lichKham = LichKham::with('benhNhan')->find($id);
+        $lichKham = LichKham::with(['benhNhan', 'bacSi'])->find($id);
 
         if (!$lichKham) {
             return response()->json(['message' => 'Không tìm thấy lịch khám'], 404);
@@ -299,6 +302,61 @@ class LichKhamController extends Controller
         if ($lichKham->TrangThai !== 'ChoXacNhan') {
             return response()->json(['message' => 'Lịch khám này không thể xác nhận'], 400);
         }
+
+        $validator = Validator::make($request->all(), [
+            'ID_BacSi' => 'nullable|integer|exists:nhan_vien,ID_NhanVien',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Dữ liệu không hợp lệ',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $doctorId = $request->get('ID_BacSi') ?? $lichKham->ID_BacSi;
+        if (!$doctorId) {
+            return response()->json([
+                'message' => 'Vui lòng chọn bác sĩ trước khi xác nhận lịch khám.',
+            ], 422);
+        }
+
+        $doctor = NhanVien::with('nhomNguoiDung')->find($doctorId);
+        if (!$doctor) {
+            return response()->json(['message' => 'Không tìm thấy bác sĩ'], 404);
+        }
+
+        $maNhomDoctor = $doctor->nhomNguoiDung?->MaNhom;
+        $normalizedDoctor = $maNhomDoctor ? ltrim($maNhomDoctor, '@') : null;
+        if ($normalizedDoctor !== 'doctors') {
+            return response()->json([
+                'message' => 'Nhân viên được chọn không thuộc nhóm bác sĩ.',
+            ], 422);
+        }
+
+        $doctorBusy = LichKham::where('ID_BacSi', $doctorId)
+            ->whereDate('NgayKhamDuKien', $lichKham->NgayKhamDuKien)
+            ->where('CaKham', $lichKham->CaKham)
+            ->where('Is_Deleted', false)
+            ->whereIn('TrangThai', ['ChoXacNhan', 'DaXacNhan'])
+            ->where('ID_LichKham', '!=', $lichKham->ID_LichKham)
+            ->first();
+
+        if ($doctorBusy) {
+            return response()->json([
+                'message' => 'Bác sĩ đã có lịch khám trùng ngày và ca. Vui lòng chọn bác sĩ khác.',
+                'conflict_type' => 'DOCTOR_SLOT_CONFLICT',
+                'conflict' => [
+                    'ID_LichKham' => $doctorBusy->ID_LichKham,
+                    'ID_BacSi' => $doctorId,
+                    'NgayKhamDuKien' => $doctorBusy->NgayKhamDuKien,
+                    'CaKham' => $doctorBusy->CaKham,
+                    'TrangThai' => $doctorBusy->TrangThai,
+                ],
+            ], 409);
+        }
+
+        $lichKham->ID_BacSi = $doctorId;
 
         // Lấy thông tin nhân viên từ request (lễ tân đang xác nhận)
         $user = $request->user();
@@ -321,7 +379,7 @@ class LichKhamController extends Controller
             // Nếu đã có tiếp nhận, chỉ cập nhật trạng thái lịch khám
             $lichKham->TrangThai = 'DaXacNhan';
             $lichKham->save();
-            $lichKham->load('benhNhan');
+            $lichKham->load(['benhNhan', 'bacSi']);
 
             return response()->json([
                 'message' => 'Lịch khám đã được xác nhận. Bệnh nhân đã có trong danh sách tiếp nhận.',
@@ -350,7 +408,7 @@ class LichKhamController extends Controller
 
         $lichKham->TrangThai = 'DaXacNhan';
         $lichKham->save();
-        $lichKham->load('benhNhan');
+        $lichKham->load(['benhNhan', 'bacSi']);
 
         return response()->json([
             'message' => 'Xác nhận lịch khám thành công. Bệnh nhân đã được thêm vào danh sách tiếp nhận.',

@@ -62,6 +62,11 @@ class NhanVienController extends Controller
         $page = $request->get('page', 1);
         $query = \App\Models\NhanVien::with('nhomNguoiDung');
 
+        if ($request->filled('search')) {
+            $search = trim($request->get('search'));
+            $query->where('HoTenNV', 'like', '%' . $search . '%');
+        }
+
         if ($request->filled('ma_nhom')) {
             $maNhom = $request->get('ma_nhom');
             $normalized = ltrim($maNhom, '@');

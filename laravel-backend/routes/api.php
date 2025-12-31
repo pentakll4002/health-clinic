@@ -24,6 +24,7 @@ use App\Http\Controllers\RolesDataController;
 use App\Http\Controllers\DVTController;
 use App\Http\Controllers\CachDungController;
 use App\Http\Controllers\PhieuNhapThuocController;
+use App\Http\Controllers\ManagerAnalyticsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +39,7 @@ use App\Http\Controllers\PhieuNhapThuocController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user-profile', [AuthController::class, 'userProfile']);
+    Route::get('/my-permissions', [AuthController::class, 'myPermissions']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/patient/profile', [PatientProfileController::class, 'show']);
     Route::match(['put', 'patch'], '/patient/profile', [PatientProfileController::class, 'update']);
@@ -90,6 +92,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // API catalog (for presenting endpoints by role)
     Route::get('/api-catalog', [ApiCatalogController::class, 'index']);
+
+    // Manager analytics (KPI tổng hợp)
+    Route::get('/manager/analytics/summary', [ManagerAnalyticsController::class, 'summary']);
+    Route::get('/manager/analytics/staff-performance', [ManagerAnalyticsController::class, 'staffPerformance']);
 
     Route::get('/dvt', [DVTController::class, 'index']);
     Route::get('/cach-dung', [CachDungController::class, 'index']);

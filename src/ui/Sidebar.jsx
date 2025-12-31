@@ -58,11 +58,11 @@ const Sidebar = () => {
         <div className='flex flex-col mb-6'>
           <p className='px-2 mb-2 text-sm font-semibold text-grey-400 text-center'>Quản trị hệ thống</p>
           <SidebarLink to='/' icon={DashboardSvg} label='Dashboard' />
-          <SidebarLink to='/employees' icon={UserGroupIcon} label='Nhân viên' />
-          <SidebarLink to='/permissions' icon={ShieldExclamationIcon} label='Phân quyền' />
-          <SidebarLink to='/regulations' icon={Cog8ToothIcon} label='Tham số hệ thống' />
-          <SidebarLink to='/services' icon={Cog8ToothIcon} label='Dịch vụ khám' />
-          <SidebarLink to='/catalogs' icon={LeavesSvg} label='Danh mục nền' />
+          {can('employees') && <SidebarLink to='/employees' icon={UserGroupIcon} label='Nhân viên' />}
+          {can('permissions') && <SidebarLink to='/permissions' icon={ShieldExclamationIcon} label='Phân quyền' />}
+          {can('regulations') && <SidebarLink to='/regulations' icon={Cog8ToothIcon} label='Tham số hệ thống' />}
+          {can('services') && <SidebarLink to='/services' icon={Cog8ToothIcon} label='Dịch vụ khám' />}
+          {can('catalogs') && <SidebarLink to='/catalogs' icon={LeavesSvg} label='Danh mục nền' />}
         </div>
 
         <div className='border border-grey-transparent'></div>
@@ -129,11 +129,13 @@ const Sidebar = () => {
         <div className='flex flex-col mb-6'>
           <p className='px-2 mb-2 text-sm font-semibold text-grey-400 text-center'>Quản lý</p>
           <SidebarLink to='/' icon={DashboardSvg} label='Dashboard' />
-          <SidebarLink to='/reports' icon={PresentationChartLineIcon} label='Thống kê tổng hợp' />
-          <SidebarLink to='/reports/staff' icon={UserGroupIcon} label='Hiệu suất nhân viên' />
-          <SidebarLink to='/drugs' icon={DrugSvg} label='Quản lý thuốc' />
-          <SidebarLink to='/regulations' icon={Cog8ToothIcon} label='Tham số hệ thống' />
-          <SidebarLink to='/services' icon={Cog8ToothIcon} label='Dịch vụ khám' />
+          {can('reports') && <SidebarLink to='/reports' icon={PresentationChartLineIcon} label='Thống kê tổng hợp' />}
+          {can('reports') && <SidebarLink to='/reports/staff' icon={UserGroupIcon} label='Hiệu suất nhân viên' />}
+          {can('patients') && <SidebarLink to='/patients' icon={PatientsSvg} label='Quản lý bệnh nhân' />}
+          {can('drugs') && <SidebarLink to='/drugs' icon={DrugSvg} label='Quản lý thuốc' />}
+          {can('regulations') && <SidebarLink to='/regulations' icon={Cog8ToothIcon} label='Tham số hệ thống' />}
+          {can('services') && <SidebarLink to='/services' icon={Cog8ToothIcon} label='Dịch vụ khám' />}
+          {can('catalogs') && <SidebarLink to='/catalogs' icon={LeavesSvg} label='Danh mục nền' />}
         </div>
 
         <div className='border border-grey-transparent'></div>
@@ -162,11 +164,13 @@ const Sidebar = () => {
         <div className='flex flex-col mb-6'>
           <p className='px-2 mb-2 text-sm font-semibold text-grey-400 text-center'>Lễ tân – Thu ngân</p>
           <SidebarLink to='/' icon={DashboardSvg} label='Trang chủ' />
-          <SidebarLink to='/patients' icon={PatientsSvg} label='Quản lý bệnh nhân' />
-          <SidebarLink to='/reception?tab=reception' icon={MapPinIcon} label='Tiếp nhận bệnh nhân' />
-          <SidebarLink to='/reception?tab=online' icon={AppointmentsSvg} label='Lịch hẹn online' />
-          <SidebarLink to='/patients/today' icon={CalendarDaysIcon} label='Danh sách chờ khám' />
-          <SidebarLink to='/invoices' icon={CurrencyDollarIcon} label='Thanh toán' />
+          {can('patients') && <SidebarLink to='/patients' icon={PatientsSvg} label='Quản lý bệnh nhân' />}
+          {can('reception') && <SidebarLink to='/reception?tab=reception' icon={MapPinIcon} label='Tiếp nhận bệnh nhân' />}
+          {can('appointments') && <SidebarLink to='/reception?tab=online' icon={AppointmentsSvg} label='Lịch hẹn online' />}
+          {can('patients') && <SidebarLink to='/patients/today' icon={CalendarDaysIcon} label='Danh sách chờ khám' />}
+          {can('invoices') && <SidebarLink to='/invoices' icon={CurrencyDollarIcon} label='Thanh toán' />}
+          {can('catalogs') && <SidebarLink to='/catalogs' icon={LeavesSvg} label='Danh mục nền' />}
+          {can('services') && <SidebarLink to='/services' icon={Cog8ToothIcon} label='Dịch vụ khám' />}
         </div>
 
         <div className='border border-grey-transparent'></div>

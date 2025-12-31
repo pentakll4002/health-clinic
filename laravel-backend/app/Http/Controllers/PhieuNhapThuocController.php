@@ -48,7 +48,7 @@ class PhieuNhapThuocController extends Controller
     {
         // Kiểm tra quyền: Chỉ quản lý được nhập thuốc
         $user = $request->user();
-        if (!RoleHelper::canManagerManageDrugs($user)) {
+        if (!RoleHelper::canManagerImportInventory($user)) {
             return response()->json([
                 'message' => 'Bạn không có quyền nhập thuốc. Chỉ quản lý mới được phép thực hiện chức năng này.',
             ], 403);
@@ -161,7 +161,7 @@ class PhieuNhapThuocController extends Controller
     public function destroy($id)
     {
         $user = request()->user();
-        if (!RoleHelper::canManagerManageDrugs($user)) {
+        if (!RoleHelper::canManagerImportInventory($user)) {
             return response()->json([
                 'message' => 'Bạn không có quyền xóa phiếu nhập thuốc. Chỉ quản lý mới được phép thực hiện chức năng này.',
             ], 403);
@@ -205,6 +205,7 @@ class PhieuNhapThuocController extends Controller
         }
     }
 }
+
 
 
 

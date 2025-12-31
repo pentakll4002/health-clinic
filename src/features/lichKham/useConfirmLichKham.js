@@ -16,6 +16,11 @@ export function useConfirmLichKham() {
       toast.success(message);
     },
     onError: (error) => {
+      const status = error.response?.status;
+      if (status === 409) {
+        toast.error(error.response?.data?.message || 'Xác nhận lịch khám bị xung đột');
+        return;
+      }
       const message = error.response?.data?.message || 'Xác nhận lịch khám thất bại';
       toast.error(message);
     },

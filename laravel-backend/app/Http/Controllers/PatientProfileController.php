@@ -6,6 +6,7 @@ use App\Models\DanhSachTiepNhan;
 use App\Models\HoaDon;
 use App\Models\NhanVien;
 use App\Models\PhieuKham;
+use App\Models\QuiDinh;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -15,6 +16,65 @@ use Illuminate\Support\Facades\Log;
 
 class PatientProfileController extends Controller
 {
+    private function minutesNow(): int
+    {
+        $now = Carbon::now();
+        return ((int) $now->format('H')) * 60 + ((int) $now->format('i'));
+    }
+
+    private function getShiftRange(string $shift): array
+    {
+        // Values are minutes since midnight. Defaults match QuiDinhSeeder.
+        return match ($shift) {
+            'Sáng' => [
+                (int) QuiDinh::getValue('GioLamViec_Sang_BatDau', 420),
+                (int) QuiDinh::getValue('GioLamViec_Sang_KetThuc', 690),
+            ],
+            'Chiều' => [
+                (int) QuiDinh::getValue('GioLamViec_Chieu_BatDau', 810),
+                (int) QuiDinh::getValue('GioLamViec_Chieu_KetThuc', 1020),
+            ],
+            'Tối' => [
+                (int) QuiDinh::getValue('GioLamViec_Toi_BatDau', 1080),
+                (int) QuiDinh::getValue('GioLamViec_Toi_KetThuc', 1260),
+            ],
+            default => [0, 0],
+        };
+    }
+
+    private function isShiftStillBookableToday(string $shift): bool
+    {
+        [$start, $end] = $this->getShiftRange($shift);
+        $nowMinutes = $this->minutesNow();
+
+        // If current time already passed shift end -> cannot book that shift for today.
+        return $nowMinutes <= $end;
+    }
+    private function getAllowedShifts(): array
+    {
+        return ['Sáng', 'Chiều', 'Tối'];
+    }
+
+    private function suggestNextSlots(string $fromDate, ?string $shift = null, int $daysToCheck = 7): array
+    {
+        $allowedShifts = $this->getAllowedShifts();
+        $from = Carbon::parse($fromDate)->startOfDay();
+
+        $results = [];
+        for ($i = 0; $i < $daysToCheck; $i++) {
+            $date = $from->copy()->addDays($i)->toDateString();
+
+            $checkShifts = $shift ? [$shift] : $allowedShifts;
+            foreach ($checkShifts as $s) {
+                $results[] = [
+                    'NgayTN' => $date,
+                    'CaTN' => $s,
+                ];
+            }
+        }
+
+        return $results;
+    }
     public function show(Request $request)
     {
         $user = $request->user()->load('benhNhan');
@@ -209,10 +269,34 @@ class PatientProfileController extends Controller
         }
 
         $validated = $request->validate([
-            'NgayTN' => 'required|date|after:now',
-            'CaTN' => 'required|string|max:10',
+            'NgayTN' => 'required|date|after_or_equal:today',
+            'CaTN' => 'required|string|in:Sáng,Chiều,Tối',
             'ID_NhanVien' => 'required|integer|exists:nhan_vien,ID_NhanVien',
         ]);
+
+        $ngayTN = Carbon::parse($validated['NgayTN'])->toDateString();
+        $caTN = $validated['CaTN'];
+
+        // 5) Đặt ca không hợp lệ / ngoài giờ làm việc (Option B: cấu hình QuiDinh)
+        // For same-day booking, if the shift already ended, reject and suggest remaining shifts.
+        if ($ngayTN === Carbon::today()->toDateString() && !$this->isShiftStillBookableToday($caTN)) {
+            $allowedShifts = $this->getAllowedShifts();
+            $availableShifts = array_values(array_filter($allowedShifts, fn ($s) => $this->isShiftStillBookableToday($s)));
+
+            return response()->json([
+                'message' => 'Không thể đặt lịch vì đã ngoài giờ làm việc của ca được chọn. Vui lòng chọn ca khác.',
+                'conflict_type' => 'OUTSIDE_WORKING_HOURS',
+                'conflict' => [
+                    'NgayTN' => $ngayTN,
+                    'CaTN' => $caTN,
+                ],
+                'suggestions' => [
+                    'allowed_shifts' => $allowedShifts,
+                    'available_shifts_today' => $availableShifts,
+                    'slots' => $this->suggestNextSlots($ngayTN, null, 7),
+                ],
+            ], 409);
+        }
 
         $doctor = NhanVien::with('nhomNguoiDung')->find($validated['ID_NhanVien']);
         $doctorGroupCode = $doctor?->nhomNguoiDung?->MaNhom;
@@ -228,10 +312,81 @@ class PatientProfileController extends Controller
             ], 422);
         }
 
+        // 1) Vượt quá số bệnh nhân tối đa trong ngày
+        $soBenhNhanToiDa = (int) QuiDinh::getValue('SoBenhNhanToiDa', 50);
+        $soBenhNhanHienTai = DanhSachTiepNhan::whereDate('NgayTN', $ngayTN)
+            ->where('Is_Deleted', false)
+            ->count();
+
+        if ($soBenhNhanHienTai >= $soBenhNhanToiDa) {
+            return response()->json([
+                'message' => "Đã đạt số bệnh nhân tối đa trong ngày ({$soBenhNhanHienTai}/{$soBenhNhanToiDa}). Vui lòng chọn ngày/ca khác.",
+                'conflict_type' => 'MAX_DAILY_PATIENTS',
+                'conflict' => [
+                    'NgayTN' => $ngayTN,
+                    'current' => $soBenhNhanHienTai,
+                    'max' => $soBenhNhanToiDa,
+                ],
+                'suggestions' => [
+                    'slots' => $this->suggestNextSlots($ngayTN, null, 7),
+                    'allowed_shifts' => $this->getAllowedShifts(),
+                ],
+            ], 409);
+        }
+
+        // 2) Bệnh nhân đã có lịch trong ngày/ca (chặn đặt thêm)
+        $duplicatePatient = DanhSachTiepNhan::where('ID_BenhNhan', $benhNhan->ID_BenhNhan)
+            ->whereDate('NgayTN', $ngayTN)
+            ->where('CaTN', $caTN)
+            ->where('Is_Deleted', false)
+            ->first();
+
+        if ($duplicatePatient) {
+            return response()->json([
+                'message' => 'Bạn đã có lịch khám trong ngày/ca này. Vui lòng chọn ngày/ca khác.',
+                'conflict_type' => 'PATIENT_DUPLICATE_APPOINTMENT',
+                'conflict' => [
+                    'ID_TiepNhan' => $duplicatePatient->ID_TiepNhan,
+                    'NgayTN' => optional($duplicatePatient->NgayTN)->toDateString() ?? $ngayTN,
+                    'CaTN' => $duplicatePatient->CaTN,
+                    'TrangThaiTiepNhan' => $duplicatePatient->TrangThaiTiepNhan,
+                ],
+                'suggestions' => [
+                    'slots' => $this->suggestNextSlots($ngayTN, null, 7),
+                    'allowed_shifts' => $this->getAllowedShifts(),
+                ],
+            ], 409);
+        }
+
+        // 3) Trùng lịch theo bác sĩ + ngày + ca
+        $doctorBusy = DanhSachTiepNhan::where('ID_NhanVien', $doctor->ID_NhanVien)
+            ->whereDate('NgayTN', $ngayTN)
+            ->where('CaTN', $caTN)
+            ->where('Is_Deleted', false)
+            ->first();
+
+        if ($doctorBusy) {
+            return response()->json([
+                'message' => 'Bác sĩ đã có lịch trùng ngày và ca. Vui lòng chọn khung giờ khác.',
+                'conflict_type' => 'DOCTOR_SLOT_CONFLICT',
+                'conflict' => [
+                    'ID_TiepNhan' => $doctorBusy->ID_TiepNhan,
+                    'ID_NhanVien' => $doctor->ID_NhanVien,
+                    'NgayTN' => optional($doctorBusy->NgayTN)->toDateString() ?? $ngayTN,
+                    'CaTN' => $doctorBusy->CaTN,
+                    'TrangThaiTiepNhan' => $doctorBusy->TrangThaiTiepNhan,
+                ],
+                'suggestions' => [
+                    'slots' => $this->suggestNextSlots($ngayTN, null, 7),
+                    'allowed_shifts' => $this->getAllowedShifts(),
+                ],
+            ], 409);
+        }
+
         $appointment = DanhSachTiepNhan::create([
             'ID_BenhNhan' => $benhNhan->ID_BenhNhan,
-            'NgayTN' => Carbon::parse($validated['NgayTN']),
-            'CaTN' => $validated['CaTN'],
+            'NgayTN' => Carbon::parse($ngayTN),
+            'CaTN' => $caTN,
             'ID_NhanVien' => $doctor->ID_NhanVien,
             // Option B: Trạng thái nghiệp vụ bắt đầu là CHO_XAC_NHAN (lễ tân duyệt)
             'TrangThaiTiepNhan' => 'CHO_XAC_NHAN',

@@ -45,8 +45,29 @@ const RegulationsForm = () => {
       SoBenhNhanToiDa: '',
       TienKham: '',
       TyLeGiaBan: '',
+      GioLamViec_Sang_BatDau: '07:00',
+      GioLamViec_Sang_KetThuc: '11:30',
+      GioLamViec_Chieu_BatDau: '13:30',
+      GioLamViec_Chieu_KetThuc: '17:00',
+      GioLamViec_Toi_BatDau: '18:00',
+      GioLamViec_Toi_KetThuc: '21:00',
     },
   });
+
+  function minutesToTime(value) {
+    const minutes = Number(value);
+    if (!Number.isFinite(minutes)) return '';
+    const hh = String(Math.floor(minutes / 60)).padStart(2, '0');
+    const mm = String(minutes % 60).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+
+  function timeToMinutes(value) {
+    if (!value || typeof value !== 'string') return null;
+    const [hh, mm] = value.split(':').map((x) => Number(x));
+    if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+    return hh * 60 + mm;
+  }
 
   useEffect(() => {
     if (!regulations) return;
@@ -55,6 +76,12 @@ const RegulationsForm = () => {
       SoBenhNhanToiDa: regulations.SoBenhNhanToiDa ?? '',
       TienKham: regulations.TienKham ?? '',
       TyLeGiaBan: regulations.TyLeGiaBan ?? '',
+      GioLamViec_Sang_BatDau: minutesToTime(regulations.GioLamViec_Sang_BatDau ?? 420) || '07:00',
+      GioLamViec_Sang_KetThuc: minutesToTime(regulations.GioLamViec_Sang_KetThuc ?? 690) || '11:30',
+      GioLamViec_Chieu_BatDau: minutesToTime(regulations.GioLamViec_Chieu_BatDau ?? 810) || '13:30',
+      GioLamViec_Chieu_KetThuc: minutesToTime(regulations.GioLamViec_Chieu_KetThuc ?? 1020) || '17:00',
+      GioLamViec_Toi_BatDau: minutesToTime(regulations.GioLamViec_Toi_BatDau ?? 1080) || '18:00',
+      GioLamViec_Toi_KetThuc: minutesToTime(regulations.GioLamViec_Toi_KetThuc ?? 1260) || '21:00',
     });
   }, [regulations, reset]);
 
@@ -82,6 +109,22 @@ const RegulationsForm = () => {
       payload.TyLeGiaBan = parseFloat(values.TyLeGiaBan);
     }
 
+    const keys = [
+      'GioLamViec_Sang_BatDau',
+      'GioLamViec_Sang_KetThuc',
+      'GioLamViec_Chieu_BatDau',
+      'GioLamViec_Chieu_KetThuc',
+      'GioLamViec_Toi_BatDau',
+      'GioLamViec_Toi_KetThuc',
+    ];
+
+    keys.forEach((k) => {
+      if (values[k] !== '') {
+        const minutes = timeToMinutes(values[k]);
+        if (minutes !== null) payload[k] = minutes;
+      }
+    });
+
     updateMutation(payload);
   }
 
@@ -102,6 +145,59 @@ const RegulationsForm = () => {
             min: { value: 1, message: 'Ít nhất 1 bệnh nhân' },
             max: { value: 1000, message: 'Không vượt quá 1000' },
           })}
+        />
+      </FormRow>
+
+      <div className='col-span-2'>
+        <p className='text-sm font-semibold text-grey-900'>Giờ làm việc theo ca</p>
+        <p className='text-xs text-grey-500 mt-1'>Thiết lập khung giờ để hệ thống chặn đặt lịch ngoài giờ làm việc.</p>
+      </div>
+
+      <FormRow label='Ca sáng - Bắt đầu' error={errors.GioLamViec_Sang_BatDau?.message}>
+        <InputNew
+          type='time'
+          id='GioLamViec_Sang_BatDau'
+          {...register('GioLamViec_Sang_BatDau', { required: 'Bắt buộc' })}
+        />
+      </FormRow>
+
+      <FormRow label='Ca sáng - Kết thúc' error={errors.GioLamViec_Sang_KetThuc?.message}>
+        <InputNew
+          type='time'
+          id='GioLamViec_Sang_KetThuc'
+          {...register('GioLamViec_Sang_KetThuc', { required: 'Bắt buộc' })}
+        />
+      </FormRow>
+
+      <FormRow label='Ca chiều - Bắt đầu' error={errors.GioLamViec_Chieu_BatDau?.message}>
+        <InputNew
+          type='time'
+          id='GioLamViec_Chieu_BatDau'
+          {...register('GioLamViec_Chieu_BatDau', { required: 'Bắt buộc' })}
+        />
+      </FormRow>
+
+      <FormRow label='Ca chiều - Kết thúc' error={errors.GioLamViec_Chieu_KetThuc?.message}>
+        <InputNew
+          type='time'
+          id='GioLamViec_Chieu_KetThuc'
+          {...register('GioLamViec_Chieu_KetThuc', { required: 'Bắt buộc' })}
+        />
+      </FormRow>
+
+      <FormRow label='Ca tối - Bắt đầu' error={errors.GioLamViec_Toi_BatDau?.message}>
+        <InputNew
+          type='time'
+          id='GioLamViec_Toi_BatDau'
+          {...register('GioLamViec_Toi_BatDau', { required: 'Bắt buộc' })}
+        />
+      </FormRow>
+
+      <FormRow label='Ca tối - Kết thúc' error={errors.GioLamViec_Toi_KetThuc?.message}>
+        <InputNew
+          type='time'
+          id='GioLamViec_Toi_KetThuc'
+          {...register('GioLamViec_Toi_KetThuc', { required: 'Bắt buộc' })}
         />
       </FormRow>
 
@@ -140,6 +236,12 @@ const RegulationsForm = () => {
               SoBenhNhanToiDa: regulations.SoBenhNhanToiDa ?? '',
               TienKham: regulations.TienKham ?? '',
               TyLeGiaBan: regulations.TyLeGiaBan ?? '',
+              GioLamViec_Sang_BatDau: minutesToTime(regulations.GioLamViec_Sang_BatDau ?? 420) || '07:00',
+              GioLamViec_Sang_KetThuc: minutesToTime(regulations.GioLamViec_Sang_KetThuc ?? 690) || '11:30',
+              GioLamViec_Chieu_BatDau: minutesToTime(regulations.GioLamViec_Chieu_BatDau ?? 810) || '13:30',
+              GioLamViec_Chieu_KetThuc: minutesToTime(regulations.GioLamViec_Chieu_KetThuc ?? 1020) || '17:00',
+              GioLamViec_Toi_BatDau: minutesToTime(regulations.GioLamViec_Toi_BatDau ?? 1080) || '18:00',
+              GioLamViec_Toi_KetThuc: minutesToTime(regulations.GioLamViec_Toi_KetThuc ?? 1260) || '21:00',
             })
           }
         >

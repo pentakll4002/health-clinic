@@ -42,3 +42,22 @@ export const ROUTE_ROLES = {
   services: ['@admin', '@managers'],
 };
 
+export const ROUTE_PERMISSIONS = {
+  employees: 'manage-employees',
+  permissions: 'manage-permissions',
+  catalogs: 'configure-system',
+  doctors: 'examine-patients',
+  patients: 'manage-patients',
+  patientDetail: 'manage-patients',
+  reception: 'intake-patient',
+  drugs: 'manage-drugs',
+  medicalForms: 'examine-patients',
+  doctorQueue: 'examine-patients',
+  doctorExam: 'examine-patients',
+  invoices: 'manage-invoices',
+  appointments: 'schedule-appointments',
+  reports: 'manage-reports',
+  regulations: 'configure-system',
+  services: 'configure-system',
+};
+

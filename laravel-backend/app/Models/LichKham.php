@@ -15,6 +15,7 @@ class LichKham extends Model
 
     protected $fillable = [
         'ID_BenhNhan',
+        'ID_BacSi',
         'NgayKhamDuKien',
         'CaKham',
         'TrangThai',
@@ -31,7 +32,13 @@ class LichKham extends Model
     {
         return $this->belongsTo(BenhNhan::class, 'ID_BenhNhan', 'ID_BenhNhan');
     }
+
+    public function bacSi()
+    {
+        return $this->belongsTo(NhanVien::class, 'ID_BacSi', 'ID_NhanVien');
+    }
 }
+
 
 
 

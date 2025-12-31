@@ -8,10 +8,11 @@ export function useEmployees() {
   const [searchParams] = useSearchParams();
 
   const page = !searchParams.get('page') ? 1 : Number(searchParams.get('page'));
+  const search = searchParams.get('search') || '';
 
   const { isLoading, data: { data: employees, totalCount } = {} } = useQuery({
-    queryKey: ['employees', page],
-    queryFn: () => getEmployees({ page }),
+    queryKey: ['employees', page, search],
+    queryFn: () => getEmployees({ page, search }),
     keepPreviousData: true,
   });
 
@@ -20,14 +21,14 @@ export function useEmployees() {
   if (page < pageCount) {
     queryClient.prefetchQuery({
       queryKey: ['employees', page + 1],
-      queryFn: () => getEmployees({ page: page + 1 }),
+      queryFn: () => getEmployees({ page: page + 1, search }),
     });
   }
 
   if (page > 1) {
     queryClient.prefetchQuery({
       queryKey: ['employees', page - 1],
-      queryFn: () => getEmployees({ page: page - 1 }),
+      queryFn: () => getEmployees({ page: page - 1, search }),
     });
   }
 
@@ -37,6 +38,7 @@ export function useEmployees() {
     isLoading,
   };
 }
+
 
 
 

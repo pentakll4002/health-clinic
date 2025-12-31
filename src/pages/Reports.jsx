@@ -5,6 +5,7 @@ import { FunnelIcon } from '@heroicons/react/24/outline';
 import { useReports } from '../features/reports/useReports';
 import AddReport from '../features/reports/AddReport';
 import Select from '../ui/Select';
+import { useManagerAnalytics } from '../features/reports/useManagerAnalytics';
 
 const LayoutReports = styled.div`
   width: 100%;
@@ -25,6 +26,10 @@ const Reports = () => {
   const [nam, setNam] = useState('');
   
   const { totalCount } = useReports({ thang: thang || undefined, nam: nam || undefined });
+  const { kpis } = useManagerAnalytics({
+    thang: thang ? Number(thang) : undefined,
+    nam: nam ? Number(nam) : undefined,
+  });
 
   // Tạo danh sách tháng (1-12)
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -97,6 +102,35 @@ const Reports = () => {
           <AddReport />
         </div>
       </LayoutFlex>
+
+      {kpis && (
+        <div className='grid grid-cols-1 gap-4 mb-5 md:grid-cols-2 xl:grid-cols-4'>
+          <div className='bg-white rounded-lg border border-grey-transparent shadow-1 p-4'>
+            <p className='text-xs font-semibold text-grey-500 uppercase'>Phiếu nhập</p>
+            <p className='mt-1 text-2xl font-bold text-grey-900'>{kpis.total_import_slips || 0}</p>
+            <p className='mt-1 text-xs text-grey-500'>Tổng số phiếu nhập thuốc</p>
+          </div>
+          <div className='bg-white rounded-lg border border-grey-transparent shadow-1 p-4'>
+            <p className='text-xs font-semibold text-grey-500 uppercase'>Tiền nhập</p>
+            <p className='mt-1 text-2xl font-bold text-grey-900'>
+              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(kpis.total_import_amount || 0)}
+            </p>
+            <p className='mt-1 text-xs text-grey-500'>Tổng tiền nhập thuốc</p>
+          </div>
+          <div className='bg-white rounded-lg border border-grey-transparent shadow-1 p-4'>
+            <p className='text-xs font-semibold text-grey-500 uppercase'>Số lượng nhập</p>
+            <p className='mt-1 text-2xl font-bold text-grey-900'>{kpis.total_import_quantity || 0}</p>
+            <p className='mt-1 text-xs text-grey-500'>Tổng số lượng thuốc nhập</p>
+          </div>
+          <div className='bg-white rounded-lg border border-grey-transparent shadow-1 p-4'>
+            <p className='text-xs font-semibold text-grey-500 uppercase'>Doanh thu</p>
+            <p className='mt-1 text-2xl font-bold text-grey-900'>
+              {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(kpis.total_revenue || 0)}
+            </p>
+            <p className='mt-1 text-xs text-grey-500'>Tổng doanh thu hoá đơn</p>
+          </div>
+        </div>
+      )}
 
       <ReportsContainer thang={thang || undefined} nam={nam || undefined} />
     </LayoutReports>
